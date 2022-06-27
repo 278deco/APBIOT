@@ -63,11 +63,12 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 		this.template.setColor(new ColorBuilder().newRandomColor().getDiscordColor());
 		
 		Button funButton = Button.secondary(getID()+CommandHelper.ID_SEPARATOR+"fun_button", "FUN");
+		Button gameButton = Button.secondary(getID()+CommandHelper.ID_SEPARATOR+"game_button", "GAME");
 		Button adminButton = Button.secondary(getID()+CommandHelper.ID_SEPARATOR+"admin_button", "ADMIN");
 		Button musicButton = Button.secondary(getID()+CommandHelper.ID_SEPARATOR+"music_button", "MUSIC");
 		Button utilityButton = Button.secondary(getID()+CommandHelper.ID_SEPARATOR+"utility_button", "UTILITY");
 		
-		buttonsRow = ActionRow.of(funButton, adminButton, musicButton, utilityButton);
+		buttonsRow = ActionRow.of(funButton, gameButton, adminButton, musicButton, utilityButton);
 	}
 	
 	@Override
@@ -148,6 +149,8 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 				success = process(infos.getEvent().getInteraction().getMember().get(), CommandCategory.MUSIC);
 			}else if(infos.getComponentId().equals("utility_button")) {
 				success = process(infos.getEvent().getInteraction().getMember().get(), CommandCategory.UTILITY);
+			}else if(infos.getComponentId().equals("game_button")) {
+				success = process(infos.getEvent().getInteraction().getMember().get(), CommandCategory.GAME);
 			}
 			
 			if(success) {				

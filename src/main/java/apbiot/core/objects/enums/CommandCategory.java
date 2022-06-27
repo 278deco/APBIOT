@@ -7,7 +7,8 @@ public enum CommandCategory implements ICommandCategory {
 	FUN("fun"),
 	ADMIN("admin"),
 	MUSIC("music"),
-	UTILITY("utility");
+	UTILITY("utility"),
+	GAME("game");
 	
 	private String name;
 	CommandCategory(String name) {
