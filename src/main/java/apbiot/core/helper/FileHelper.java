@@ -1,0 +1,95 @@
+package apbiot.core.helper;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+public class FileHelper {
+
+	/**
+	 * Count every files in a specified directory matching with the specified file name
+	 * @param dir - the directory
+	 * @param fileName - the file's name
+	 * @return the number of file found. If the directory doesn't exist, return -1
+	 */
+	public static int countFileWithName(File dir, String fileName) {
+		if(!dir.exists()) return -1;
+		
+		String[] res = dir.list(new FilenameFilter() {
+			
+			@Override
+			public boolean accept(File file, String name) {
+				return name.matches(".*"+fileName+".*");
+			}
+		});
+		
+		return res != null ? res.length : 0;
+	}
+	
+	/**
+	 * Get every files in a specified directory matching with the specified file name
+	 * @param dir - the directory
+	 * @param fileName - the file's name
+	 * @return the list of file found
+	 */
+	public static File[] getFilesWithName(File dir, String fileName) {
+		if(!dir.exists()) return null;
+		
+		File[] res = dir.listFiles(new FilenameFilter() {
+			
+			@Override
+			public boolean accept(File file, String name) {
+				return name.matches(".*"+fileName+".*");
+			}
+		});
+		
+		return res;
+	}
+	
+	/**
+	 * Get every file's path in a specified directory matching with the specified file name
+	 * @param dir - the directory
+	 * @param fileName - the file's name
+	 * @return the list of file's path found
+	 */
+	public static List<String> getFilePathWithName(File dir, String fileName) {
+		if(!dir.exists()) return null;
+		
+		File[] res = dir.listFiles(new FilenameFilter() {
+			
+			@Override
+			public boolean accept(File file, String name) {
+				return name.matches(".*"+fileName+".*");
+			}
+		});
+		
+		List<String> result = new ArrayList<>();
+		for(File f : res) {
+			result.add(f.getAbsolutePath());
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * @deprecated
+	 * @since 4.0
+	 * @see apbiot.core.helper.FileHelper#getRandomFilePath(List)
+	 */
+	public static FileInputStream getRandomElement(List<FileInputStream> list) {
+		return list.get(new Random().nextInt(list.size()));
+	}
+	
+	/**
+	 * Return a random path pointing to a file from a list of files
+	 * @param list - A list of file's path
+	 * @return an element from the list
+	 */
+	public static String getRandomFilePath(List<String> pathList) {
+		return pathList.get(new Random().nextInt(pathList.size()));
+	}
+	
+}
