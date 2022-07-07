@@ -32,7 +32,7 @@ public abstract class JSONConfiguration {
 			
 			new File(this.path).createNewFile();
 			
-			fileObject = readFile();
+			fileObject = readConfiguration();
 			
 			controlRegistredProperties();
 			
@@ -42,55 +42,55 @@ public abstract class JSONConfiguration {
 		
 	}
 	
-	public abstract void controlRegistredProperties();
+	protected abstract void controlRegistredProperties();
 	
-	public boolean getBooleanProperty(String propKey) {
+	protected boolean getBooleanProperty(String propKey) {
 		return (boolean)fileObject.get(propKey);
 	}
 	
-	public String getStringProperty(String propKey) {
+	protected String getStringProperty(String propKey) {
 		return (String)fileObject.get(propKey);
 	}
 	
-	public Long getLongProperty(String propKey) {
+	protected Long getLongProperty(String propKey) {
 		return (Long)fileObject.get(propKey);
 	}
 	
-	public boolean isExistingProperty(String propKey) {
+	protected boolean isExistingProperty(String propKey) {
 		return fileObject.containsKey(propKey);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void setProperty(String propKey, boolean value) {
+	protected void setProperty(String propKey, boolean value) {
 		fileObject.put(propKey, value);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void setProperty(String propKey, String value) {
+	protected void setProperty(String propKey, String value) {
 		fileObject.put(propKey, value);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void setProperty(String propKey, Long value) {
+	protected void setProperty(String propKey, Long value) {
 		fileObject.put(propKey, value);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void setPropertyIfAbsent(String propKey, boolean value) {
+	protected void setPropertyIfAbsent(String propKey, boolean value) {
 		fileObject.putIfAbsent(propKey, value);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void setPropertyIfAbsent(String propKey, String value) {
+	protected void setPropertyIfAbsent(String propKey, String value) {
 		fileObject.putIfAbsent(propKey, value);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void setPropertyIfAbsent(String propKey, Long value) {
+	protected void setPropertyIfAbsent(String propKey, Long value) {
 		fileObject.putIfAbsent(propKey, value);
 	}
 	
-	public void saveFile() throws IOException {
+	public void saveConfiguration() throws IOException {
 		new Thread(new Runnable() {
 			
 			@Override
@@ -104,7 +104,7 @@ public abstract class JSONConfiguration {
 					fw.flush();
 					fw.close();
 					
-					fileObject = readFile();
+					fileObject = readConfiguration();
 					
 				} catch (IOException e) {
 					MainInitializer.LOGGER.warn("Unexpected error while saving file "+path, e);
@@ -122,12 +122,12 @@ public abstract class JSONConfiguration {
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	public void reloadFile() throws IOException, ParseException {
+	public void reloadConfiguration() throws IOException, ParseException {
 		fileObject = null;
-		fileObject = readFile();
+		fileObject = readConfiguration();
 	}
 	
-	private JSONObject readFile() throws FileNotFoundException, IOException, ParseException {
+	private JSONObject readConfiguration() throws FileNotFoundException, IOException, ParseException {
 		FileReader fReader = null;
 		try {
 			fReader = new FileReader(this.path);
