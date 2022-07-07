@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -19,21 +20,23 @@ public abstract class JSONFile {
 	protected JSONParser parser;
 	protected String path;
 	
-	protected JSONObject fileObject;
+	protected JSONFileType fileType;
+	private Object fileRawObject;
 	
 	/**
 	 * Create a new JSON file instance
 	 * @param path - the path of the file
 	 * @param fileName - the file name with the extension
 	 */
-	public JSONFile(String path, String fileName) {
+	public JSONFile(String path, String fileName, JSONFileType fileType) {
 		this.parser = new JSONParser();
 		this.path = path+File.separator+fileName;
+		this.fileType = fileType;
 		
 		try {
 			new File(this.path).createNewFile();
 			
-			fileObject = readFile();
+			fileRawObject = readFile();
 			
 		} catch (IOException | ParseException e) {
 			MainInitializer.LOGGER.warn("Unexpected error while loading file "+this.path,e);
@@ -60,12 +63,12 @@ public abstract class JSONFile {
 					FileWriter fw = new FileWriter(path);
 					
 					ObjectMapper objMapper = new ObjectMapper();
-					fw.write(objMapper.writerWithDefaultPrettyPrinter().writeValueAsString(fileObject));
+					fw.write(objMapper.writerWithDefaultPrettyPrinter().writeValueAsString(fileRawObject));
 					
 					fw.flush();
 					fw.close();
 					
-					fileObject = readFile();
+					fileRawObject = readFile();
 					
 				} catch (IOException e) {
 					MainInitializer.LOGGER.warn("Unexpected error while saving file "+path, e);
@@ -84,8 +87,8 @@ public abstract class JSONFile {
 	 * @throws ParseException
 	 */
 	public void reloadFile() throws IOException, ParseException {
-		fileObject = null;
-		fileObject = readFile();
+		fileRawObject = null;
+		fileRawObject = readFile();
 	}
 	
 	/**
@@ -97,24 +100,52 @@ public abstract class JSONFile {
 	}
 	
 	/**
+	 * Cast the raw file object to a JSONObject
+	 * @return a JSONObject representing the file
+	 */
+	protected JSONObject getFileAsObject() {
+		if(fileType != JSONFileType.OBJECT) throw new ClassCastException("Couldn't cast file object to a JSONObject");
+		else return (JSONObject) fileRawObject;
+	}
+	
+	/**
+	 * Cast the raw file object to a JSONArray
+	 * @return a JSONArray representing the file
+	 */
+	protected JSONArray getFileAsArray() {
+		if(fileType != JSONFileType.ARRAY) throw new ClassCastException("Couldn't cast file object to a JSONArray");
+		else return (JSONArray) fileRawObject;
+	}
+	
+	/**
 	 * Read the file's content
 	 * @return the content of the json file
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	protected JSONObject readFile() throws FileNotFoundException, IOException, ParseException {
+	protected Object readFile() throws FileNotFoundException, IOException, ParseException {
 		FileReader fReader = null;
 		try {
 			fReader = new FileReader(this.path);
 			
-			return (JSONObject)parser.parse(fReader);
+			return parser.parse(fReader);
 		}catch(Exception e) {
-			return new JSONObject();
+			return fileType == JSONFileType.OBJECT ? new JSONObject() : new JSONArray();
 		}finally {
 			fReader.close();
 			parser.reset();
 		}
 	}
 	
+	/**
+	 * Define if the JSON File's main element while be a JSON Array or JSON Object
+	 * @author 278deco
+	 * @see org.json.simple.JSONObject
+	 * @see org.json.simple.JSONArray
+	 */
+	public enum JSONFileType {
+		ARRAY,
+		OBJECT;
+	}
 }
