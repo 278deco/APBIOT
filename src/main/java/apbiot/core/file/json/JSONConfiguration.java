@@ -30,9 +30,11 @@ public abstract class JSONConfiguration {
 			
 			this.path = dir.getAbsolutePath()+File.separator+fileName;
 			
-			if(new File(this.path).createNewFile()) onFileCreation();
+			new File(this.path).createNewFile();
 			
 			fileObject = readFile();
+			
+			controlRegistredProperties();
 			
 		} catch (IOException | ParseException e) {
 			MainInitializer.LOGGER.warn("Unexpected error while loading file "+this.path,e);
@@ -40,7 +42,7 @@ public abstract class JSONConfiguration {
 		
 	}
 	
-	public abstract void onFileCreation();
+	public abstract void controlRegistredProperties();
 	
 	public boolean getBooleanProperty(String propKey) {
 		return (boolean)fileObject.get(propKey);
@@ -71,6 +73,21 @@ public abstract class JSONConfiguration {
 	@SuppressWarnings("unchecked")
 	public void setProperty(String propKey, Long value) {
 		fileObject.put(propKey, value);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void setPropertyIfAbsent(String propKey, boolean value) {
+		fileObject.putIfAbsent(propKey, value);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void setPropertyIfAbsent(String propKey, String value) {
+		fileObject.putIfAbsent(propKey, value);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void setPropertyIfAbsent(String propKey, Long value) {
+		fileObject.putIfAbsent(propKey, value);
 	}
 	
 	public void saveFile() throws IOException {
