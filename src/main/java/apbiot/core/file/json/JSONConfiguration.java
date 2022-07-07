@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import apbiot.core.MainInitializer;
 
-public class JSONConfiguration {
+public abstract class JSONConfiguration {
 
 	private JSONParser parser;
 	private String path;
@@ -30,7 +30,7 @@ public class JSONConfiguration {
 			
 			this.path = dir.getAbsolutePath()+File.separator+fileName;
 			
-			new File(this.path).createNewFile();
+			if(new File(this.path).createNewFile()) onFileCreation();
 			
 			fileObject = readFile();
 			
@@ -39,6 +39,8 @@ public class JSONConfiguration {
 		}
 		
 	}
+	
+	public abstract void onFileCreation();
 	
 	public boolean getBooleanProperty(String propKey) {
 		return (boolean)fileObject.get(propKey);
