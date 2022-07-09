@@ -152,14 +152,39 @@ public abstract class MainInitializer {
 			LOGGER.error("Unexpected error during client launch",e);
 		}
 		
+		if(consoleLogger != null) {
+			try {
+				consoleLogger.startListening();
+			}catch(Exception e) {
+				LOGGER.error("Unexpected error during console logger launch",e);
+			}
+			
+			LOGGER.info("Console has been successfully launched.");
+		}
+	}
+	
+	/**
+	 * Launch the bot and the console listener
+	 * @param token - the token of the bot
+	 * @param defaultPresence - the default presence shown by the bot
+	 * @param intent - the intent used and required by the bot
+	 */
+	public void launch(String token, ClientPresence defaultPresence, IntentSet intent) {
 		try {
-			consoleLogger.startListening();
+			clientInstance.launch(token, defaultPresence, intent);
 		}catch(Exception e) {
-			LOGGER.error("Unexpected error during console logger launch",e);
+			LOGGER.error("Unexpected error during client launch",e);
 		}
 		
-		LOGGER.info("Console has been successfully launched.");
-		
+		if(consoleLogger != null) {
+			try {
+				consoleLogger.startListening();
+			}catch(Exception e) {
+				LOGGER.error("Unexpected error during console logger launch",e);
+			}
+			
+			LOGGER.info("Console has been successfully launched.");
+		}
 	}
 	
 	//eventDispatcher.dispatchEvent(new EventProgramStopping(fileClosingNumber));
@@ -180,10 +205,12 @@ public abstract class MainInitializer {
 				LOGGER.error("Unexpected error while shutting down the client",e);
 			}
 			
-			try {
-				consoleLogger.stopListening();
-			} catch (IOException e) {
-				LOGGER.error("Unexpected error when closing the console logger instance",e);
+			if(consoleLogger != null) {
+				try {
+					consoleLogger.stopListening();
+				} catch (IOException e) {
+					LOGGER.error("Unexpected error when closing the console logger instance",e);
+				}
 			}
 		}
 	}

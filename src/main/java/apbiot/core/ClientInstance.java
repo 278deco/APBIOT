@@ -54,6 +54,25 @@ public class ClientInstance {
 			running = false;
 		}
 	}
+	
+	/**
+	 * Used to launch the client
+	 * @param token - the token of the bot
+	 * @param defaultPresence - the default presence used by the bot
+	 * @param intent - the intent used and required by the bot
+	 * @throws IllegalAccessException 
+	 */
+	public void launch(String token, ClientPresence defaultPresence, IntentSet intent) {
+		running = true;
+		
+		try {
+			clientBuilder.build(token, defaultPresence, intent);
+			
+		} catch (UnbuiltBotException e) {
+			MainInitializer.LOGGER.error("Error thrown will launching the client",e);
+			running = false;
+		}
+	}
 
 	/**
 	 * Finish the build of the bot and build commandator
