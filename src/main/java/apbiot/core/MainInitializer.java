@@ -1,7 +1,10 @@
 package apbiot.core;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.UUID;
+
+import javax.annotation.Nullable;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,6 +27,8 @@ import discord4j.gateway.intent.IntentSet;
 
 public abstract class MainInitializer {
 
+	private static String DISCORD_SLASH_PREFIX = "/";
+	
 	//Handlers
 	protected static HandlerBuilder handlerBuilder;
 	protected static EmojiRessources emojiHandler;
@@ -56,7 +61,7 @@ public abstract class MainInitializer {
 	 * @see apbiot.core.handler.ECommandHandler
 	 * @see apbiot.core.handler.EmojiRessources
 	 */
-	public void init(ECommandHandler commandHandler, ESystemCommandHandler sysCmdHandler, String prefix) {
+	public void init(ECommandHandler commandHandler, ESystemCommandHandler sysCmdHandler, @Nullable String prefix) {
 		consoleLogger = new ConsoleLoggerBuilder();
 		
 		cmdHandler = commandHandler;
@@ -68,16 +73,44 @@ public abstract class MainInitializer {
 		handlerBuilder.addHandler(consoleCmdHandler);
 		handlerBuilder.addOptionalHandler(emojiHandler);
 		
-		LOGGER.info("Building handlers phase 1 completed. Ready to client launch.");
+		LOGGER.info("Building handlers phase 1 completed.");
 		
 		eventDispatcher = new EventDispatcher();
 		eventDispatcher.addListener(consoleLogger.new ConsoleLoggerListener());
 		eventDispatcher.addListener(new ClientInitListener());
 		
 		consoleLogger.build(consoleCmdHandler.COMMANDS);
-		clientInstance = new ClientInstance().build(prefix);
 		
-		LOGGER.info("Building sequence finished.");
+		Optional<String> optPrefix = Optional.ofNullable(prefix);
+		clientInstance = new ClientInstance().build(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
+		
+		LOGGER.info("Building sequence finished. Ready to client launch.");
+	}
+	
+	/**
+	 * Init all the system required by a bot to start without initializing the console
+	 * @param cmdHandler - the CommandHandler
+	 * @param prefix - the prefix used by the bot
+	 * @see apbiot.core.handler.ECommandHandler
+	 * @see apbiot.core.handler.EmojiRessources
+	 */
+	public void init(ECommandHandler commandHandler, @Nullable String prefix) {
+		cmdHandler = commandHandler;
+		
+		handlerBuilder = new HandlerBuilder();
+		emojiHandler = new EmojiRessources();
+		
+		handlerBuilder.addHandler(cmdHandler);
+		handlerBuilder.addOptionalHandler(emojiHandler);
+		
+		LOGGER.info("Building handlers phase 1 completed.");
+		eventDispatcher = new EventDispatcher();
+		eventDispatcher.addListener(new ClientInitListener());
+		
+		Optional<String> optPrefix = Optional.ofNullable(prefix);
+		clientInstance = new ClientInstance().build(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
+		
+		LOGGER.info("Building sequence finished. Ready to client launch.");
 	}
 	
 	/**
