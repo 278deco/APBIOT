@@ -50,6 +50,15 @@ public class StringHelper {
 	}
 	
 	/**
+	 * Return a random element from an array
+	 * @param array - An array of String
+	 * @return an element from the array
+	 */
+	public static String getRandomElement(String[] array) {
+		return array[new Random().nextInt(array.length)];
+	}
+	
+	/**
 	 * Used to convert a message containing an unrecognizable mention to an message containing an usable mention 
 	 * @param message - the message which contain the mention
 	 * @param guild - the guild of the member
