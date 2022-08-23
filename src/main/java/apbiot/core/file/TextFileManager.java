@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import apbiot.core.MainInitializer;
@@ -25,6 +26,7 @@ public class TextFileManager {
 
 	private File file;
 	private String path;
+	private Optional<String> fileName;
 	
 	private List<String> content;
 	
@@ -39,6 +41,7 @@ public class TextFileManager {
 		
 		this.file = file;
 		this.path = file.getCanonicalPath();
+		this.fileName = Optional.empty();
 		this.content = new ArrayList<>();
 		
 		if(readFileInstantly) readTextFile();
@@ -55,6 +58,7 @@ public class TextFileManager {
 		
 		this.file = new File(filePath);
 		this.path = filePath;
+		this.fileName = Optional.empty();
 		this.content = new ArrayList<>();
 		
 		if(readFileInstantly) readTextFile();
@@ -72,6 +76,7 @@ public class TextFileManager {
 		
 		this.file = new File(filepath);
 		this.path = filepath;
+		this.fileName = Optional.of(fileName);
 		this.content = new ArrayList<>();
 		
 		if(readFileInstantly) readTextFile();
@@ -181,6 +186,22 @@ public class TextFileManager {
 	 */
 	public String getRandomLine() {
 		return getContentSize() > 0 ? getLine(new Random().nextInt(getContentSize())) : "";
+	}
+	
+	/**
+	 * Get the absolute file path 
+	 * @return the file path
+	 */
+	public String getFilePath() {
+		return this.path;
+	}
+	
+	/**
+	 * Get the file name if present, else optional while be empty
+	 * @return the file name
+	 */
+	public Optional<String> getFileName() {
+		return this.fileName;
 	}
 	
 }
