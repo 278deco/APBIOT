@@ -236,6 +236,7 @@ public class StringHelper {
 	 * @param charNumber - the number of character to be present in the first part of the ID
 	 * @param maxNumbers - the maximum of number to be present in the first part of the ID
 	 * @param maxIDNumber - the maximum of character to be present in the second part of the ID
+	 * @param uppercase - Are the letter going to be uppercases or lowercases
 	 * @return the constructed string
 	 */
 	public static String getRandomIDString(int charNumber, int maxNumbers, int maxIDNumber, boolean uppercase) {
