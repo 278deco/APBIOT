@@ -238,8 +238,8 @@ public class StringHelper {
 	 * @param maxIDNumber - the maximum of character to be present in the second part of the ID
 	 * @return the constructed string
 	 */
-	public static String getRandomIDString(int charNumber, int maxNumbers, int maxIDNumber) {
-		char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+	public static String getRandomIDString(int charNumber, int maxNumbers, int maxIDNumber, boolean uppercase) {
+		char[] alphabet = uppercase ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray() : "abcdefghijklmnopqrstuvwxyz".toCharArray();
 		String ret = "";
 		
 		for(int i = 0; i < charNumber; i++) {
