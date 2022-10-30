@@ -62,11 +62,11 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 		this.template.setFooter(this.botUsername+" (278deco) "+new DateBuilder(ZoneId.of("Europe/Paris")).getYear()+" © | Tout droits réservés", null);
 		this.template.setColor(new ColorBuilder().newRandomColor().getDiscordColor());
 		
-		Button funButton = Button.secondary(getID()+CommandHelper.ID_SEPARATOR+"fun_button", "FUN");
-		Button gameButton = Button.secondary(getID()+CommandHelper.ID_SEPARATOR+"game_button", "GAME");
-		Button adminButton = Button.secondary(getID()+CommandHelper.ID_SEPARATOR+"admin_button", "ADMIN");
-		Button musicButton = Button.secondary(getID()+CommandHelper.ID_SEPARATOR+"music_button", "MUSIC");
-		Button utilityButton = Button.secondary(getID()+CommandHelper.ID_SEPARATOR+"utility_button", "UTILITY");
+		Button funButton = Button.secondary(CommandHelper.generateComponentID(this, "fun_button"), "FUN");
+		Button gameButton = Button.secondary(CommandHelper.generateComponentID(this, "game_button"), "GAME");
+		Button adminButton = Button.secondary(CommandHelper.generateComponentID(this, "admin_button"), "ADMIN");
+		Button musicButton = Button.secondary(CommandHelper.generateComponentID(this, "music_button"), "MUSIC");
+		Button utilityButton = Button.secondary(CommandHelper.generateComponentID(this, "utility_button"), "UTILITY");
 		
 		buttonsRow = ActionRow.of(funButton, gameButton, adminButton, musicButton, utilityButton);
 	}

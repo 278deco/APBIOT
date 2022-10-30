@@ -2,6 +2,8 @@ package apbiot.core.helper;
 
 import java.security.SecureRandom;
 
+import apbiot.core.command.AbstractCommandInstance;
+
 public class CommandHelper {
 	
 	public static final String ID_SEPARATOR = "|";
@@ -16,6 +18,16 @@ public class CommandHelper {
 		String currentMillis = String.valueOf(System.currentTimeMillis()).substring(6);
 		
 		return rdm.nextInt(20)+""+(char)(rdm.nextInt(26)+'a')+"-"+currentMillis+""+(char)(rdm.nextInt(26)+'a');
+	}
+	
+	/**
+	 * Generate an id for a component using the model {@code Command's id + ID_SEPARATOR + Component's name}
+	 * @param commandInstance - the {@link AbstractCommandInstance} which need a component
+	 * @param componentName - the component's name
+	 * @return a correct component's id
+	 */
+	public static String generateComponentID(AbstractCommandInstance commandInstance, String componentName) {
+		return commandInstance.getID()+ID_SEPARATOR+componentName;
 	}
 	
 	/**
