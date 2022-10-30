@@ -91,10 +91,10 @@ public class CooldownHelper {
 	 */
 	public static Long convertTimeUnit(Long toConvert, TimeUnit oldUnit, TimeUnit newUnit) {
 		long temporary = toConvert;
-		if(oldUnit.getUnitIndex() == -1 || oldUnit.getUnitIndex() == -1) return 0L;
+		if(oldUnit.getIndex() == -1 || oldUnit.getIndex() == -1) return 0L;
 		
-		int i = oldUnit.getUnitIndex();
-		while(i != newUnit.getUnitIndex()) {
+		int i = oldUnit.getIndex();
+		while(i != newUnit.getIndex()) {
 			if(isGreaterThanCurrentUnit(oldUnit, newUnit)) {
 				if(i+1 < TimeUnit.values().length)
 					temporary/=TimeUnit.values()[i+1].getOperation();
@@ -116,7 +116,7 @@ public class CooldownHelper {
 	 * @see apbiot.core.time.StaticTime.TimeUnit
 	 */
 	private static boolean isGreaterThanCurrentUnit(TimeUnit old, TimeUnit compared) {
-		return compared.getUnitIndex() > old.getUnitIndex();
+		return compared.getIndex() > old.getIndex();
 	}
 	
 }

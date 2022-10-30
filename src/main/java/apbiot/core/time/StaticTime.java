@@ -11,22 +11,44 @@ public class StaticTime {
 
 	public enum TimeUnit {
 		
-		NULL(0, -1),
-		NANOSECOND(1, 0),
-		MILISECOND(2, 1000000),
-		SECOND(3, 1000),
-		HOUR(4, 3600),
-		DAY(5, 24),
-		WEEK(6, 7);
+		NULL("null", 0, -1),
+		NANOSECOND("ns", 1, 0),
+		MILISECOND("us", 2, 1000000),
+		SECOND("s",3, 1000),
+		HOUR("h",4, 3600),
+		DAY("h",5, 24),
+		WEEK("w",6, 7);
 		
+		private String name;
 		private int index;
 		private int operation;
-		private TimeUnit(int i, int ope) {
+		private TimeUnit(String name, int i, int ope) {
+			this.name = name;
 			this.index = i;
 			this.operation = ope;
 		}
 		
-		public int getUnitIndex() {
+		public static TimeUnit of(String name) {
+			for(TimeUnit unit : TimeUnit.values()) {
+				if(unit.getName().equalsIgnoreCase(name)) return unit;
+			}
+			
+			return NULL;
+		}
+		
+		public static TimeUnit of(int index) {
+			for(TimeUnit unit : TimeUnit.values()) {
+				if(unit.getIndex() == index) return unit;
+			}
+			
+			return NULL;
+		}
+		
+		public String getName() {
+			return name;
+		}
+		
+		public int getIndex() {
 			return this.index;
 		}
 		
@@ -76,10 +98,10 @@ public class StaticTime {
 	 */
 	public Long convertTimeUnit(Long toConvert, TimeUnit newUnit) {
 		long temporary = toConvert;
-		if(timeUnit.getUnitIndex() == -1 || timeUnit.getUnitIndex() == -1) return 0L;
+		if(timeUnit.getIndex() == -1 || timeUnit.getIndex() == -1) return 0L;
 		
-		int i = timeUnit.getUnitIndex();
-		while(i != newUnit.getUnitIndex()) {
+		int i = timeUnit.getIndex();
+		while(i != newUnit.getIndex()) {
 			if(isGreaterThanCurrentUnit(newUnit)) {
 				if(i+1 < TimeUnit.values().length)
 					temporary/=TimeUnit.values()[i+1].getOperation();
@@ -101,7 +123,7 @@ public class StaticTime {
 	 * @see apbiot.core.time.StaticTime.TimeUnit
 	 */
 	protected boolean isGreaterThanCurrentUnit(TimeUnit compared) {
-		return compared.getUnitIndex() > timeUnit.getUnitIndex();
+		return compared.getIndex() > timeUnit.getIndex();
 	}
 	
 	public TimeUnit getTimeUnit() {
