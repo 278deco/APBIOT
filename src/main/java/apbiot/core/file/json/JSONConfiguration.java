@@ -56,6 +56,10 @@ public abstract class JSONConfiguration {
 		return (Long)fileObject.get(propKey);
 	}
 	
+	protected Integer getIntegerProperty(String propKey) {
+		return (Integer)fileObject.get(propKey);
+	}
+	
 	protected boolean isExistingProperty(String propKey) {
 		return fileObject.containsKey(propKey);
 	}
@@ -76,6 +80,11 @@ public abstract class JSONConfiguration {
 	}
 	
 	@SuppressWarnings("unchecked")
+	protected void setProperty(String propKey, Integer value) {
+		fileObject.put(propKey, value);
+	}
+	
+	@SuppressWarnings("unchecked")
 	protected void setPropertyIfAbsent(String propKey, boolean value) {
 		fileObject.putIfAbsent(propKey, value);
 	}
@@ -87,6 +96,11 @@ public abstract class JSONConfiguration {
 	
 	@SuppressWarnings("unchecked")
 	protected void setPropertyIfAbsent(String propKey, Long value) {
+		fileObject.putIfAbsent(propKey, value);
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected void setPropertyIfAbsent(String propKey, Integer value) {
 		fileObject.putIfAbsent(propKey, value);
 	}
 	
