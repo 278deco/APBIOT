@@ -526,6 +526,7 @@ public class ClientBuilder {
 	 * @see apbiot.core.builder#createNewInstance
 	 * @return the client bot instance
 	 */
+	@Deprecated
 	public DiscordClient getRawClient() {
 		return null;
 	}

@@ -32,6 +32,7 @@ public class Time extends StaticTime {
 	 * @since 2.0
 	 * @param unit - the unit of the stocked time
 	 */
+	@Deprecated
 	public Time create(TimeUnit unit) {
 		if(!this.hasBeenInit) {
 			MainInitializer.LOGGER.warn("Unexpected error while managing time",new IllegalAccessException("This instance of time hasn't been init"));
