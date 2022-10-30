@@ -56,8 +56,8 @@ public abstract class JSONConfiguration {
 		return (Long)fileObject.get(propKey);
 	}
 	
-	protected int getIntegerProperty(String propKey) {
-		return (int)fileObject.get(propKey);
+	protected Integer getIntegerProperty(String propKey) {
+		return ((Long)fileObject.get(propKey)).intValue();
 	}
 	
 	protected boolean isExistingProperty(String propKey) {
@@ -80,7 +80,7 @@ public abstract class JSONConfiguration {
 	}
 	
 	@SuppressWarnings("unchecked")
-	protected void setProperty(String propKey, int value) {
+	protected void setProperty(String propKey, Integer value) {
 		fileObject.put(propKey, value);
 	}
 	
@@ -100,7 +100,7 @@ public abstract class JSONConfiguration {
 	}
 	
 	@SuppressWarnings("unchecked")
-	protected void setPropertyIfAbsent(String propKey, int value) {
+	protected void setPropertyIfAbsent(String propKey, Integer value) {
 		fileObject.putIfAbsent(propKey, value);
 	}
 	
