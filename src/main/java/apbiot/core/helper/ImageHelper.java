@@ -21,10 +21,10 @@ public class ImageHelper {
 	 * @return an instance of ConstructedImage
 	 */
 	public static ConstructedImage convertDiscordImage(Image discImage, String imageName) {
-		if(EImageHandler.temporaryImageDir == null || EImageHandler.permanentImageDir == null) throw new NullPointerException("ImageHandler hasn't yet been initialized !");
+		if(EImageHandler.getTemporaryDirectory() == null || EImageHandler.getPermanentDirectory() == null) throw new NullPointerException("ImageHandler hasn't yet been initialized !");
 		
 		try {
-			return new ConstructedImage(EImageHandler.temporaryImageDir.getAbsolutePath(), imageName, discImage.getData(), ImageStatus.TEMPORARY);
+			return new ConstructedImage(EImageHandler.getTemporaryDirectory().getAbsolutePath(), imageName, discImage.getData(), ImageStatus.TEMPORARY);
 		} catch (IOException e) {
 			MainInitializer.LOGGER.warn("Unexpected error while creating a image",e);
 		}
@@ -37,9 +37,9 @@ public class ImageHelper {
 	 * @return a tuple containing the image name and the path to the image
 	 */
 	public static Tuple<String, String> getValidDiscordImage(ConstructedImage img) {
-		if(EImageHandler.temporaryImageDir == null || EImageHandler.permanentImageDir == null) throw new NullPointerException("ImageHandler hasn't yet been initialized !");
+		if(EImageHandler.getTemporaryDirectory() == null || EImageHandler.getPermanentDirectory() == null) throw new NullPointerException("ImageHandler hasn't yet been initialized !");
 		
-		String path = EImageHandler.temporaryImageDir.getAbsolutePath()+File.separator+img.getName();
+		String path = EImageHandler.getTemporaryDirectory().getAbsolutePath()+File.separator+img.getName();
 		
 		try {
 			img.saveImage(new File(path));
@@ -56,9 +56,9 @@ public class ImageHelper {
 	 * @return if the image has been successfully deleted
 	 */
 	public static boolean deleteTemporaryImage(String imageName) {
-		if(EImageHandler.temporaryImageDir == null || EImageHandler.permanentImageDir == null) throw new NullPointerException("ImageHandler hasn't yet been initialized !");
+		if(EImageHandler.getTemporaryDirectory() == null || EImageHandler.getPermanentDirectory() == null) throw new NullPointerException("ImageHandler hasn't yet been initialized !");
 		
-		return new File(EImageHandler.temporaryImageDir.getAbsolutePath()+File.separator+imageName).delete();
+		return new File(EImageHandler.getTemporaryDirectory().getAbsolutePath()+File.separator+imageName).delete();
 	}
 	
 }

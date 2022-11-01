@@ -3,6 +3,7 @@ package apbiot.core.handler;
 import java.io.File;
 
 import apbiot.core.MainInitializer;
+import apbiot.core.helper.FileHelper;
 import apbiot.core.objects.interfaces.IOptionalHandler;
 
 /**
@@ -12,24 +13,13 @@ import apbiot.core.objects.interfaces.IOptionalHandler;
  * @see apbiot.core.objects.interfaces.IHandler
  */
 public abstract class EImageHandler implements IOptionalHandler {
-	public static File temporaryImageDir, permanentImageDir;
-	
+	protected static File temporaryImageDir, permanentImageDir;
 	
 	@Override
 	public void register() {
-		temporaryImageDir = new File("img/temporary");
-		permanentImageDir = new File("img/permanent");
-		if(temporaryImageDir.mkdirs()) {
-			MainInitializer.LOGGER.info("Directory "+temporaryImageDir.getName()+" has been successfully created !");
-		}else {
-			MainInitializer.LOGGER.info("Directory "+temporaryImageDir.getName()+" has been successfully loaded !");
-		}
-		if(permanentImageDir.mkdirs()) {
-			MainInitializer.LOGGER.info("Directory "+permanentImageDir.getName()+" has been successfully created !");
-		}else {
-			MainInitializer.LOGGER.info("Directory "+permanentImageDir.getName()+" has been successfully loaded !");
-		}
-		
+		temporaryImageDir = FileHelper.generateDirectoryWithLogging("img/temporary", MainInitializer.LOGGER);
+		permanentImageDir = FileHelper.generateDirectoryWithLogging("img/permanent", MainInitializer.LOGGER); 
+
 		directoriesRegister();
 	}
 	
@@ -37,5 +27,13 @@ public abstract class EImageHandler implements IOptionalHandler {
 
 	@Override
 	public abstract void init();
+	
+	public static File getPermanentDirectory() {
+		return permanentImageDir;
+	}
+	
+	public static File getTemporaryDirectory() {
+		return temporaryImageDir;
+	}
 
 }
