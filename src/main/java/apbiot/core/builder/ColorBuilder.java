@@ -1,7 +1,8 @@
 package apbiot.core.builder;
 
-import java.awt.Color;
 import java.util.Random;
+
+import discord4j.rest.util.Color;
 
 public class ColorBuilder {
 	private Color color;
@@ -13,8 +14,18 @@ public class ColorBuilder {
 	 * @param b - the blue value between 0 and 255
 	 * @return and instance of ColorBuilder
 	 */
-	public ColorBuilder newColor(float r, float g, float b) {
-		color = new Color(r, g, b);
+	public ColorBuilder of(float r, float g, float b) {
+		this.color = Color.of(r, g, b);
+		return this;
+	}
+	
+	/**
+	 * Used to define a new color
+	 * @param hexValue - the hexadecimal value of the color
+	 * @return and instance of ColorBuilder
+	 */
+	public ColorBuilder of(int hexValue) {
+		this.color = Color.of(hexValue);
 		return this;
 	}
 	
@@ -23,14 +34,14 @@ public class ColorBuilder {
 	 * @see java.util.Random
 	 * @return an instance of ColorBuilder
 	 */
-	public ColorBuilder newRandomColor() {
+	public ColorBuilder randomColor() {
 		Random random = new Random();
 		
 		float r = random.nextFloat();
 		float g = random.nextFloat();
 		float b = random.nextFloat();
 		
-		color = new Color(r, g, b);
+		this.color = Color.of(r, g, b);
 		return this;
 	}
 	
@@ -39,15 +50,19 @@ public class ColorBuilder {
 	 * @return the color defined
 	 */
 	public Color get() {
-		return color;
+		return this.color;
 	}
 	
-	/**
-	 * Used to get the color saved in the discord4j format
-	 * @see discord4j.rest.util.Color
-	 * @return the color defined
-	 */
-	public discord4j.rest.util.Color getDiscordColor() {
-		return discord4j.rest.util.Color.of(color.getRGB());
+	public java.awt.Color getAsJavaColor() {
+		return new java.awt.Color(this.color.getRGB());
+	}
+	
+	public Color copy() {
+		return Color.of(this.color.getRGB());
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		return this.color.equals(obj);
 	}
 }
