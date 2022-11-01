@@ -47,7 +47,7 @@ public class CommandatorCommandPrimary extends NativeCommandInstance {
 		
 		cmdtorEmbed.setAuthor(this.botUsername, null, this.botAvatarUrl);
 		cmdtorEmbed.setTitle("Amélioration Commandator");
-		cmdtorEmbed.setColor(new ColorBuilder().newRandomColor().getDiscordColor());
+		cmdtorEmbed.setColor(new ColorBuilder().randomColor().get());
 		cmdtorEmbed.setFooter(this.botUsername+" (278deco) "+new DateBuilder(ZoneId.of("Europe/Paris")).getYear()+" © | Tout droits réservés", null);
 	}
 	

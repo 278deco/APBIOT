@@ -60,7 +60,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 		this.template.setAuthor(this.botUsername, null, this.botAvatarUrl);
 		this.template.setTitle("Commande d'aide");
 		this.template.setFooter(this.botUsername+" (278deco) "+new DateBuilder(ZoneId.of("Europe/Paris")).getYear()+" © | Tout droits réservés", null);
-		this.template.setColor(new ColorBuilder().newRandomColor().getDiscordColor());
+		this.template.setColor(new ColorBuilder().randomColor().get());
 		
 		Button funButton = Button.secondary(CommandHelper.generateComponentID(this, "fun_button"), "FUN");
 		Button gameButton = Button.secondary(CommandHelper.generateComponentID(this, "game_button"), "GAME");

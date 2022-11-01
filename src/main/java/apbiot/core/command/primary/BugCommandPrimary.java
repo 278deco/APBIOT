@@ -41,7 +41,7 @@ public class BugCommandPrimary extends NativeCommandInstance {
 		
 		bugEmbed.setAuthor(this.botUsername, null, this.botAvatarUrl);
 		bugEmbed.setTitle("Signalement de bug / Question");
-		bugEmbed.setColor(new ColorBuilder().newRandomColor().getDiscordColor());
+		bugEmbed.setColor(new ColorBuilder().randomColor().get());
 		bugEmbed.setFooter(this.botUsername+" (278deco) "+new DateBuilder(ZoneId.of("Europe/Paris")).getYear()+" © | Tout droits réservés", null);
 	}
 	
