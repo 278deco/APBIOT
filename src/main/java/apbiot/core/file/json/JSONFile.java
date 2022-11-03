@@ -9,13 +9,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import apbiot.core.MainInitializer;
 
 public abstract class JSONFile {
 
-	private static ObjectMapper FILES_MAPPER = new ObjectMapper();
+	private static ObjectMapper FILES_MAPPER = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
 	
 	protected String path;
 	

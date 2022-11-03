@@ -8,13 +8,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.DatabindException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import apbiot.core.MainInitializer;
 
 public abstract class JSONConfiguration {
 
-	private static ObjectMapper CONFIGURATION_MAPPER = new ObjectMapper();
+	private static ObjectMapper CONFIGURATION_MAPPER = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
 	
 	private String path;
 	
