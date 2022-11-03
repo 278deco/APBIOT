@@ -2,14 +2,12 @@ package apbiot.core.file.json;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -17,11 +15,14 @@ import apbiot.core.MainInitializer;
 
 public abstract class JSONFile {
 
-	protected JSONParser parser;
+	private static ObjectMapper FILES_MAPPER = new ObjectMapper();
+	
 	protected String path;
 	
+	private Map<String, Object> dataMap;
+	private List<Object> dataList;
+	
 	protected JSONFileType fileType;
-	private Object fileRawObject;
 	
 	/**
 	 * Create a new JSON file instance
@@ -29,18 +30,21 @@ public abstract class JSONFile {
 	 * @param fileName - the file name with the extension
 	 */
 	public JSONFile(String path, String fileName, JSONFileType fileType) {
-		this.parser = new JSONParser();
 		this.path = path+File.separator+fileName;
 		this.fileType = fileType;
 		
 		try {
 			new File(this.path).createNewFile();
 			
-			fileRawObject = readFile();
+			readFile();
 			
-		} catch (IOException | ParseException e) {
+		} catch (IOException e) {
 			MainInitializer.LOGGER.warn("Unexpected error while loading file "+this.path,e);
 		}
+	}
+	
+	public JSONFile(String path, String fileName) {
+		this(path, fileName, JSONFileType.OBJECT);
 	}
 	
 	/**
@@ -61,19 +65,16 @@ public abstract class JSONFile {
 			public void run() {
 				try {
 					FileWriter fw = new FileWriter(path);
-					
-					ObjectMapper objMapper = new ObjectMapper();
-					fw.write(objMapper.writerWithDefaultPrettyPrinter().writeValueAsString(fileRawObject));
+
+					fw.write(FILES_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(fileType == JSONFileType.OBJECT ? dataMap : dataList));
 					
 					fw.flush();
 					fw.close();
 					
-					fileRawObject = readFile();
+					readFile();
 					
 				} catch (IOException e) {
 					MainInitializer.LOGGER.warn("Unexpected error while saving file "+path, e);
-				} catch (ParseException e1) {
-					MainInitializer.LOGGER.warn("Unexpected error while parsing file "+path, e1);
 				}
 				
 			}
@@ -86,9 +87,11 @@ public abstract class JSONFile {
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	public void reloadFile() throws IOException, ParseException {
-		fileRawObject = null;
-		fileRawObject = readFile();
+	public void reloadFile() throws IOException {
+		if(fileType == JSONFileType.OBJECT) dataMap.clear();
+		else dataList.clear();
+		
+		readFile();
 	}
 	
 	/**
@@ -103,20 +106,20 @@ public abstract class JSONFile {
 	 * Cast the raw file object to a JSONObject
 	 * @return a JSONObject representing the file
 	 */
-	protected JSONObject getFileAsObject() {
+	protected HashMap<String, Object> getFileAsObject() {
 		if(fileType != JSONFileType.OBJECT) throw new ClassCastException("Couldn't cast file object to a JSONObject");
-		else return (JSONObject) fileRawObject;
+		else return (HashMap<String, Object>) this.dataMap;
 	}
 	
 	/**
 	 * Cast the raw file object to a JSONArray
 	 * @return a JSONArray representing the file
 	 */
-	protected JSONArray getFileAsArray() {
+	protected ArrayList<Object> getFileAsArray() {
 		if(fileType != JSONFileType.ARRAY) throw new ClassCastException("Couldn't cast file object to a JSONArray");
-		else return (JSONArray) fileRawObject;
+		else return (ArrayList<Object>) this.dataList;
 	}
-	
+
 	/**
 	 * Read the file's content
 	 * @return the content of the json file
@@ -124,17 +127,16 @@ public abstract class JSONFile {
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	protected Object readFile() throws FileNotFoundException, IOException, ParseException {
-		FileReader fReader = null;
+	@SuppressWarnings("unchecked")
+	protected void readFile() throws IOException {
 		try {
-			fReader = new FileReader(this.path);
+
+			if(fileType == JSONFileType.OBJECT) this.dataMap = FILES_MAPPER.readValue(new File(this.path), HashMap.class);
+			else this.dataList = FILES_MAPPER.readValue(new File(this.path), ArrayList.class);
 			
-			return parser.parse(fReader);
 		}catch(Exception e) {
-			return fileType == JSONFileType.OBJECT ? new JSONObject() : new JSONArray();
-		}finally {
-			fReader.close();
-			parser.reset();
+			if(fileType == JSONFileType.OBJECT)  this.dataMap = new HashMap<>();
+			else this.dataList = new ArrayList<>();
 		}
 	}
 	

@@ -1,29 +1,27 @@
 package apbiot.core.file.json;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
+import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import apbiot.core.MainInitializer;
 
 public abstract class JSONConfiguration {
 
-	private JSONParser parser;
+	private static ObjectMapper CONFIGURATION_MAPPER = new ObjectMapper();
+	
 	private String path;
 	
-	private JSONObject fileObject;
+	private Map<String, Object> data;
 	
 	public JSONConfiguration(String paramPath, String fileName) {
-		this.parser = new JSONParser();
-		
+
 		try {
 			File dir = new File(paramPath);
 			if(dir.mkdirs()) MainInitializer.LOGGER.info("Directory "+dir.getPath()+" has been successfully created !");
@@ -32,11 +30,11 @@ public abstract class JSONConfiguration {
 			
 			new File(this.path).createNewFile();
 			
-			fileObject = readConfiguration();
+			this.data = readConfiguration();
 			
 			controlRegistredProperties();
 			
-		} catch (IOException | ParseException e) {
+		} catch (IOException e) {
 			MainInitializer.LOGGER.warn("Unexpected error while loading file "+this.path,e);
 		}
 		
@@ -45,63 +43,55 @@ public abstract class JSONConfiguration {
 	protected abstract void controlRegistredProperties();
 	
 	protected boolean getBooleanProperty(String propKey) {
-		return (boolean)fileObject.get(propKey);
+		return (boolean)this.data.get(propKey);
 	}
 	
 	protected String getStringProperty(String propKey) {
-		return (String)fileObject.get(propKey);
+		return (String)this.data.get(propKey);
 	}
 	
 	protected Long getLongProperty(String propKey) {
-		return (Long)fileObject.get(propKey);
+		return (Long)this.data.get(propKey);
 	}
 	
 	protected Integer getIntegerProperty(String propKey) {
-		return ((Long)fileObject.get(propKey)).intValue();
+		return ((Long)this.data.get(propKey)).intValue();
 	}
 	
 	protected boolean isExistingProperty(String propKey) {
-		return fileObject.containsKey(propKey);
+		return this.data.containsKey(propKey);
 	}
 	
-	@SuppressWarnings("unchecked")
 	protected void setProperty(String propKey, boolean value) {
-		fileObject.put(propKey, value);
+		this.data.put(propKey, value);
 	}
 	
-	@SuppressWarnings("unchecked")
 	protected void setProperty(String propKey, String value) {
-		fileObject.put(propKey, value);
+		this.data.put(propKey, value);
 	}
 	
-	@SuppressWarnings("unchecked")
 	protected void setProperty(String propKey, Long value) {
-		fileObject.put(propKey, value);
+		this.data.put(propKey, value);
 	}
 	
-	@SuppressWarnings("unchecked")
 	protected void setProperty(String propKey, Integer value) {
-		fileObject.put(propKey, value);
+		this.data.put(propKey, value);
 	}
 	
-	@SuppressWarnings("unchecked")
 	protected void setPropertyIfAbsent(String propKey, boolean value) {
-		fileObject.putIfAbsent(propKey, value);
+		this.data.putIfAbsent(propKey, value);
 	}
 	
-	@SuppressWarnings("unchecked")
 	protected void setPropertyIfAbsent(String propKey, String value) {
-		fileObject.putIfAbsent(propKey, value);
+		this.data.putIfAbsent(propKey, value);
 	}
 	
-	@SuppressWarnings("unchecked")
 	protected void setPropertyIfAbsent(String propKey, Long value) {
-		fileObject.putIfAbsent(propKey, value);
+		this.data.putIfAbsent(propKey, value);
 	}
 	
-	@SuppressWarnings("unchecked")
 	protected void setPropertyIfAbsent(String propKey, Integer value) {
-		fileObject.putIfAbsent(propKey, value);
+		this.data.putIfAbsent(propKey, value);
 	}
 	
 	public void saveConfiguration() throws IOException {
@@ -112,18 +102,15 @@ public abstract class JSONConfiguration {
 				try {
 					FileWriter fw = new FileWriter(path);
 					
-					ObjectMapper objMapper = new ObjectMapper();
-					fw.write(objMapper.writerWithDefaultPrettyPrinter().writeValueAsString(fileObject));
+					fw.write(CONFIGURATION_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(data));
 					
 					fw.flush();
 					fw.close();
 					
-					fileObject = readConfiguration();
+					data = readConfiguration();
 					
 				} catch (IOException e) {
 					MainInitializer.LOGGER.warn("Unexpected error while saving file "+path, e);
-				} catch (ParseException e1) {
-					MainInitializer.LOGGER.warn("Unexpected error while parsing file "+path, e1);
 				}
 				
 			}
@@ -136,22 +123,17 @@ public abstract class JSONConfiguration {
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	public void reloadConfiguration() throws IOException, ParseException {
-		fileObject = null;
-		fileObject = readConfiguration();
+	public void reloadConfiguration() throws IOException {
+		data.clear();
+		this.data = readConfiguration();
 	}
 	
-	private JSONObject readConfiguration() throws FileNotFoundException, IOException, ParseException {
-		FileReader fReader = null;
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> readConfiguration() throws IOException {
 		try {
-			fReader = new FileReader(this.path);
-			
-			return (JSONObject)parser.parse(fReader);
-		}catch(Exception e) {
-			return new JSONObject();
-		}finally {
-			fReader.close();
-			parser.reset();
+			return CONFIGURATION_MAPPER.readValue(new File(this.path), HashMap.class);
+		}catch(DatabindException e) {
+			return new HashMap<>();
 		}
 	}
 	

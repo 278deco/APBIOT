@@ -9,6 +9,8 @@ import javax.annotation.Nullable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fasterxml.jackson.core.JsonFactory;
+
 import apbiot.core.builder.ConsoleLoggerBuilder;
 import apbiot.core.builder.HandlerBuilder;
 import apbiot.core.event.EventDispatcher;
@@ -49,6 +51,13 @@ public abstract class MainInitializer {
 	 * @see org.apache.logging.log4j.Logger
 	 */
 	public static final Logger LOGGER = LogManager.getLogger(MainInitializer.class);
+	
+	/**
+	 * Program's json factory
+	 * Used to handle json files
+	 * @see com.fasterxml.jackson.core.JsonFactory
+	 */
+	public static final JsonFactory JSON_FACTORY = new JsonFactory();
 	
 	//Instance UUID (for this instance only)
 	public static final String INSTANCE_UUID = UUID.randomUUID().toString();
