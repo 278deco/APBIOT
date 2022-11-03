@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import apbiot.core.builder.ConsoleLoggerBuilder;
 import apbiot.core.builder.HandlerBuilder;
@@ -53,11 +54,15 @@ public abstract class MainInitializer {
 	public static final Logger LOGGER = LogManager.getLogger(MainInitializer.class);
 	
 	/**
-	 * Program's json factory
-	 * Used to handle json files
+	 * Program's json factory and Object Mapper
+	 * <p> Used to handle json files <br>
+	 * Not used by JSONConfiguration and JSONFile <br>
+	 * THREAD FRIENDLY</p>
 	 * @see com.fasterxml.jackson.core.JsonFactory
+	 * @see com.fasterxml.jackson.databind.ObjectMapper
 	 */
 	public static final JsonFactory JSON_FACTORY = new JsonFactory();
+	public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	
 	//Instance UUID (for this instance only)
 	public static final String INSTANCE_UUID = UUID.randomUUID().toString();
