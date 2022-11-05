@@ -10,7 +10,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
 
-import apbiot.core.MainInitializer;
 import io.netty.util.concurrent.BlockingOperationException;
 
 /**
@@ -125,14 +124,10 @@ public class ConstructedImage {
 		this.img = createImageFromBytes(imgData);
 	}
 	
-	protected BufferedImage createImageFromBytes(byte[] imageData) {
+	protected BufferedImage createImageFromBytes(byte[] imageData) throws IOException {
 	    ByteArrayInputStream bais = new ByteArrayInputStream(imageData);
-	    try {
-	        return ImageIO.read(bais);
-	    } catch (IOException e) {
-	    	MainInitializer.LOGGER.warn("Unexpected error while creating a image",e);
-	    }
-		return null;
+	    
+	    return ImageIO.read(bais);
 	}
 	
 	/**
@@ -225,16 +220,11 @@ public class ConstructedImage {
 		}
 	}
 	
-	public GraphicImage duplicateAndEditImage() {
-		try {
-			return new GraphicImage(this.path, this.imgName, this.img, this.status);
-		} catch (IOException e) {
-			MainInitializer.LOGGER.warn("Unexpected error while creating a image",e);
-			return null;
-		}
+	public GraphicImage duplicateAndEditImage() throws IOException {
+		return new GraphicImage(this.path, this.imgName, this.img, this.status);
 	}
 	
-	/**
+	/**	
 	 * Change the name of the image contained in the instance
 	 * @param newName - the new name of the image
 	 */

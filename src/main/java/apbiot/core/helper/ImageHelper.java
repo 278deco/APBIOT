@@ -3,14 +3,12 @@ package apbiot.core.helper;
 import java.io.File;
 import java.io.IOException;
 
-import apbiot.core.MainInitializer;
 import apbiot.core.img.ConstructedImage;
 import apbiot.core.img.ConstructedImage.ImageStatus;
 import apbiot.core.objects.Tuple;
 import discord4j.rest.util.Image;
 
 public class ImageHelper {
-	
 	/**
 	 * Convert a discord image into a constructed image
 	 * @param directory - the directory of the image
@@ -19,16 +17,12 @@ public class ImageHelper {
 	 * @see discord4j.rest.util.Image
 	 * @see apbiot.core.img.ConstructedImage
 	 * @return an instance of ConstructedImage
+	 * @throws IOException 
 	 */
-	public static ConstructedImage convertDiscordImage(String directory, Image discImage, String imageName) {
+	public static ConstructedImage convertDiscordImage(String directory, Image discImage, String imageName) throws IOException {
 		if(directory == null || directory.isEmpty() || directory.isBlank()) throw new NullPointerException("The directory isn't correctly defined");
 		
-		try {
-			return new ConstructedImage(directory, imageName, discImage.getData(), ImageStatus.TEMPORARY);
-		} catch (IOException e) {
-			MainInitializer.LOGGER.warn("Unexpected error while creating a image",e);
-		}
-		return null;
+		return new ConstructedImage(directory, imageName, discImage.getData(), ImageStatus.TEMPORARY);
 	}
 	
 	/**
@@ -36,18 +30,15 @@ public class ImageHelper {
 	 * @param directory - the directory of the image
 	 * @param img - the ConstructedImage instance
 	 * @return a tuple containing the image name and the path to the image
+	 * @throws IOException 
 	 */
-	public static Tuple<String, String> getValidDiscordImage(String directory, ConstructedImage img) {
+	public static Tuple<String, String> getValidDiscordImage(String directory, ConstructedImage img) throws IOException {
 		if(directory == null || directory.isEmpty() || directory.isBlank()) throw new NullPointerException("The directory isn't correctly defined");
 		
 		String path = directory+File.separator+img.getName();
 		
-		try {
-			img.saveImage(new File(path));
-		} catch (IOException e) {
-			MainInitializer.LOGGER.warn("Unexpected error while creating a image",e);
-		}
-		
+		img.saveImage(new File(path));
+
 		return new Tuple<String, String>(img.getName(), path);
 	}
 	

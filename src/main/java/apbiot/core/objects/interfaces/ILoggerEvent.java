@@ -8,6 +8,7 @@ public interface ILoggerEvent extends IEvent {
 	public enum EventPriority {
 		INFO,
 		WARNING,
-		ERROR;
+		ERROR,
+		FATAL;
 	}
 }

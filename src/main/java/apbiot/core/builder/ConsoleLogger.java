@@ -7,7 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import apbiot.core.MainInitializer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import apbiot.core.command.SystemCommand;
 import apbiot.core.event.EventListener;
 import apbiot.core.helper.ArgumentHelper;
@@ -15,6 +17,8 @@ import apbiot.core.objects.interfaces.IEvent;
 import apbiot.core.objects.interfaces.ILoggerEvent;
 
 public class ConsoleLogger {
+	
+	private static final Logger LOGGER = LogManager.getLogger(ConsoleLogger.class);
 	
 	private boolean running;
 	private BufferedReader reader;
@@ -49,7 +53,7 @@ public class ConsoleLogger {
 					try {
 						line = reader.readLine();
 					} catch (IOException e) {
-						MainInitializer.LOGGER.warn("Unexpected error while reading console",e);
+						LOGGER.warn("Unexpected error while reading console",e);
 					}
 						
 					for(Map.Entry<List<String>, SystemCommand> entry : COMMANDS.entrySet()) {
@@ -89,13 +93,16 @@ public class ConsoleLogger {
 				
 				switch(((ILoggerEvent)e).getEventPriority()) {
 					case INFO:
-						MainInitializer.LOGGER.info(((ILoggerEvent)e).getLoggerMessage());
-						break;
-					case ERROR:
-						MainInitializer.LOGGER.error(((ILoggerEvent)e).getLoggerMessage());
+						LOGGER.info(((ILoggerEvent)e).getLoggerMessage());
 						break;
 					case WARNING:
-						MainInitializer.LOGGER.warn(((ILoggerEvent)e).getLoggerMessage());
+						LOGGER.warn(((ILoggerEvent)e).getLoggerMessage());
+						break;
+					case ERROR:
+						LOGGER.error(((ILoggerEvent)e).getLoggerMessage());
+						break;
+					case FATAL:
+						LOGGER.fatal(((ILoggerEvent)e).getLoggerMessage());
 						break;
 				}
 			} 

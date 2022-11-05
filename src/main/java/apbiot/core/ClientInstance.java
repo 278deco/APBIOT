@@ -3,6 +3,9 @@ package apbiot.core;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import apbiot.core.builder.ClientBuilder;
 import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.SlashCommandInstance;
@@ -11,6 +14,8 @@ import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.intent.IntentSet;
 
 public class ClientInstance {
+	
+	private static final Logger LOGGER = LogManager.getLogger(ClientInstance.class);
 	
 	//Builder
 	private ClientBuilder clientBuilder;
@@ -41,10 +46,10 @@ public class ClientInstance {
 			clientBuilder.build(args[0], defaultPresence, intent);
 			
 		}catch (UnbuiltBotException e) {
-			MainInitializer.LOGGER.error("Error thrown will launching the client",e);
+			LOGGER.fatal("Error thrown will launching the client",e);
 			this.running = false;
 		}catch(ArrayIndexOutOfBoundsException e1) {
-			MainInitializer.LOGGER.error("No token was found during the launch. Shutting down...");
+			LOGGER.fatal("No token was found during the launch. Shutting down...");
 			this.running = false;
 		}
 	}

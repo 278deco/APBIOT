@@ -2,7 +2,9 @@ package apbiot.core.handler;
 
 import java.io.File;
 
-import apbiot.core.MainInitializer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import apbiot.core.helper.FileHelper;
 import apbiot.core.objects.interfaces.IOptionalHandler;
 
@@ -15,10 +17,12 @@ import apbiot.core.objects.interfaces.IOptionalHandler;
 public abstract class AbstractImageHandler implements IOptionalHandler {
 	protected static File temporaryImageDir, permanentImageDir;
 	
+	private static final Logger LOGGER = LogManager.getLogger(AbstractImageHandler.class);
+	
 	@Override
 	public void register() {
-		temporaryImageDir = FileHelper.generateDirectoryWithLogging("img/temporary", MainInitializer.LOGGER);
-		permanentImageDir = FileHelper.generateDirectoryWithLogging("img/permanent", MainInitializer.LOGGER); 
+		temporaryImageDir = FileHelper.generateDirectoryWithLogging("img/temporary", LOGGER);
+		permanentImageDir = FileHelper.generateDirectoryWithLogging("img/permanent", LOGGER); 
 
 		directoriesRegister();
 	}

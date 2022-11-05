@@ -1,7 +1,5 @@
 package apbiot.core.time;
 
-import apbiot.core.MainInitializer;
-
 /**
  * A static class used to stored a time with an unit
  * To create a dynamic timer / cooldown use {@link apbiot.core.time.Time}
@@ -79,13 +77,12 @@ public class StaticTime {
 	 * @deprecated cannot recreate the timer like this
 	 * @since 2.0
 	 * @param unit - the unit of the stocked time
+	 * @throws IllegalAccessException 
 	 */
 	@Deprecated
-	public StaticTime create(TimeUnit unit) {
-		if(!this.hasBeenInit) {
-			MainInitializer.LOGGER.warn("Unexpected error while managing time",new IllegalAccessException("This instance of time hasn't been init"));
-			return this;
-		}
+	public StaticTime create(TimeUnit unit) throws IllegalAccessException {
+		if(!this.hasBeenInit) throw new IllegalAccessException("This instance of time hasn't been init");
+		
 		this.timeUnit = unit;
 		return this;
 	}

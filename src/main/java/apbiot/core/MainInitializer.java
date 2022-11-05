@@ -51,7 +51,7 @@ public abstract class MainInitializer {
 	 * Program's logger
 	 * @see org.apache.logging.log4j.Logger
 	 */
-	public static final Logger LOGGER = LogManager.getLogger(MainInitializer.class);
+	private static final Logger LOGGER = LogManager.getLogger(MainInitializer.class);
 	
 	/**
 	 * Program's json factory and Object Mapper

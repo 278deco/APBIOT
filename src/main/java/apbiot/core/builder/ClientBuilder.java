@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import apbiot.core.MainInitializer;
 import apbiot.core.command.AbstractCommandInstance;
 import apbiot.core.command.NativeCommandInstance;
@@ -54,6 +57,8 @@ import discord4j.gateway.intent.IntentSet;
  */
 public class ClientBuilder {
 
+	private static final Logger LOGGER = LogManager.getLogger(ClientBuilder.class);
+	
 	private static GatewayDiscordClient gateway;
 	private Thread clientThread;
 	
@@ -409,7 +414,7 @@ public class ClientBuilder {
 		try {
 			helpMessage = commandator.newRequest(commandName);
 		} catch (InterruptedException e) {
-			MainInitializer.LOGGER.error("Unexpected error while catching a command",e);
+			LOGGER.error("Unexpected error while catching a command",e);
 		}
 		
 		MainInitializer.getEventDispatcher().dispatchEvent(new EventCommandError(StringHelper.getRawCharacterString(
@@ -444,7 +449,7 @@ public class ClientBuilder {
 	 */
 	public ClientBuilder setGameText(ClientPresence status) {
 		if (gateway == null) {
-			MainInitializer.LOGGER.error(new NullPointerException("CLIENT - Client instance isn't defined"));
+			LOGGER.error(new NullPointerException("CLIENT - Client instance isn't defined"));
 			return this;
 		}
 		gateway.updatePresence(status).block();
@@ -553,7 +558,7 @@ public class ClientBuilder {
 	 */
 	public String getBotPrefix() {
 		if (botPrefix == null) {
-			MainInitializer.LOGGER.error(new NullPointerException("CLIENT - Bot's prefix isn't defined"));
+			LOGGER.error(new NullPointerException("CLIENT - Bot's prefix isn't defined"));
 			return "";
 		}
 		return botPrefix;
@@ -565,7 +570,7 @@ public class ClientBuilder {
 	 */
 	public Commandator getCommandator() {
 		if (commandator == null) {
-			MainInitializer.LOGGER.error(new NullPointerException("CLIENT - Commandator program has not been launched"));
+			LOGGER.error(new NullPointerException("CLIENT - Commandator program has not been launched"));
 			return null;
 		}
 		return commandator;
