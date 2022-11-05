@@ -18,8 +18,8 @@ import apbiot.core.event.EventDispatcher;
 import apbiot.core.event.EventListener;
 import apbiot.core.event.events.EventInstanceConnected;
 import apbiot.core.exceptions.UnbuiltBotException;
-import apbiot.core.handler.ECommandHandler;
-import apbiot.core.handler.ESystemCommandHandler;
+import apbiot.core.handler.AbstractCommandHandler;
+import apbiot.core.handler.AbstractSystemCommandHandler;
 import apbiot.core.handler.EmojiRessources;
 import apbiot.core.objects.interfaces.IEvent;
 import apbiot.core.objects.interfaces.IHandler;
@@ -35,8 +35,8 @@ public abstract class MainInitializer {
 	//Handlers
 	protected static HandlerBuilder handlerBuilder;
 	protected static EmojiRessources emojiHandler;
-	protected static ECommandHandler cmdHandler;
-	protected static ESystemCommandHandler consoleCmdHandler;
+	protected static AbstractCommandHandler cmdHandler;
+	protected static AbstractSystemCommandHandler consoleCmdHandler;
 	
 	//Bot core
 	protected static ClientInstance clientInstance;
@@ -75,7 +75,7 @@ public abstract class MainInitializer {
 	 * @see apbiot.core.handler.ECommandHandler
 	 * @see apbiot.core.handler.EmojiRessources
 	 */
-	public void init(ECommandHandler commandHandler, ESystemCommandHandler sysCmdHandler, @Nullable String prefix) {
+	public void init(AbstractCommandHandler commandHandler, AbstractSystemCommandHandler sysCmdHandler, @Nullable String prefix) {
 		cmdHandler = commandHandler;
 		consoleCmdHandler = sysCmdHandler;
 		
@@ -95,7 +95,7 @@ public abstract class MainInitializer {
 		consoleLogger = ConsoleLogger.builder().withCommands(consoleCmdHandler.COMMANDS).build();
 		
 		Optional<String> optPrefix = Optional.ofNullable(prefix);
-		clientInstance = new ClientInstance().build(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
+		clientInstance = new ClientInstance(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
 		
 		LOGGER.info("Building sequence finished. Ready to client launch.");
 	}
@@ -107,7 +107,7 @@ public abstract class MainInitializer {
 	 * @see apbiot.core.handler.ECommandHandler
 	 * @see apbiot.core.handler.EmojiRessources
 	 */
-	public void init(ECommandHandler commandHandler, @Nullable String prefix) {
+	public void init(AbstractCommandHandler commandHandler, @Nullable String prefix) {
 		cmdHandler = commandHandler;
 		
 		handlerBuilder = new HandlerBuilder();
@@ -121,7 +121,7 @@ public abstract class MainInitializer {
 		eventDispatcher.addListener(new ClientInitListener());
 		
 		Optional<String> optPrefix = Optional.ofNullable(prefix);
-		clientInstance = new ClientInstance().build(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
+		clientInstance = new ClientInstance(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
 		
 		LOGGER.info("Building sequence finished. Ready to client launch.");
 	}
@@ -225,7 +225,7 @@ public abstract class MainInitializer {
 				LOGGER.info("All handlers have been registered ("+handlerBuilder.getRequiredHandlerNumber()+" required, "+handlerBuilder.getOptionalHandlerNumber()+" optional(s))");
 				
 				try {
-					clientInstance.finishBuild(cmdHandler.NATIVE_COMMANDS, cmdHandler.SLASH_COMMANDS);
+					clientInstance.initCommandsMap(cmdHandler.NATIVE_COMMANDS, cmdHandler.SLASH_COMMANDS);
 				} catch (IllegalAccessException err) {
 					LOGGER.error("Unexpected error during client build",err);
 				}
@@ -238,7 +238,7 @@ public abstract class MainInitializer {
 		return eventDispatcher;
 	}
 	
-	public static ECommandHandler getCommandHandler() {
+	public static AbstractCommandHandler getCommandHandler() {
 		return cmdHandler;
 	}
 	

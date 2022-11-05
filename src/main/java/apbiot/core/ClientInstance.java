@@ -15,26 +15,17 @@ public class ClientInstance {
 	//Builder
 	private ClientBuilder clientBuilder;
 	
-	protected static boolean running;
+	private boolean running;
 	
 	/**
-	 * Create a new instance of ClientInstance
+	 * Create a new instance of ClientInstance & build the client
+	 * @param clientPrefix - the prefix used by the client
 	 */
-	public ClientInstance() {
+	public ClientInstance(String clientPrefix) {
 		clientBuilder = new ClientBuilder();
-	}
-	
-	/**
-	 * Build the client before launching it
-	 * @param botPrefix
-	 * @param commands
-	 * @return
-	 */
-	public ClientInstance build(String botPrefix) {
-		clientBuilder.createNewInstance(botPrefix);
 		
-		return this;
-	}	
+		clientBuilder.createNewInstance(clientPrefix);
+	}
 	
 	/**
 	 * Used to launch the client
@@ -44,14 +35,17 @@ public class ClientInstance {
 	 * @throws IllegalAccessException 
 	 */
 	public void launch(String[] args, ClientPresence defaultPresence, IntentSet intent) {
-		running = true;
+		this.running = true;
 		
 		try {
 			clientBuilder.build(args[0], defaultPresence, intent);
 			
-		} catch (UnbuiltBotException e) {
+		}catch (UnbuiltBotException e) {
 			MainInitializer.LOGGER.error("Error thrown will launching the client",e);
-			running = false;
+			this.running = false;
+		}catch(ArrayIndexOutOfBoundsException e1) {
+			MainInitializer.LOGGER.error("No token was found during the launch. Shutting down...");
+			this.running = false;
 		}
 	}
 	
@@ -63,15 +57,7 @@ public class ClientInstance {
 	 * @throws IllegalAccessException 
 	 */
 	public void launch(String token, ClientPresence defaultPresence, IntentSet intent) {
-		running = true;
-		
-		try {
-			clientBuilder.build(token, defaultPresence, intent);
-			
-		} catch (UnbuiltBotException e) {
-			MainInitializer.LOGGER.error("Error thrown will launching the client",e);
-			running = false;
-		}
+		this.launch(new String[] {token}, defaultPresence, intent);
 	}
 
 	/**
@@ -79,9 +65,10 @@ public class ClientInstance {
 	 * @param commandsMap - the command map
 	 * @throws IllegalAccessException
 	 */
-	public void finishBuild(Map<List<String>, NativeCommandInstance> nativeCommandsMap, Map<List<String>, SlashCommandInstance> slashCommandsMap) throws IllegalAccessException {
+	public void initCommandsMap(Map<List<String>, NativeCommandInstance> nativeCommandsMap, Map<List<String>, SlashCommandInstance> slashCommandsMap) throws IllegalAccessException {
 		if(running == false) throw new IllegalAccessException("You cannot finish the build without launching the bot."); 
 		clientBuilder.initAfterBotLaunch(nativeCommandsMap, slashCommandsMap);
+		
 		clientBuilder.buildCommandator();
 	}
 	
@@ -90,7 +77,7 @@ public class ClientInstance {
 	 * @return if the client is running
 	 */
 	public boolean isInstanceAlive() {
-		return running;
+		return this.running;
 	}
 	
 	/**
