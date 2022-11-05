@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import apbiot.core.builder.ConsoleLoggerBuilder;
+import apbiot.core.builder.ConsoleLogger;
 import apbiot.core.builder.HandlerBuilder;
 import apbiot.core.event.EventDispatcher;
 import apbiot.core.event.EventInstanceConnected;
@@ -45,7 +45,7 @@ public abstract class MainInitializer {
 	protected static EventDispatcher eventDispatcher;
 	
 	//Console
-	protected static ConsoleLoggerBuilder consoleLogger;
+	protected static ConsoleLogger consoleLogger;
 	
 	/**
 	 * Program's logger
@@ -76,10 +76,9 @@ public abstract class MainInitializer {
 	 * @see apbiot.core.handler.EmojiRessources
 	 */
 	public void init(ECommandHandler commandHandler, ESystemCommandHandler sysCmdHandler, @Nullable String prefix) {
-		consoleLogger = new ConsoleLoggerBuilder();
-		
 		cmdHandler = commandHandler;
 		consoleCmdHandler = sysCmdHandler;
+		
 		handlerBuilder = new HandlerBuilder();
 		emojiHandler = new EmojiRessources();
 		
@@ -93,7 +92,7 @@ public abstract class MainInitializer {
 		eventDispatcher.addListener(consoleLogger.new ConsoleLoggerListener());
 		eventDispatcher.addListener(new ClientInitListener());
 		
-		consoleLogger.build(consoleCmdHandler.COMMANDS);
+		consoleLogger = ConsoleLogger.builder().withCommands(consoleCmdHandler.COMMANDS).build();
 		
 		Optional<String> optPrefix = Optional.ofNullable(prefix);
 		clientInstance = new ClientInstance().build(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
@@ -184,21 +183,7 @@ public abstract class MainInitializer {
 	 * @param intent - the intent used and required by the bot
 	 */
 	public void launch(String token, ClientPresence defaultPresence, IntentSet intent) {
-		try {
-			clientInstance.launch(token, defaultPresence, intent);
-		}catch(Exception e) {
-			LOGGER.error("Unexpected error during client launch",e);
-		}
-		
-		if(consoleLogger != null) {
-			try {
-				consoleLogger.startListening();
-			}catch(Exception e) {
-				LOGGER.error("Unexpected error during console logger launch",e);
-			}
-			
-			LOGGER.info("Console has been successfully launched.");
-		}
+		this.launch(new String[] {token}, defaultPresence, intent);
 	}
 	
 	//eventDispatcher.dispatchEvent(new EventProgramStopping(fileClosingNumber));

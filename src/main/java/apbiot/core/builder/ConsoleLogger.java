@@ -14,25 +14,21 @@ import apbiot.core.helper.ArgumentHelper;
 import apbiot.core.objects.interfaces.IEvent;
 import apbiot.core.objects.interfaces.ILoggerEvent;
 
-public class ConsoleLoggerBuilder {
+public class ConsoleLogger {
 	
 	private boolean running;
 	private BufferedReader reader;
 	private InputStreamReader insReader;
 	
 	//Compilated Command Map
-	private Map<List<String>, SystemCommand> COMMANDS = new HashMap<>();
+	private final Map<List<String>, SystemCommand> COMMANDS;
 	
-	/**
-	 * Build a new ConsoleLogger
-	 * @param cmds - the command map
-	 * @see apbiot.core.handler.ESystemCommandHandler
-	 * @return an instance of ConsoleLoggerBuilder
-	 */
-	public ConsoleLoggerBuilder build(Map<List<String>, SystemCommand> cmds) {
-		this.COMMANDS = cmds;
-		
-		return this;
+	private ConsoleLogger(ConsoleLogger.Builder builder) {
+		this.COMMANDS = builder.getCommands();
+	}
+	
+	public static ConsoleLogger.Builder builder() {
+		return new ConsoleLogger.Builder();
 	}
 	
 	/**
@@ -66,7 +62,7 @@ public class ConsoleLoggerBuilder {
 				}
 			}
 			
-		},"Console Thread");
+		},"Console Logger Thread");
 		
 		cThread.setDaemon(true);
 		cThread.start();
@@ -103,6 +99,54 @@ public class ConsoleLoggerBuilder {
 						break;
 				}
 			} 
+		}	
+	}
+	
+	/**
+	 * Build a new ConsoleLogger
+	 * @author 278deco
+	 * @see apbiot.core.builder.ConsoleLogger
+	 */
+	public static final class Builder {
+
+		private Map<List<String>, SystemCommand> commands;
+		
+		private Builder() { }
+		
+		/**
+		 * Add the command map
+		 * @param cmd - the command map
+		 * @return this instance
+		 */
+		public Builder withCommands(Map<List<String>, SystemCommand> cmd) {
+			this.commands = cmd;
+			
+			return this;
+		}
+		
+		/**
+		 * Add a command to the map
+		 * @param cmdName - the list of alliases
+		 * @param cmdInstance - the command instance
+		 * @return this instance
+		 */
+		public Builder withCommands(List<String> cmdName, SystemCommand cmdInstance) {
+			if(this.commands == null) this.commands = new HashMap<>();
+			this.commands.put(cmdName, cmdInstance);
+			
+			return this;
+		}
+		
+		/**
+		 * Build a new ConsoleLogger instance
+		 * @return a new ConsoleLogger
+		 */
+		public ConsoleLogger build() {
+			return new ConsoleLogger(this);
+		}
+		
+		private Map<List<String>, SystemCommand> getCommands() {
+			return commands;
 		}
 		
 	}
