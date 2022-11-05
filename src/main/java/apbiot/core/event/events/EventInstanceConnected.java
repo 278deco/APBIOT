@@ -1,13 +1,13 @@
-package apbiot.core.event;
+package apbiot.core.event.events;
 
 import apbiot.core.objects.interfaces.ILoggerEvent;
 
-public class EventInstanceDisconnected implements ILoggerEvent {
+public class EventInstanceConnected implements ILoggerEvent {
 
 	@Override
 	public String getLoggerMessage() {
-		return "Client disconnected from gateway with success.";
-	}
+		return "Client connected to gateway with success.";
+	}	
 	
 	@Override
 	public EventPriority getEventPriority() {

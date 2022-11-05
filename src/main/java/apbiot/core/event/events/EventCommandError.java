@@ -1,4 +1,4 @@
-package apbiot.core.event;
+package apbiot.core.event.events;
 
 import apbiot.core.objects.interfaces.ILoggerEvent;
 import discord4j.core.object.entity.channel.Channel.Type;

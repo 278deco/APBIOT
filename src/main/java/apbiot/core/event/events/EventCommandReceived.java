@@ -1,4 +1,4 @@
-package apbiot.core.event;
+package apbiot.core.event.events;
 
 import apbiot.core.objects.enums.CommandType;
 import apbiot.core.objects.interfaces.ILoggerEvent;
