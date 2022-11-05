@@ -1,4 +1,4 @@
-package apbiot.core.file;
+package apbiot.core.io.files;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -17,7 +17,7 @@ import java.util.Vector;
 import apbiot.core.exceptions.FilePointerNullException;
 /**
  * A class who manipulate different type of file (most likely basic file, no yml or json)
- * @see apbiot.core.file.TextFileManager
+ * @see apbiot.core.io.files.TextFileManager
  * @deprecated 3.0
  * @author 278de
  * @author Syl2010

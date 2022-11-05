@@ -1,4 +1,4 @@
-package apbiot.core.file.json;
+package apbiot.core.io.json;
 
 import java.io.File;
 import java.io.FileNotFoundException;

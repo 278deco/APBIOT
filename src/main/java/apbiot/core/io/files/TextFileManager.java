@@ -1,4 +1,4 @@
-package apbiot.core.file;
+package apbiot.core.io.files;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
