@@ -12,7 +12,7 @@ import apbiot.core.objects.interfaces.IOptionalHandler;
  * @author 278deco
  * @see apbiot.core.objects.interfaces.IHandler
  */
-public abstract class EImageHandler implements IOptionalHandler {
+public abstract class AbstractImageHandler implements IOptionalHandler {
 	protected static File temporaryImageDir, permanentImageDir;
 	
 	@Override

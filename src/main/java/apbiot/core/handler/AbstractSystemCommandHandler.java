@@ -13,7 +13,7 @@ import apbiot.core.objects.interfaces.IHandler;
  * @author 278deco
  * @see apbiot.core.objects.interfaces.IHandler
  */
-public abstract class ESystemCommandHandler implements IHandler {
+public abstract class AbstractSystemCommandHandler implements IHandler {
 	public final Map<List<String>, SystemCommand> COMMANDS = new HashMap<>();
 	
 	protected void addNewCommand(SystemCommand cmd) {

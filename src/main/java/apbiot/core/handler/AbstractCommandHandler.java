@@ -19,7 +19,7 @@ import discord4j.discordjson.json.ApplicationCommandRequest;
  * @author 278deco
  * @see apbiot.core.objects.interfaces.IHandler
  */
-public abstract class ECommandHandler implements IHandler {
+public abstract class AbstractCommandHandler implements IHandler {
 	public final Map<List<String>, NativeCommandInstance> NATIVE_COMMANDS = new HashMap<>();
 	public final Map<List<String>, SlashCommandInstance> SLASH_COMMANDS = new HashMap<>();
 	
