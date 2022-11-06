@@ -3,40 +3,38 @@ package apbiot.core.io.json;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import apbiot.core.MainInitializer;
+import apbiot.core.io.IOElement;
+import apbiot.core.objects.IOArguments;
 
-public abstract class JSONConfiguration {
-
-	private static ObjectMapper CONFIGURATION_MAPPER = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
+public abstract class JSONConfiguration extends IOElement {
 	
-	private String path;
+	private static final Logger LOGGER = LogManager.getLogger(JSONConfiguration.class);
+	private static final ObjectMapper CONFIGURATION_MAPPER = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
 	
-	private Map<String, Object> data;
+	private volatile Map<String, Object> data;
 	
-	public JSONConfiguration(String paramPath, String fileName) {
-
+	public JSONConfiguration(IOArguments args) {
+		super(args);
+		
 		try {
-			File dir = new File(paramPath);
-			if(dir.mkdirs()) MainInitializer.LOGGER.info("Directory "+dir.getPath()+" has been successfully created !");
+			new File(this.filePath+File.separator+this.fileName).createNewFile();
 			
-			this.path = dir.getAbsolutePath()+File.separator+fileName;
-			
-			new File(this.path).createNewFile();
-			
-			this.data = readConfiguration();
+			readFile();
 			
 			controlRegistredProperties();
 			
 		} catch (IOException e) {
-			MainInitializer.LOGGER.warn("Unexpected error while loading file "+this.path,e);
+			LOGGER.warn("Unexpected error while loading file "+this.filePath,e);
 		}
 		
 	}
@@ -95,23 +93,24 @@ public abstract class JSONConfiguration {
 		this.data.putIfAbsent(propKey, value);
 	}
 	
-	public void saveConfiguration() throws IOException {
+	@Override
+	public void saveFile() throws IOException {
 		new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
 				try {
-					FileWriter fw = new FileWriter(path);
+					FileWriter fw = new FileWriter(filePath);
 					
 					fw.write(CONFIGURATION_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(data));
 					
 					fw.flush();
 					fw.close();
 					
-					data = readConfiguration();
+					readFile();
 					
 				} catch (IOException e) {
-					MainInitializer.LOGGER.warn("Unexpected error while saving file "+path, e);
+					LOGGER.warn("Unexpected error while saving file "+filePath, e);
 				}
 				
 			}
@@ -122,19 +121,20 @@ public abstract class JSONConfiguration {
 	 * Reload the file instance running in the program
 	 * Any change made to the original file that are not saved will be overwritten
 	 * @throws IOException
-	 * @throws ParseException
 	 */
-	public void reloadConfiguration() throws IOException {
+	@Override
+	public void reloadFile() throws IOException {
 		data.clear();
-		this.data = readConfiguration();
+		readFile();
 	}
 	
 	@SuppressWarnings("unchecked")
-	private Map<String, Object> readConfiguration() throws IOException {
+	@Override
+	protected void readFile() throws IOException {
 		try {
-			return CONFIGURATION_MAPPER.readValue(new File(this.path), HashMap.class);
+			this.data = CONFIGURATION_MAPPER.readValue(new File(this.filePath), HashMap.class);
 		}catch(DatabindException e) {
-			return new HashMap<>();
+			this.data = new HashMap<>();
 		}
 	}
 	
