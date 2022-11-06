@@ -13,12 +13,14 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public abstract class JSONArrayFile {
+import apbiot.core.io.IOElement;
+import apbiot.core.objects.IOArguments;
+import apbiot.core.objects.enums.FileType;
+
+public abstract class JSONArrayFile extends IOElement {
 	
 	private static final Logger LOGGER = LogManager.getLogger(JSONArrayFile.class);
 	private static final ObjectMapper FILES_MAPPER = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
-	
-	protected String path;
 
 	private volatile List<Object> dataList;
 
@@ -27,15 +29,16 @@ public abstract class JSONArrayFile {
 	 * @param path - the path of the file
 	 * @param fileName - the file name with the extension
 	 */
-	public JSONArrayFile(String path, String fileName) {
-		this.path = path+File.separator+fileName;
+	public JSONArrayFile(IOArguments args) {
+		super(args);
+		
 		try {
-			new File(this.path).createNewFile();
+			new File(this.filePath+File.separator+this.fileName).createNewFile();
 			
 			readFile();
 			
 		} catch (IOException e) {
-			LOGGER.warn("Unexpected error while loading file "+this.path,e);
+			LOGGER.warn("Unexpected error while loading file "+this.filePath,e);
 		}
 	}
 	
@@ -56,7 +59,7 @@ public abstract class JSONArrayFile {
 			@Override
 			public void run() {
 				try {
-					FileWriter fw = new FileWriter(path);
+					FileWriter fw = new FileWriter(filePath);
 
 					fw.write(FILES_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(dataList));
 					
@@ -66,7 +69,7 @@ public abstract class JSONArrayFile {
 					readFile();
 					
 				} catch (IOException e) {
-					LOGGER.warn("Unexpected error while saving file "+path, e);
+					LOGGER.warn("Unexpected error while saving file "+filePath, e);
 				}
 				
 			}
@@ -82,14 +85,6 @@ public abstract class JSONArrayFile {
 		dataList.clear();
 		
 		readFile();
-	}
-	
-	/**
-	 * Get the file path (absolute path + file name)
-	 * @return a string containing path
-	 */
-	public String getFilePath() {
-		return this.path;
 	}
 
 	/**
@@ -109,9 +104,14 @@ public abstract class JSONArrayFile {
 	@SuppressWarnings("unchecked")
 	protected void readFile() throws IOException {
 		try {
-			this.dataList = FILES_MAPPER.readValue(new File(this.path), ArrayList.class);
+			this.dataList = FILES_MAPPER.readValue(new File(this.filePath), ArrayList.class);
 		}catch(Exception e) {
 			this.dataList = new ArrayList<>();
 		}
+	}
+	
+	@Override
+	public FileType getFileType() {
+		return FileType.JSON;
 	}
 }

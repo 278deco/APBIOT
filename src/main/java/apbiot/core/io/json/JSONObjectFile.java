@@ -13,12 +13,14 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public abstract class JSONObjectFile {
+import apbiot.core.io.IOElement;
+import apbiot.core.objects.IOArguments;
+import apbiot.core.objects.enums.FileType;
+
+public abstract class JSONObjectFile extends IOElement {
 	
 	private static final Logger LOGGER = LogManager.getLogger(JSONObjectFile.class);
 	private static final ObjectMapper FILES_MAPPER = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
-	
-	protected String path;
 	
 	private volatile Map<String, Object> dataMap;
 
@@ -27,16 +29,16 @@ public abstract class JSONObjectFile {
 	 * @param path - the path of the file
 	 * @param fileName - the file name with the extension
 	 */
-	public JSONObjectFile(String path, String fileName) {
-		this.path = path+File.separator+fileName;
+	public JSONObjectFile(IOArguments args) {
+		super(args);
 		
 		try {
-			new File(this.path).createNewFile();
+			new File(this.filePath+File.separator+this.fileName).createNewFile();
 			
 			readFile();
 			
 		} catch (IOException e) {
-			LOGGER.warn("Unexpected error while loading file "+this.path,e);
+			LOGGER.warn("Unexpected error while loading file "+this.filePath,e);
 		}
 	}
 
@@ -49,6 +51,7 @@ public abstract class JSONObjectFile {
 	 * Save the file and write the content
 	 * @throws IOException
 	 */
+	@Override
 	public void saveFile() throws IOException {
 		preSave();
 		
@@ -57,7 +60,7 @@ public abstract class JSONObjectFile {
 			@Override
 			public void run() {
 				try {
-					FileWriter fw = new FileWriter(path);
+					FileWriter fw = new FileWriter(filePath);
 
 					fw.write(FILES_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(dataMap));
 					
@@ -67,7 +70,7 @@ public abstract class JSONObjectFile {
 					readFile();
 					
 				} catch (IOException e) {
-					LOGGER.warn("Unexpected error while saving file "+path, e);
+					LOGGER.warn("Unexpected error while saving file "+filePath, e);
 				}
 				
 			}
@@ -79,18 +82,11 @@ public abstract class JSONObjectFile {
 	 * Any change made to the original file that are not saved will be overwritten
 	 * @throws IOException
 	 */
+	@Override
 	public void reloadFile() throws IOException {
 		dataMap.clear();
 
 		readFile();
-	}
-	
-	/**
-	 * Get the file path (absolute path + file name)
-	 * @return a string containing path
-	 */
-	public String getFilePath() {
-		return this.path;
 	}
 	
 	/**
@@ -108,11 +104,17 @@ public abstract class JSONObjectFile {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
+	@Override
 	protected void readFile() throws IOException {
 		try {
-			this.dataMap = FILES_MAPPER.readValue(new File(this.path), HashMap.class);
+			this.dataMap = FILES_MAPPER.readValue(new File(this.filePath), HashMap.class);
 		}catch(Exception e) {
 			this.dataMap = new HashMap<>();
 		}
+	}
+	
+	@Override
+	public FileType getFileType() {
+		return FileType.JSON;
 	}
 }

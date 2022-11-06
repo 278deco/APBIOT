@@ -10,11 +10,15 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 
-import apbiot.core.MainInitializer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import apbiot.core.helper.StringHelper;
+import apbiot.core.io.IOElement;
+import apbiot.core.objects.IOArguments;
+import apbiot.core.objects.enums.FileType;
 
 /**
  * Manage text file easily (like .txt file) with reading, writing methods
@@ -22,71 +26,35 @@ import apbiot.core.helper.StringHelper;
  * @since 3.0
  * @author 278deco
  */
-public class TextFileManager {
+public class TextFile extends IOElement {
 
-	private File file;
-	private String path;
-	private Optional<String> fileName;
+	private static final Logger LOGGER = LogManager.getLogger(TextFile.class);
+	
+	protected File file;
 	
 	private List<String> content;
 	
 	/**
 	 * Create new TextFileManager instance
-	 * @param file - the text file instance
-	 * @param readFileInstantly - if true the file will be read after the class has been initialized
-	 * @throws IOException
-	 */
-	public TextFileManager(File file, boolean readFileInstantly) throws IOException {
-		if(file == null) throw new IOException("Invalid or null file");
-		
-		this.file = file;
-		this.path = file.getCanonicalPath();
-		this.fileName = Optional.empty();
-		this.content = new ArrayList<>();
-		
-		if(readFileInstantly) readTextFile();
-	}
-	
-	/**
-	 * Create new TextFileManager instance
 	 * @param filePath - the text file's path
 	 * @param readFileInstantly - if true the file will be read after the class has been initialized
 	 * @throws IOException
 	 */
-	public TextFileManager(String filePath, boolean readFileInstantly) throws IOException {
-		if(filePath == "" ) throw new IOException("Invalid or null file path");
+	public TextFile(IOArguments args) throws IOException {
+		super(args);
 		
-		this.file = new File(filePath);
-		this.path = filePath;
-		this.fileName = Optional.empty();
+		this.file = new File(this.filePath+File.separator+this.fileName);
 		this.content = new ArrayList<>();
 		
-		if(readFileInstantly) readTextFile();
-	}
-	
-	/**
-	 * Create new TextFileManager instance
-	 * @param filePath - the text file's path
-	 * @param readFileInstantly - if true the file will be read after the class has been initialized
-	 * @throws IOException
-	 */
-	public TextFileManager(String path, String fileName, boolean readFileInstantly) throws IOException {
-		if(path == "" && fileName == "") throw new IOException("Invalid or null file path");
-		String filepath = path+File.separator+fileName;
-		
-		this.file = new File(filepath);
-		this.path = filepath;
-		this.fileName = Optional.of(fileName);
-		this.content = new ArrayList<>();
-		
-		if(readFileInstantly) readTextFile();
+		readFile();
 	}
 	
 	/**
 	 * Read and add all file's content in a list
 	 * @throws IOException
 	 */
-	public void readTextFile() throws IOException {
+	@Override
+	protected void readFile() throws IOException {
 		FileInputStream input = null;
 		InputStreamReader fileReader = null;
 		BufferedReader buffer = null;
@@ -107,7 +75,7 @@ public class TextFileManager {
 			try {
 				this.file.createNewFile();
 			}catch(IOException e1) {
-				MainInitializer.LOGGER.warn("Unexpected error while creating file "+this.path,e);
+				LOGGER.warn("Unexpected error while creating file "+this.filePath,e);
 			}
 		}finally {
 			if(buffer != null) buffer.close();
@@ -120,7 +88,8 @@ public class TextFileManager {
 	 * Write all lines contained in the list
 	 * @throws IOException
 	 */
-	public void saveTextFile() throws IOException {
+	@Override
+	public void saveFile() throws IOException {
 		FileOutputStream output = null;
 		OutputStreamWriter fileWriter = null;
 		BufferedWriter buffer = null;
@@ -136,12 +105,24 @@ public class TextFileManager {
 			}
 			
 		}catch(IOException e) {
-			MainInitializer.LOGGER.warn("Unexpected error while writing file "+this.path,e);
+			LOGGER.warn("Unexpected error while writing file "+this.filePath,e);
 		}finally {
 			if(buffer != null) buffer.close();
 			if(output != null) output.close();
 			if(fileWriter != null) fileWriter.close();
 		}
+	}
+	
+	/**
+	 * Reload the file instance running in the program
+	 * Any change made to the original file that are not saved will be overwritten
+	 * @throws IOException
+	 */
+	@Override
+	public void reloadFile() throws IOException {
+		this.content.clear();
+		
+		readFile();
 	}
 	
 	/**
@@ -187,21 +168,10 @@ public class TextFileManager {
 	public String getRandomLine() {
 		return getContentSize() > 0 ? getLine(new Random().nextInt(getContentSize())) : "";
 	}
-	
-	/**
-	 * Get the absolute file path 
-	 * @return the file path
-	 */
-	public String getFilePath() {
-		return this.path;
-	}
-	
-	/**
-	 * Get the file name if present, else optional while be empty
-	 * @return the file name
-	 */
-	public Optional<String> getFileName() {
-		return this.fileName;
+
+	@Override
+	public FileType getFileType() {
+		return FileType.PLAIN_TEXT;
 	}
 	
 }
