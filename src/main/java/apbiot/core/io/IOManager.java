@@ -20,6 +20,8 @@ public class IOManager {
 	
 	private static final Logger LOGGER = LogManager.getLogger(IOElement.class);
 	
+	private static IOManager instance;
+	
 	private final Map<Class<? extends IOElement>, IOElement> files = new HashMap<>();
 	private final DirectoriesManager dirManager;
 	
@@ -30,25 +32,38 @@ public class IOManager {
 	
 	private boolean running;
 	
-	public IOManager(DirectoriesManager dirManager, Class<? extends JSONConfiguration> configuration) {
-		LOGGER.info("Starting Input Output Communications");
+	private IOManager(DirectoriesManager dirManager, Class<? extends JSONConfiguration> configuration) {
+		LOGGER.info("Starting Input Output Communications...");
 		this.running = true;
 		
 		this.programConfigurationClass = configuration;
 		this.dirManager = dirManager;
 		
 		registerDirectories();
-		generateConfiguration();
+		if(configuration != null) generateConfiguration();
 	}
 	
-	public IOManager(DirectoriesManager dirManager) {
-		LOGGER.info("Starting Input Output Communications");
-		this.running = true;
+	public static IOManager createInstance(DirectoriesManager dirManager, Class<? extends JSONConfiguration> configuration) {
+		if(instance == null) {
+			synchronized (IOManager.class) {
+				if(instance == null) instance = new IOManager(dirManager, configuration);
+			}
+		}
+		return instance;
+	}
+	
+	public static IOManager createInstance(DirectoriesManager dirManager) {
+		if(instance == null) {
+			synchronized (IOManager.class) {
+				if(instance == null) instance = new IOManager(dirManager, null);
+			}
+		}
 		
-		this.programConfigurationClass = null;
-		this.dirManager = dirManager;
-		
-		registerDirectories();
+		return instance;
+	}
+	
+	public static IOManager getInstance() {
+		return instance;
 	}
 	
 	private void registerConfigurationDirectory() {
