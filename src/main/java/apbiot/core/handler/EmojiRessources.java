@@ -1,8 +1,14 @@
 package apbiot.core.handler;
 
 import com.vdurmont.emoji.EmojiManager;
-
 import apbiot.core.objects.interfaces.IOptionalHandler;
+
+/**
+ * Classed used to access and use emoji
+ * @author 278deco
+ * @deprecated 4.0
+ * @since 0.1
+ */
 public class EmojiRessources implements IOptionalHandler {
 	/*
 	 * A bunch of used emoji links in String form
