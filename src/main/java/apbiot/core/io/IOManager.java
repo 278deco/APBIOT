@@ -104,7 +104,7 @@ public class IOManager {
 			} catch (NoSuchMethodException | IllegalArgumentException e) {
 				LOGGER.error("Unexpected error while loading "+element.getSimpleName()+". Cannot find the right constructor",e);
 			} catch (SecurityException | IllegalAccessException e) {
-				LOGGER.error("Unexpected error while loading "+element.getSimpleName()+".Access denied",e);
+				LOGGER.error("Unexpected error while loading "+element.getSimpleName()+". Access denied",e);
 			} catch (InstantiationException e) {
 				LOGGER.error("Unexpected error while loading "+element.getSimpleName()+". The class cannot be instancied",e);
 			} catch (InvocationTargetException e) {
@@ -172,8 +172,10 @@ public class IOManager {
 		E object = createFileObject(fileDirectory, fileName, element, arguments);
 		
 		if(object != null) {
-			files.putIfAbsent(element, object);
-			LOGGER.info("Successfully loaded and stored "+element.getSimpleName()+" (Type: "+object.getFileType()+") !");
+			if(files.putIfAbsent(element, object) != null)
+				LOGGER.info("Couldn't load and stored "+element.getSimpleName()+" because a mapping already exist for the file !");
+			else
+				LOGGER.info("Successfully loaded and stored "+element.getSimpleName()+" (Type: "+object.getFileType()+") !");
 		}
 		
 		return this;

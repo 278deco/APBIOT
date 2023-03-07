@@ -35,9 +35,11 @@ public class TextFile extends IOElement {
 	private List<String> content;
 	
 	/**
-	 * Create new TextFileManager instance
-	 * @param filePath - the text file's path
-	 * @param readFileInstantly - if true the file will be read after the class has been initialized
+	 * Create new TextFile instance
+	 * @param args arguments required by the TextFile class
+	 * <p><strong>Required arguments :</strong><br>
+	 * - The textfile's path<br>
+	 * - The textfile's name</p>
 	 * @throws IOException
 	 */
 	public TextFile(IOArguments args) throws IOException {
@@ -75,7 +77,7 @@ public class TextFile extends IOElement {
 			try {
 				this.file.createNewFile();
 			}catch(IOException e1) {
-				LOGGER.warn("Unexpected error while creating file "+this.filePath,e);
+				LOGGER.warn("Unexpected error while reading file "+this.filePath,e);
 			}
 		}finally {
 			if(buffer != null) buffer.close();
@@ -99,9 +101,9 @@ public class TextFile extends IOElement {
 			fileWriter = new OutputStreamWriter(output, "UTF-8");
 			buffer = new BufferedWriter(fileWriter);
 			
-			for(String line : this.content) {
-				buffer.write(line);
-				buffer.newLine();
+			for(int i = 0; i < this.content.size(); i++) {
+				buffer.write(this.content.get(i));
+				if(i != this.content.size()-1) buffer.newLine();
 			}
 			
 		}catch(IOException e) {
@@ -146,7 +148,7 @@ public class TextFile extends IOElement {
 	
 	/**
 	 * Return the content of the i line
-	 * @param i - the index of the line
+	 * @param i the index of the line
 	 * @return the String line
 	 */
 	public String getLine(int i) {
