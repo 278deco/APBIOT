@@ -23,7 +23,6 @@ import apbiot.core.event.events.EventCommandReceived;
 import apbiot.core.event.events.EventInstanceConnected;
 import apbiot.core.event.events.EventInstanceReady;
 import apbiot.core.exceptions.UnbuiltBotException;
-import apbiot.core.handler.EmojiRessources;
 import apbiot.core.helper.ArgumentHelper;
 import apbiot.core.helper.CommandHelper;
 import apbiot.core.helper.CooldownHelper;
@@ -141,7 +140,7 @@ public class ClientBuilder {
 			if((event.getMessage().getAuthor().get().getId().compareTo(gateway.getApplicationInfo().block().getId()) == 0) || content.equals("")) return;
 			
 			if(NATIVE_COMMANDS.isEmpty()) {
-				event.getMessage().getChannel().block().createMessage(EmojiRessources.DENY+" Le bot est encore en chargement... Veuillez réessayer ultérieurement.").block();
+				event.getMessage().getChannel().block().createMessage("⛔ Le bot est encore en chargement... Veuillez réessayer ultérieurement.").block();
 				return;
 			}
 			
@@ -165,7 +164,7 @@ public class ClientBuilder {
 							handleNewCommandWithoutPermission(cmd, generateNewCommandInformations(event, userCommand), CommandType.NATIVE);
 							
 						}else {
-							new TimedMessage(channel.createMessage(EmojiRessources.DENY+" Vous ne pouvez pas éxécuter cette commande ici !").block())
+							new TimedMessage(channel.createMessage("⛔ Vous ne pouvez pas éxécuter cette commande ici !").block())
 							.setDelayedDelete(Duration.ofSeconds(5), true);
 						}
 					}else {
@@ -189,7 +188,7 @@ public class ClientBuilder {
 		gateway.on(ApplicationCommandInteractionEvent.class).subscribe(event -> {
 			
 			if(SLASH_COMMANDS.isEmpty()) {
-				event.reply(EmojiRessources.DENY+" Le bot est encore en chargement... Veuillez réessayer ultérieurement.").block();
+				event.reply("⛔ Le bot est encore en chargement... Veuillez réessayer ultérieurement.").block();
 				return;
 			}
 			
@@ -210,7 +209,7 @@ public class ClientBuilder {
 							handleNewCommandWithoutPermission(cmd, generateNewCommandInformations(event), CommandType.SLASH);
 							
 						}else {
-							event.reply(EmojiRessources.DENY+" Vous ne pouvez pas éxécuter cette commande ici !").withEphemeral(true).block();
+							event.reply("⛔ Vous ne pouvez pas éxécuter cette commande ici !").withEphemeral(true).block();
 						}
 					}else {
 						handleNewCommand(cmd, generateNewCommandInformations(event), CommandType.SLASH);
@@ -389,8 +388,8 @@ public class ClientBuilder {
 	 */
 	private void handlePermissionError(AbstractCommandInstance cmd, Event event, CommandType type) {
 		String msg = cmd.getPermissions().getSpecifiedPermissionError() != null ? 
-				EmojiRessources.DENY + " ERREUR : "+cmd.getPermissions().getSpecifiedPermissionError() : 
-				EmojiRessources.DENY + " ERREUR : Vous n'avez pas la permission d'éxecuter cette commande.";
+				"⛔ ERREUR : "+cmd.getPermissions().getSpecifiedPermissionError() : 
+				"⛔ ERREUR : Vous n'avez pas la permission d'éxecuter cette commande.";
 		
 		if(type == CommandType.SLASH) {
 			((ApplicationCommandInteractionEvent)event).reply(msg).withEphemeral(true).block();
@@ -423,11 +422,11 @@ public class ClientBuilder {
 		if(helpMessage != "") {
 			
 			new TimedMessage(channel.createMessage(
-					EmojiRessources.INFO+" "+user.getMention()+", Vous vouliez surement dire **"+botPrefix+""+helpMessage+"**.").block())
+					"ℹ "+user.getMention()+", Vous vouliez surement dire **"+botPrefix+""+helpMessage+"**.").block())
 			.setDelayedDelete(Duration.ofSeconds(5), true);
 		}else {
 			new TimedMessage(channel.createMessage(
-					EmojiRessources.INFO+" "+user.getMention()+", Aucune commande connue ne porte ce nom.").block())
+					"ℹ "+user.getMention()+", Aucune commande connue ne porte ce nom.").block())
 			.setDelayedDelete(Duration.ofSeconds(5), true);
 		}
 	}

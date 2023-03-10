@@ -5,7 +5,6 @@ import java.util.List;
 
 import apbiot.core.command.AbstractCommandInstance;
 import apbiot.core.command.UserCommandCooldown;
-import apbiot.core.handler.EmojiRessources;
 import apbiot.core.time.StaticTime.TimeUnit;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
@@ -36,7 +35,7 @@ public class CooldownHelper {
 				if(isCooldownOver(cmdU)) {
 					return true;
 				}else {
-					chan.createMessage(EmojiRessources.DENY+ "Vous ne pourrez éxécuter cette commande que dans **"
+					chan.createMessage("⛔ Vous ne pourrez éxécuter cette commande que dans **"
 							+convertTimeUnit(cmdU.getCooldown().getRemainingTime(), TimeUnit.NANOSECOND, TimeUnit.SECOND)+" seconde(s)** !").block();
 					return false;
 				}

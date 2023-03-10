@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import apbiot.core.handler.EmojiRessources;
 import apbiot.core.objects.Argument;
 import apbiot.core.objects.enums.ArgumentLevel;
 import apbiot.core.objects.enums.Ternary;
@@ -22,7 +21,7 @@ public class ArgumentHelper {
 	 */
 	public static String getStringHelpSyntaxeArgument(int maxArg, String cmdName, String prefix, boolean isFirstObligatory, boolean isAllOptional) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(EmojiRessources.WARNING+ " ERREUR Syntaxe : "+prefix+""+cmdName+" ");
+		sb.append("⚠ ERREUR Syntaxe : "+prefix+""+cmdName+" ");
 		
 		for(int i = 1; i <= maxArg; i++) {
 			
@@ -49,7 +48,7 @@ public class ArgumentHelper {
 	public static String getStringHelpSyntaxe(List<Argument> args, String commandName, String prefix ) {
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append(EmojiRessources.WARNING+ " ERREUR Syntaxe : "+prefix+""+commandName+" ");
+		sb.append("⚠ ERREUR Syntaxe : "+prefix+""+commandName+" ");
 		
 		for(Argument arg : args) {
 			

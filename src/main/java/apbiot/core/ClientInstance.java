@@ -15,6 +15,8 @@ import discord4j.gateway.intent.IntentSet;
 
 public class ClientInstance {
 	
+	private static ClientInstance instance;
+	
 	private static final Logger LOGGER = LogManager.getLogger(ClientInstance.class);
 	
 	//Builder
@@ -22,11 +24,28 @@ public class ClientInstance {
 	
 	private boolean running;
 	
+	public static ClientInstance createInstance(String clientPrefix) {
+		if(instance == null) {
+			synchronized (ClientInstance.class) {
+				if(instance == null) instance = new ClientInstance(clientPrefix);
+			}
+		}
+		return instance;
+	}
+	
+	public static ClientInstance getInstance() {
+		return instance;
+	}
+	
+	public static boolean doesInstanceExist() {
+		return instance != null;
+	}
+	
 	/**
 	 * Create a new instance of ClientInstance & build the client
 	 * @param clientPrefix - the prefix used by the client
 	 */
-	public ClientInstance(String clientPrefix) {
+	private ClientInstance(String clientPrefix) {
 		clientBuilder = new ClientBuilder();
 		
 		clientBuilder.createNewInstance(clientPrefix);

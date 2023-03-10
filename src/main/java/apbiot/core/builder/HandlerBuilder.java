@@ -7,7 +7,7 @@ import apbiot.core.objects.interfaces.IOptionalHandler;
 import discord4j.core.GatewayDiscordClient;
 
 public class HandlerBuilder {
-
+	
 	private ArrayList<IHandler> requiredHandlers = new ArrayList<>();
 	private ArrayList<IOptionalHandler> optionalHandlers = new ArrayList<>();
 	
@@ -15,20 +15,24 @@ public class HandlerBuilder {
 	 * Add a new handler
 	 * @param handler - the handler to be added
 	 */
-	public void addHandler(IHandler... handler) {
+	public HandlerBuilder addHandler(IHandler... handler) {
 		for(IHandler h : handler) {
 			requiredHandlers.add(h);
 		}
+		
+		return this;
 	}
 	
 	/**
 	 * Add a new optional handler
 	 * @param handler - the optional handler to be added
 	 */
-	public void addOptionalHandler(IOptionalHandler... handler) {
+	public HandlerBuilder addOptionalHandler(IOptionalHandler... handler) {
 		for(IOptionalHandler h : handler) {
 			optionalHandlers.add(h);
 		}
+		
+		return this;
 	}
 	
 	/**
@@ -36,26 +40,22 @@ public class HandlerBuilder {
 	 * @param gateway - the discord client gateway
 	 * @return an instance of HandlerBuilder
 	 */
-	public HandlerBuilder computeHandlers(GatewayDiscordClient gateway) {
+	public void computeHandlers(GatewayDiscordClient gateway) {
 		for(IHandler h : requiredHandlers) {
 			h.register(gateway);
 			h.init();
 		}
-		
-		return this;
 	}
 	
 	/**
 	 * Register and init all the optional handlers
 	 * @return an instance of HandlerBuilder
 	 */
-	public HandlerBuilder computeOptionalHandlers() {
+	public void computeOptionalHandlers() {
 		for(IOptionalHandler h : optionalHandlers) {
 			h.register();
 			h.init();
 		}
-		
-		return this;
 	}
 	
 	/**

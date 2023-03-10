@@ -14,7 +14,6 @@ import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.informations.CommandGatewayComponentInformations;
 import apbiot.core.command.informations.CommandGatewayNativeInformations;
 import apbiot.core.commandator.HelpDescription;
-import apbiot.core.handler.EmojiRessources;
 import apbiot.core.helper.ArgumentHelper;
 import apbiot.core.helper.PermissionHelper;
 import apbiot.core.objects.Argument;
@@ -58,7 +57,7 @@ public class BugCommandPrimary extends NativeCommandInstance {
 			return;
 		}else if(msg.length() > 500) {
 			new TimedMessage(infos.getChannel().createMessage(
-					EmojiRessources.DENY+" Votre message dépasse la limite de 500 caractères !").block())
+					"⛔ Votre message dépasse la limite de 500 caractères !").block())
 			.setDelayedDelete(Duration.ofSeconds(7), true);
 			return;
 		}else {

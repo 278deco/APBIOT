@@ -14,7 +14,6 @@ import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.informations.CommandGatewayComponentInformations;
 import apbiot.core.command.informations.CommandGatewayNativeInformations;
 import apbiot.core.commandator.HelpDescription;
-import apbiot.core.handler.EmojiRessources;
 import apbiot.core.helper.ArgumentHelper;
 import apbiot.core.helper.PermissionHelper;
 import apbiot.core.objects.Argument;
@@ -73,7 +72,7 @@ public class CommandatorCommandPrimary extends NativeCommandInstance {
 	
 	private void process(MessageChannel chan, Guild guild, List<String> cmdArgs, User user) {
 		if(user == null) {
-			new TimedMessage(chan.createMessage(EmojiRessources.WARNING+" Une erreur est survenue, merci de réessayer dans quelques secondes...").block())
+			new TimedMessage(chan.createMessage("⚠ Une erreur est survenue, merci de réessayer dans quelques secondes...").block())
 			.setDelayedDelete(Duration.ofSeconds(5), true);
 		}else {
 			
@@ -85,7 +84,7 @@ public class CommandatorCommandPrimary extends NativeCommandInstance {
 			cmdtorEmbed.addTextBelow("Commande indiquée", cmdArgs.get(1));
 			cmdtorEmbed.addTextBelow("Commande recherchée", cmdArgs.get(2));
 			
-			new TimedMessage(chan.createMessage(EmojiRessources.OK+" Votre rapport à bien été envoyé ! *(Tout abus de cette commande sera sanctionné)*").block())
+			new TimedMessage(chan.createMessage("✅ Votre rapport à bien été envoyé ! *(Tout abus de cette commande sera sanctionné)*").block())
 			.setDelayedDelete(Duration.ofSeconds(7), true);
 			
 			for(Long id : receivers) {

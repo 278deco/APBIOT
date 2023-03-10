@@ -17,7 +17,6 @@ import apbiot.core.command.SlashCommandInstance;
 import apbiot.core.command.informations.CommandGatewayComponentInformations;
 import apbiot.core.command.informations.CommandGatewayNativeInformations;
 import apbiot.core.commandator.HelpDescription;
-import apbiot.core.handler.EmojiRessources;
 import apbiot.core.helper.CommandHelper;
 import apbiot.core.helper.PermissionHelper;
 import apbiot.core.objects.Argument;
@@ -154,9 +153,9 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 			}
 			
 			if(success) {				
-				infos.getEvent().getInteractionResponse().createFollowupMessageEphemeral(EmojiRessources.CHECKMARK+" La liste des commandes vous a bien été envoyée !").block();
+				infos.getEvent().getInteractionResponse().createFollowupMessageEphemeral("✅ La liste des commandes vous a bien été envoyée !").block();
 			}else {				
-				infos.getEvent().getInteractionResponse().createFollowupMessageEphemeral(EmojiRessources.WARNING+" Une erreur s'est produite, réessayer ultérieurement.").block();
+				infos.getEvent().getInteractionResponse().createFollowupMessageEphemeral("⚠ Une erreur s'est produite, réessayer ultérieurement.").block();
 			}
 			
 		}
