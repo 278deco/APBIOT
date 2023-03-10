@@ -1,6 +1,5 @@
-package apbiot.core.io;
+package apbiot.core.io.objects;
 
-import apbiot.core.objects.IOArguments;
 import apbiot.core.objects.enums.FileType;
 
 public abstract class IOElement {
@@ -12,7 +11,7 @@ public abstract class IOElement {
 	
 	public IOElement(IOArguments args) {
 		this.classArguments = args;
-		this.filePath = this.classArguments.getPath();
+		this.filePath = this.classArguments.getDirectory().getPath().toAbsolutePath().toString();
 		this.fileName = this.classArguments.getName();
 	}
 	

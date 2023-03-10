@@ -1,10 +1,11 @@
 package apbiot.core.io;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -12,7 +13,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import apbiot.core.io.json.JSONConfiguration;
-import apbiot.core.objects.IOArguments;
+import apbiot.core.io.objects.Directory;
+import apbiot.core.io.objects.IOArguments;
+import apbiot.core.io.objects.IOElement;
 
 public class IOManager {
 	
@@ -23,39 +26,41 @@ public class IOManager {
 	private static IOManager instance;
 	
 	private final Map<Class<? extends IOElement>, IOElement> files = new HashMap<>();
-	private final DirectoriesManager dirManager;
+	private Set<Directory> directories = new HashSet<>();
 	
 	@Nullable
 	private final Class<? extends JSONConfiguration> programConfigurationClass;
 	@Nullable
 	private JSONConfiguration programConfiguration;
+	@Nullable
+	private Directory programConfigurationDirectory;
 	
 	private boolean running;
 	
-	private IOManager(DirectoriesManager dirManager, Class<? extends JSONConfiguration> configuration) {
+	private IOManager(Set<Directory> directories, Directory configurationDirectory, Class<? extends JSONConfiguration> configuration) {
 		LOGGER.info("Starting Input Output Communications...");
 		this.running = true;
 		
 		this.programConfigurationClass = configuration;
-		this.dirManager = dirManager;
+		this.directories = directories;
+		this.programConfigurationDirectory = configurationDirectory;
 		
-		registerDirectories();
 		if(configuration != null) generateConfiguration();
 	}
 	
-	public static IOManager createInstance(DirectoriesManager dirManager, Class<? extends JSONConfiguration> configuration) {
+	public static IOManager createInstance(Set<Directory> directories, Directory configurationDirectory, Class<? extends JSONConfiguration> configuration) {
 		if(instance == null) {
 			synchronized (IOManager.class) {
-				if(instance == null) instance = new IOManager(dirManager, configuration);
+				if(instance == null) instance = new IOManager(directories, configurationDirectory, configuration);
 			}
 		}
 		return instance;
 	}
 	
-	public static IOManager createInstance(DirectoriesManager dirManager) {
+	public static IOManager createInstance(Set<Directory> directories) {
 		if(instance == null) {
 			synchronized (IOManager.class) {
-				if(instance == null) instance = new IOManager(dirManager, null);
+				if(instance == null) instance = new IOManager(directories, null, null);
 			}
 		}
 		
@@ -66,38 +71,10 @@ public class IOManager {
 		return instance;
 	}
 	
-	private void registerConfigurationDirectory() {
-		LOGGER.info("Registering configuration directory...");
-		
-		final File dir = this.dirManager.getConfigurationDirectory();
-		if(dir.mkdirs()) LOGGER.info("Directory "+dir.getAbsolutePath()+" has been successfully created !"); 
-		else LOGGER.info("Directory "+dir.getAbsolutePath()+" has been successfully loaded !");
-	}
-	
-	private void registerDirectories() {
-		this.dirManager.register();
-		
-		if(programConfiguration != null) registerConfigurationDirectory();
-		
-		LOGGER.info("Registering "+this.dirManager.getDirectoriesNumber()+" directories...");
-		
-		this.dirManager.getDirectories().values().forEach(file -> {
-			try {
-				if(file.mkdirs()) LOGGER.info("Directory "+file.getAbsolutePath()+" has been successfully created !"); 
-				else LOGGER.info("Directory "+file.getAbsolutePath()+" has been successfully loaded !");
-			}catch(SecurityException e) {
-				LOGGER.error("An error occured while creating a directory",e);
-				this.running = false;
-			}
-		});
-		
-		LOGGER.info("Every directory has been sucessfully registered");
-	}
-	
 	private void generateConfiguration() {
 		LOGGER.info("Loading program's configuration...");
 		
-		final JSONConfiguration temp = createFileObject(this.dirManager.getConfigurationDirectory().getAbsolutePath(), CONFIGURATION_FILE_NAME, this.programConfigurationClass, null);
+		final JSONConfiguration temp = createFileObject(this.programConfigurationDirectory.getPath().toAbsolutePath().toString(), CONFIGURATION_FILE_NAME, this.programConfigurationClass, null);
 		
 		if(temp != null) {
 			this.programConfiguration = temp;
@@ -105,11 +82,11 @@ public class IOManager {
 		}
 	}
 	
-	private boolean isDirectoryAlreadyCreated(String directory) {
-		return this.dirManager.getDirectories().containsKey(directory);
+	private boolean isDirectoryAlreadyCreated(Directory directory) {
+		return this.directories.contains(directory);
 	}
 	
-	private <E extends IOElement> E createFileObject(String fileDirectory, String fileName, Class<E> element, Object[] arguments) {
+	private <E extends IOElement> E createFileObject(Directory fileDirectory, String fileName, Class<E> element, Object[] arguments) {
 		if(isDirectoryAlreadyCreated(fileDirectory)) {
 			E object = null;
 			try {
@@ -128,10 +105,14 @@ public class IOManager {
 			
 			return object;
 		}else {
-			LOGGER.error("Directory "+fileDirectory+" hasn't been loaded before. Please load a directory before using it");
+			LOGGER.error("Directory "+fileDirectory.getName()+" hasn't been loaded before. Please load a directory before using it");
 			
 			return null;
 		}
+	}
+	
+	private <E extends IOElement> E createFileObject(String fileDirectory, String fileName, Class<E> element, Object[] arguments) {
+		return this.createFileObject(new Directory(fileDirectory), fileName, element, arguments);
 	}
 	
 	public void reloadAllFiles() throws Exception {
@@ -196,6 +177,10 @@ public class IOManager {
 		return this;
 	}
 	
+	public <E extends IOElement> IOManager add(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
+		return this.add(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
+	}
+	
 	/**
 	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file
 	 * @param <E> - a file instance who extends IOElement
@@ -217,7 +202,10 @@ public class IOManager {
 		
 		return this;
 	}
-
+	
+	public <E extends IOElement> IOManager addAnyways(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
+		return this.addAnyways(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
+	}
 	/**
 	 * Remove an element from the list of accessible files. 
 	 * Safe remove means that any change made to the original file that are not saved will be saved

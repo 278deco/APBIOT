@@ -1,14 +1,14 @@
-package apbiot.core.objects;
+package apbiot.core.io.objects;
 
 public class IOArguments {
 	
-	private String path;
+	private Directory directory;
 	private String name;
 	
 	private Object[] otherArguments;
 	
-	public IOArguments(String filePath, String fileName, Object... arguments) {
-		this.path = filePath;
+	public IOArguments(Directory directory, String fileName, Object... arguments) {
+		this.directory = directory;
 		this.name = fileName;
 		this.otherArguments = arguments;
 	}
@@ -17,8 +17,8 @@ public class IOArguments {
 		return name;
 	}
 	
-	public String getPath() {
-		return path;
+	public Directory getDirectory() {
+		return directory;
 	}
 	
 	public Object[] getOtherArguments() {

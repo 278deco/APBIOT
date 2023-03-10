@@ -13,8 +13,8 @@ import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import apbiot.core.io.IOElement;
-import apbiot.core.objects.IOArguments;
+import apbiot.core.io.objects.IOArguments;
+import apbiot.core.io.objects.IOElement;
 
 public abstract class JSONConfiguration extends IOElement {
 	

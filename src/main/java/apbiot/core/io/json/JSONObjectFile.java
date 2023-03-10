@@ -13,8 +13,8 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import apbiot.core.io.IOElement;
-import apbiot.core.objects.IOArguments;
+import apbiot.core.io.objects.IOArguments;
+import apbiot.core.io.objects.IOElement;
 import apbiot.core.objects.enums.FileType;
 
 public abstract class JSONObjectFile extends IOElement {

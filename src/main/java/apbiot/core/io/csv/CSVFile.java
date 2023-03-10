@@ -17,9 +17,9 @@ import javax.annotation.Nullable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import apbiot.core.io.IOElement;
 import apbiot.core.io.files.TextFile;
-import apbiot.core.objects.IOArguments;
+import apbiot.core.io.objects.IOArguments;
+import apbiot.core.io.objects.IOElement;
 import apbiot.core.objects.enums.FileType;
 
 public class CSVFile extends IOElement {
