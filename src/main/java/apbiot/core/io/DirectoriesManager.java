@@ -51,6 +51,10 @@ public class DirectoriesManager {
 		}
 	}
 	
+	public Directory getLoadedDirectory(String name) {
+		return this.directories.stream().filter(dir -> dir.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
+	}
+	
 	/**
 	 * Get a unmodifiable view of the stored directories. Changes in this object's map will appear in the returned map 
 	 * @return an unmodifiable view of the directories

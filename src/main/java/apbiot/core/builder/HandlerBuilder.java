@@ -11,49 +11,44 @@ public class HandlerBuilder {
 	private ArrayList<IHandler> requiredHandlers = new ArrayList<>();
 	private ArrayList<IOptionalHandler> optionalHandlers = new ArrayList<>();
 	
-	/**
-	 * Add a new handler
-	 * @param handler - the handler to be added
-	 */
-	public HandlerBuilder addHandler(IHandler... handler) {
-		for(IHandler h : handler) {
-			requiredHandlers.add(h);
-		}
-		
-		return this;
+	private HandlerBuilder(HandlerBuilder.Builder builder) {
+		this.requiredHandlers = builder.getRequiredHandlers();
+		this.optionalHandlers = builder.getOptionalHandlers();
 	}
 	
 	/**
-	 * Add a new optional handler
-	 * @param handler - the optional handler to be added
-	 */
-	public HandlerBuilder addOptionalHandler(IOptionalHandler... handler) {
-		for(IOptionalHandler h : handler) {
-			optionalHandlers.add(h);
-		}
-		
-		return this;
-	}
-	
-	/**
-	 * Register and init all the handlers
+	 * Register all the handlers
 	 * @param gateway - the discord client gateway
-	 * @return an instance of HandlerBuilder
 	 */
-	public void computeHandlers(GatewayDiscordClient gateway) {
+	public void registerHandlers(GatewayDiscordClient gateway) {
 		for(IHandler h : requiredHandlers) {
 			h.register(gateway);
+		}
+	}
+	
+	/**
+	 * Register all the optional handlers
+	 */
+	public void registerOptionnalHandlers() {
+		for(IOptionalHandler h : optionalHandlers) {
+			h.register();
+		}
+	}
+	
+	/**
+	 * Initialize all the handlers
+	 */
+	public void initHandlers() {
+		for(IHandler h : requiredHandlers) {
 			h.init();
 		}
 	}
 	
 	/**
-	 * Register and init all the optional handlers
-	 * @return an instance of HandlerBuilder
+	 * Initialize all the optional handlers
 	 */
-	public void computeOptionalHandlers() {
+	public void initOptionalHandlers() {
 		for(IOptionalHandler h : optionalHandlers) {
-			h.register();
 			h.init();
 		}
 	}
@@ -80,5 +75,50 @@ public class HandlerBuilder {
 	 */
 	public int getOptionalHandlerNumber() {
 		return this.optionalHandlers.size();
+	}
+	
+	public static class Builder {
+		
+		private ArrayList<IHandler> requiredHandlers = new ArrayList<>();
+		private ArrayList<IOptionalHandler> optionalHandlers = new ArrayList<>();
+		
+		private Builder() { }
+		
+		/**
+		 * Add a new handler
+		 * @param handler - the handler to be added
+		 */
+		public Builder addHandler(IHandler... handler) {
+			for(IHandler h : handler) {
+				requiredHandlers.add(h);
+			}
+			
+			return this;
+		}
+		
+		/**
+		 * Add a new optional handler
+		 * @param handler - the optional handler to be added
+		 */
+		public Builder addOptionalHandler(IOptionalHandler... handler) {
+			for(IOptionalHandler h : handler) {
+				optionalHandlers.add(h);
+			}
+			
+			return this;
+		}
+		
+		public HandlerBuilder build() {
+			return new HandlerBuilder(this);
+		}
+		
+		private ArrayList<IOptionalHandler> getOptionalHandlers() {
+			return optionalHandlers;
+		}
+		
+		private ArrayList<IHandler> getRequiredHandlers() {
+			return requiredHandlers;
+		}
+		
 	}
 }
