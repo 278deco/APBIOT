@@ -23,6 +23,7 @@ import apbiot.core.event.events.EventCommandReceived;
 import apbiot.core.event.events.EventInstanceConnected;
 import apbiot.core.event.events.EventInstanceReady;
 import apbiot.core.exceptions.UnbuiltBotException;
+import apbiot.core.handler.AbstractCommandHandler;
 import apbiot.core.helper.ArgumentHelper;
 import apbiot.core.helper.CommandHelper;
 import apbiot.core.helper.CooldownHelper;
@@ -92,14 +93,21 @@ public class ClientBuilder {
 	 * @param slashCommandsMap - the slash command map
 	 * @see apbiot.core.handler.ECommandHandler
 	 */
-	public void initAfterBotLaunch(Map<List<String>, NativeCommandInstance> nativeCommandsMap, Map<List<String>, SlashCommandInstance> slashCommandsMap) {
-		if(this.NATIVE_COMMANDS.isEmpty() && this.SLASH_COMMANDS.isEmpty()) {
-			this.NATIVE_COMMANDS = nativeCommandsMap;
-			this.SLASH_COMMANDS = slashCommandsMap;
-			MainInitializer.getEventDispatcher().dispatchEvent(new EventInstanceReady(true, botPrefix));
-			
-			ownerID = gateway.getApplicationInfo().block().getOwnerId();
-		}
+	public void finishBuild() {
+		MainInitializer.getEventDispatcher().dispatchEvent(new EventInstanceReady(true, botPrefix));
+		
+		ownerID = gateway.getApplicationInfo().block().getOwnerId();
+	}
+	
+	/**
+	 * Initialize the commandMaps and make the bot ready to interact
+	 * @param nativeCommandsMap - the native command map
+	 * @param slashCommandsMap - the slash command map
+	 * @see apbiot.core.handler.ECommandHandler
+	 */
+	public void updatedCommandReferences(AbstractCommandHandler cmdHandler) {
+		this.NATIVE_COMMANDS = cmdHandler.NATIVE_COMMANDS;
+		this.SLASH_COMMANDS = cmdHandler.SLASH_COMMANDS;
 	}
 	
 	private void createComponentListener() {

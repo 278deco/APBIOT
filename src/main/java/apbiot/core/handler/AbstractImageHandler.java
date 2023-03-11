@@ -1,11 +1,8 @@
 package apbiot.core.handler;
 
-import java.io.File;
+import java.nio.file.Path;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import apbiot.core.helper.FileHelper;
+import apbiot.core.MainInitializer;
 import apbiot.core.objects.interfaces.IOptionalHandler;
 
 /**
@@ -15,29 +12,26 @@ import apbiot.core.objects.interfaces.IOptionalHandler;
  * @see apbiot.core.objects.interfaces.IHandler
  */
 public abstract class AbstractImageHandler implements IOptionalHandler {
-	protected static File temporaryImageDir, permanentImageDir;
 	
-	private static final Logger LOGGER = LogManager.getLogger(AbstractImageHandler.class);
-	
-	@Override
-	public void register() {
-		temporaryImageDir = FileHelper.generateDirectoryWithLogging("img/temporary", LOGGER);
-		permanentImageDir = FileHelper.generateDirectoryWithLogging("img/permanent", LOGGER); 
-
-		directoriesRegister();
-	}
-	
-	public abstract void directoriesRegister();
+	private Path permanentDirectory, temporaryDirectory;
 
 	@Override
-	public abstract void init();
-	
-	public static File getPermanentDirectory() {
-		return permanentImageDir;
+	public void init() {
+		permanentDirectory = MainInitializer.getDirectoriesManager().getLoadedDirectory("image:permanent_directory").getPath();
+		permanentDirectory = MainInitializer.getDirectoriesManager().getLoadedDirectory("image:temporary_directory").getPath();
+		
+		initDirectories();
 	}
 	
-	public static File getTemporaryDirectory() {
-		return temporaryImageDir;
+	
+	public abstract void initDirectories();
+	
+	public Path getPermanentDirectory() {
+		return this.permanentDirectory;
+	}
+	
+	public Path getTemporaryDirectory() {
+		return this.temporaryDirectory;
 	}
 
 }

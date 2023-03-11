@@ -13,14 +13,16 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import apbiot.core.builder.ConsoleLogger;
-import apbiot.core.builder.HandlerBuilder;
+import apbiot.core.builder.HandlerManager;
 import apbiot.core.event.EventDispatcher;
 import apbiot.core.event.EventListener;
 import apbiot.core.event.events.EventInstanceConnected;
 import apbiot.core.exceptions.UnbuiltBotException;
 import apbiot.core.handler.AbstractCommandHandler;
 import apbiot.core.handler.AbstractSystemCommandHandler;
-import apbiot.core.handler.EmojiRessources;
+import apbiot.core.io.DirectoriesManager;
+import apbiot.core.io.IOManager;
+import apbiot.core.io.json.JSONConfiguration;
 import apbiot.core.objects.interfaces.IEvent;
 import apbiot.core.objects.interfaces.IHandler;
 import apbiot.core.objects.interfaces.IOptionalHandler;
@@ -33,19 +35,16 @@ public abstract class MainInitializer {
 	private static String DISCORD_SLASH_PREFIX = "/";
 	
 	//Handlers
-	protected static HandlerBuilder handlerBuilder;
-	protected static EmojiRessources emojiHandler;
-	protected static AbstractCommandHandler cmdHandler;
-	protected static AbstractSystemCommandHandler consoleCmdHandler;
+	private HandlerManager.Builder handlerBuilder;
+	protected static HandlerManager handlerManager;
 	
-	//Bot core
-	protected static ClientInstance clientInstance;
+	protected static DirectoriesManager directoriesManager;
 	
 	//Core events
 	protected static EventDispatcher eventDispatcher;
 	
-	//Console
-	protected static ConsoleLogger consoleLogger;
+	//Console status
+	private boolean initWithoutConsole;
 	
 	/**
 	 * Program's logger
@@ -75,27 +74,25 @@ public abstract class MainInitializer {
 	 * @see apbiot.core.handler.ECommandHandler
 	 * @see apbiot.core.handler.EmojiRessources
 	 */
-	public void init(AbstractCommandHandler commandHandler, AbstractSystemCommandHandler sysCmdHandler, @Nullable String prefix) {
-		cmdHandler = commandHandler;
-		consoleCmdHandler = sysCmdHandler;
+	public void init(DirectoriesManager dirManager, @Nullable Class<? extends JSONConfiguration> configuration, 
+			AbstractCommandHandler commandHandler, AbstractSystemCommandHandler sysCmdHandler, @Nullable String prefix) {
+		this.initWithoutConsole = false;
 		
-		handlerBuilder = new HandlerBuilder();
-		emojiHandler = new EmojiRessources();
+		initIOFilesAndRessources(dirManager, configuration);
+		LOGGER.info("Starting program...");
 		
-		handlerBuilder.addHandler(cmdHandler);
-		handlerBuilder.addHandler(consoleCmdHandler);
-		handlerBuilder.addOptionalHandler(emojiHandler);
+		handlerBuilder = HandlerManager.builder();
+		handlerBuilder.addHandler(commandHandler)
+			.addHandler(sysCmdHandler);
 		
 		LOGGER.info("Building handlers phase 1 completed.");
 		
 		eventDispatcher = new EventDispatcher();
-		eventDispatcher.addListener(consoleLogger.new ConsoleLoggerListener());
+		eventDispatcher.addListener(ConsoleLogger.getInstance().new ConsoleLoggerListener());
 		eventDispatcher.addListener(new ClientInitListener());
 		
-		consoleLogger = ConsoleLogger.builder().withCommands(consoleCmdHandler.COMMANDS).build();
-		
-		Optional<String> optPrefix = Optional.ofNullable(prefix);
-		clientInstance = new ClientInstance(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
+		final Optional<String> optPrefix = Optional.ofNullable(prefix);
+		ClientInstance.createInstance(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
 		
 		LOGGER.info("Building sequence finished. Ready to client launch.");
 	}
@@ -107,49 +104,31 @@ public abstract class MainInitializer {
 	 * @see apbiot.core.handler.ECommandHandler
 	 * @see apbiot.core.handler.EmojiRessources
 	 */
-	public void init(AbstractCommandHandler commandHandler, @Nullable String prefix) {
-		cmdHandler = commandHandler;
+	public void init(DirectoriesManager dirManager, @Nullable Class<? extends JSONConfiguration> configuration, AbstractCommandHandler commandHandler, @Nullable String prefix) {
+		this.initWithoutConsole = true;
 		
-		handlerBuilder = new HandlerBuilder();
-		emojiHandler = new EmojiRessources();
+		initIOFilesAndRessources(dirManager, configuration);
 		
-		handlerBuilder.addHandler(cmdHandler);
-		handlerBuilder.addOptionalHandler(emojiHandler);
+		handlerBuilder = HandlerManager.builder();
+		handlerBuilder.addHandler(commandHandler);
 		
 		LOGGER.info("Building handlers phase 1 completed.");
 		eventDispatcher = new EventDispatcher();
 		eventDispatcher.addListener(new ClientInitListener());
 		
-		Optional<String> optPrefix = Optional.ofNullable(prefix);
-		clientInstance = new ClientInstance(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
+		final Optional<String> optPrefix = Optional.ofNullable(prefix);
+		ClientInstance.createInstance(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
 		
 		LOGGER.info("Building sequence finished. Ready to client launch.");
 	}
 	
-	/**
-	 * Used to add another optionnal handler
-	 * @param handler - the handler to add
-	 * @throws IllegalAccessError
-	 */
-	public void addOptionnalHandler(IOptionalHandler handler) {
-		if(handlerBuilder == null) {
-			throw new IllegalAccessError("Cannot add an handler before initializing the programm !");
-		}else {
-			handlerBuilder.addOptionalHandler(handler);
-		}
-	}
-	
-	/**
-	 * Used to add another handler
-	 * @param handler - the handler to add
-	 * @throws IllegalAccessError
-	 */
-	public void addRequiredHandler(IHandler handler) {
-		if(handlerBuilder == null) {
-			throw new IllegalAccessError("Cannot add an handler before initializing the programm !");
-		}else {
-			handlerBuilder.addHandler(handler);
-		}
+	private void initIOFilesAndRessources(DirectoriesManager dirManager, @Nullable Class<? extends JSONConfiguration> configurationClass) {
+		directoriesManager = dirManager;
+		dirManager.registerDirectories();
+		
+		IOManager.createInstance(dirManager.getLoadedDirectories(), dirManager.getConfigurationDirectory(), configurationClass);
+		//TODO Ressources
+		LOGGER.info("All ressources have been successfully loaded and parsed.");
 	}
 	
 	/**
@@ -160,20 +139,23 @@ public abstract class MainInitializer {
 	 */
 	public void launch(String[] args, ClientPresence defaultPresence, IntentSet intent) {
 		try {
-			clientInstance.launch(args, defaultPresence, intent);
+			ClientInstance.getInstance().launch(args, defaultPresence, intent);
 		}catch(Exception e) {
 			LOGGER.error("Unexpected error during client launch",e);
 		}
 		
-		if(consoleLogger != null) {
+		if(!this.initWithoutConsole) {
 			try {
-				consoleLogger.startListening();
+				ConsoleLogger.getInstance().startListening();
 			}catch(Exception e) {
 				LOGGER.error("Unexpected error during console logger launch",e);
 			}
 			
-			LOGGER.info("Console has been successfully launched.");
+			LOGGER.info("Console logger has been successfully launched.");
 		}
+		
+		handlerManager = this.handlerBuilder.build();
+		this.handlerBuilder = null;
 	}
 	
 	/**
@@ -186,9 +168,35 @@ public abstract class MainInitializer {
 		this.launch(new String[] {token}, defaultPresence, intent);
 	}
 	
+	/**
+	 * Used to add another optionnal handler
+	 * @param handler - the handler to add
+	 * @throws IllegalAccessError
+	 */
+	public void addOptionnalHandler(IOptionalHandler handler) {
+		if(handlerBuilder == null) {
+			throw new IllegalAccessError("Cannot add an handler before initializing the program !");
+		}else {
+			handlerBuilder.addOptionalHandler(handler);
+		}
+	}
+	
+	/**
+	 * Used to add another handler
+	 * @param handler - the handler to add
+	 * @throws IllegalAccessError
+	 */
+	public void addRequiredHandler(IHandler handler) {
+		if(handlerBuilder == null) {
+			throw new IllegalAccessError("Cannot add an handler before initializing the program !");
+		}else {
+			handlerBuilder.addHandler(handler);
+		}
+	}
+	
 	//eventDispatcher.dispatchEvent(new EventProgramStopping(fileClosingNumber));
 	protected abstract void onShutdown();
-	
+	 
 	/**
 	 * Used to shutdown the program
 	 */
@@ -199,14 +207,14 @@ public abstract class MainInitializer {
 			onShutdown();
 			
 			try {
-				clientInstance.shutdown();
+				ClientInstance.getInstance().shutdown();
 			} catch (UnbuiltBotException e) {
 				LOGGER.error("Unexpected error while shutting down the client",e);
 			}
 			
-			if(consoleLogger != null) {
+			if(!initWithoutConsole) {
 				try {
-					consoleLogger.stopListening();
+					ConsoleLogger.getInstance().stopListening();
 				} catch (IOException e) {
 					LOGGER.error("Unexpected error when closing the console logger instance",e);
 				}
@@ -219,15 +227,21 @@ public abstract class MainInitializer {
 		@Override
 		public void newEventReceived(IEvent e) {
 			if(e instanceof EventInstanceConnected) {
-				handlerBuilder.computeHandlers(clientInstance.getClientBuilder().getGateway());
-				handlerBuilder.computeOptionalHandlers();
+				handlerManager.registerHandlers(ClientInstance.getInstance().getClientBuilder().getGateway());
+				handlerManager.registerOptionnalHandlers();
 				LOGGER.info("Building handlers phase 2 completed.");
-				LOGGER.info("All handlers have been registered ("+handlerBuilder.getRequiredHandlerNumber()+" required, "+handlerBuilder.getOptionalHandlerNumber()+" optional(s))");
+				LOGGER.info("All handlers have been registered ("+handlerManager.getRequiredHandlerNumber()+" required, "+handlerManager.getOptionalHandlerNumber()+" optional(s))");
 				
 				try {
-					clientInstance.initCommandsMap(cmdHandler.NATIVE_COMMANDS, cmdHandler.SLASH_COMMANDS);
+					ClientInstance.getInstance().updatedCommandReferences();
+					ConsoleLogger.getInstance().updatedCommandReferences();
 				} catch (IllegalAccessException err) {
-					LOGGER.error("Unexpected error during client build",err);
+					LOGGER.error("Unexpected error during client build, Shutting down...",err);
+					try {
+						ClientInstance.getInstance().shutdown();
+					} catch (UnbuiltBotException e1) {
+						LOGGER.error("Couldn't shutdown the client correctly",err);
+					}
 				}
 			}
 		}
@@ -238,8 +252,12 @@ public abstract class MainInitializer {
 		return eventDispatcher;
 	}
 	
-	public static AbstractCommandHandler getCommandHandler() {
-		return cmdHandler;
+	public static HandlerManager getHandlers() {
+		return handlerManager;
+	}
+	
+	public static DirectoriesManager getDirectoriesManager() {
+		return directoriesManager;
 	}
 	
 }

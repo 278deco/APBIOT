@@ -17,6 +17,7 @@ import apbiot.core.command.SlashCommandInstance;
 import apbiot.core.command.informations.CommandGatewayComponentInformations;
 import apbiot.core.command.informations.CommandGatewayNativeInformations;
 import apbiot.core.commandator.HelpDescription;
+import apbiot.core.handler.AbstractCommandHandler;
 import apbiot.core.helper.CommandHelper;
 import apbiot.core.helper.PermissionHelper;
 import apbiot.core.objects.Argument;
@@ -87,7 +88,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 	private boolean process(Member member, CommandCategory choosenCat) {
 		final List<Field> fields = new ArrayList<>();
 		
-		for(Map.Entry<List<String>, NativeCommandInstance> entry : MainInitializer.getCommandHandler().NATIVE_COMMANDS.entrySet()) {
+		for(Map.Entry<List<String>, NativeCommandInstance> entry : MainInitializer.getHandlers().getHandler(AbstractCommandHandler.class).NATIVE_COMMANDS.entrySet()) {
 			if(entry.getValue().isInHelpListed() && entry.getValue().getCommandCategory() == choosenCat) {
 				if(PermissionHelper.compareCommandPermissions(member, this, this.ownerID)) {
 					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getMainName()+" ➭", entry.getValue().getDescription(), false));
@@ -95,7 +96,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 			}
 		}
 		
-		for(Map.Entry<List<String>, SlashCommandInstance> entry : MainInitializer.getCommandHandler().SLASH_COMMANDS.entrySet()) {
+		for(Map.Entry<List<String>, SlashCommandInstance> entry : MainInitializer.getHandlers().getHandler(AbstractCommandHandler.class).SLASH_COMMANDS.entrySet()) {
 			if(entry.getValue().isInHelpListed() && entry.getValue().getCommandCategory() == choosenCat) {
 				if(PermissionHelper.compareCommandPermissions(member, this, this.ownerID)) {
 					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getMainName()+" ➭", "	*Se référer au menu commandes slash* ", false));

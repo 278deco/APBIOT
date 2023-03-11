@@ -1,15 +1,11 @@
 package apbiot.core;
 
-import java.util.List;
-import java.util.Map;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import apbiot.core.builder.ClientBuilder;
-import apbiot.core.command.NativeCommandInstance;
-import apbiot.core.command.SlashCommandInstance;
 import apbiot.core.exceptions.UnbuiltBotException;
+import apbiot.core.handler.AbstractCommandHandler;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.intent.IntentSet;
 
@@ -83,15 +79,23 @@ public class ClientInstance {
 	public void launch(String token, ClientPresence defaultPresence, IntentSet intent) {
 		this.launch(new String[] {token}, defaultPresence, intent);
 	}
-
+	
 	/**
-	 * Finish the build of the bot and build commandator
-	 * @param commandsMap - the command map
+	 * Finish the build of the bot
 	 * @throws IllegalAccessException
 	 */
-	public void initCommandsMap(Map<List<String>, NativeCommandInstance> nativeCommandsMap, Map<List<String>, SlashCommandInstance> slashCommandsMap) throws IllegalAccessException {
-		if(running == false) throw new IllegalAccessException("You cannot finish the build without launching the bot."); 
-		clientBuilder.initAfterBotLaunch(nativeCommandsMap, slashCommandsMap);
+	public void finishBuild() throws IllegalAccessException {
+		if(running == false) throw new IllegalAccessException("You cannot update the command references if the bot isn't built."); 
+		clientBuilder.finishBuild();
+	}
+	
+	/**
+	 * Updated the command mapping of the bot
+	 * @throws IllegalAccessException
+	 */
+	public void updatedCommandReferences() throws IllegalAccessException {
+		if(running == false) throw new IllegalAccessException("You cannot update the command references if the bot isn't built."); 
+		clientBuilder.updatedCommandReferences(MainInitializer.getHandlers().getHandler(AbstractCommandHandler.class));
 		
 		clientBuilder.buildCommandator();
 	}
