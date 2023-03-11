@@ -28,7 +28,7 @@ public class DirectoriesManager {
 		
 		LOGGER.info("Registering "+this.getDirectoriesNumber()+" directories...");
 		
-		this.getDirectories().forEach(dir -> {
+		this.directories.forEach(dir -> {
 			try {
 				if(Files.createDirectories(dir.getPath()) != null) LOGGER.info("Directory "+dir.getName()+" has been successfully created !"); 
 				else LOGGER.info("Directory "+dir.getName()+" has been successfully loaded !");
@@ -55,7 +55,7 @@ public class DirectoriesManager {
 	 * Get a unmodifiable view of the stored directories. Changes in this object's map will appear in the returned map 
 	 * @return an unmodifiable view of the directories
 	 */
-	public Set<Directory> getDirectories() {
+	public Set<Directory> getLoadedDirectories() {
 		return Collections.unmodifiableSet(this.directories);
 	}
 	
