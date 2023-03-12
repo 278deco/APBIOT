@@ -25,6 +25,6 @@ public class EmojiRessources implements IOptionalHandler {
 	}
 	
 	@Override
-	public void init() { }
+	public void build() { }
 	
 }

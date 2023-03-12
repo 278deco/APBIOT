@@ -85,16 +85,16 @@ public abstract class MainInitializer {
 		handlerBuilder.addHandler(commandHandler)
 			.addHandler(sysCmdHandler);
 		
-		LOGGER.info("Building handlers phase 1 completed.");
+		LOGGER.info("Initializing handlers phase 1 completed.");
 		
 		eventDispatcher = new EventDispatcher();
 		eventDispatcher.addListener(ConsoleLogger.getInstance().new ConsoleLoggerListener());
-		eventDispatcher.addListener(new ClientInitListener());
+		eventDispatcher.addListener(new ClientBuiltListener());
 		
 		final Optional<String> optPrefix = Optional.ofNullable(prefix);
 		ClientInstance.createInstance(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
 		
-		LOGGER.info("Building sequence finished. Ready to client launch.");
+		LOGGER.info("Initializing sequence finished. Ready to build the program and launch the client.");
 	}
 	
 	/**
@@ -112,14 +112,14 @@ public abstract class MainInitializer {
 		handlerBuilder = HandlerManager.builder();
 		handlerBuilder.addHandler(commandHandler);
 		
-		LOGGER.info("Building handlers phase 1 completed.");
+		LOGGER.info("Initializing handlers phase completed.");
 		eventDispatcher = new EventDispatcher();
-		eventDispatcher.addListener(new ClientInitListener());
+		eventDispatcher.addListener(new ClientBuiltListener());
 		
 		final Optional<String> optPrefix = Optional.ofNullable(prefix);
 		ClientInstance.createInstance(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
 		
-		LOGGER.info("Building sequence finished. Ready to client launch.");
+		LOGGER.info("Initializing sequence finished. Ready to build the program and launch the client.");
 	}
 	
 	private void initIOFilesAndRessources(DirectoriesManager dirManager, @Nullable Class<? extends JSONConfiguration> configurationClass) {
@@ -132,12 +132,18 @@ public abstract class MainInitializer {
 	}
 	
 	/**
-	 * Launch the bot and the console listener
+	 * Build the program, launch the bot and the console listener
 	 * @param args - the program argument
 	 * @param defaultPresence - the default presence shown by the bot
 	 * @param intent - the intent used and required by the bot
 	 */
-	public void launch(String[] args, ClientPresence defaultPresence, IntentSet intent) {
+	public void buildAndLaunchClient(String[] args, ClientPresence defaultPresence, IntentSet intent) {
+		handlerManager = this.handlerBuilder.build();
+		this.handlerBuilder = null;
+		
+		handlerManager.buildHandlers();
+		handlerManager.buildOptionalHandlers();
+		
 		try {
 			ClientInstance.getInstance().launch(args, defaultPresence, intent);
 		}catch(Exception e) {
@@ -153,19 +159,16 @@ public abstract class MainInitializer {
 			
 			LOGGER.info("Console logger has been successfully launched.");
 		}
-		
-		handlerManager = this.handlerBuilder.build();
-		this.handlerBuilder = null;
 	}
 	
 	/**
-	 * Launch the bot and the console listener
+	 * Build the program, launch the bot and the console listener
 	 * @param token - the token of the bot
 	 * @param defaultPresence - the default presence shown by the bot
 	 * @param intent - the intent used and required by the bot
 	 */
-	public void launch(String token, ClientPresence defaultPresence, IntentSet intent) {
-		this.launch(new String[] {token}, defaultPresence, intent);
+	public void buildAndLaunchClient(String token, ClientPresence defaultPresence, IntentSet intent) {
+		this.buildAndLaunchClient(new String[] {token}, defaultPresence, intent);
 	}
 	
 	/**
@@ -175,7 +178,7 @@ public abstract class MainInitializer {
 	 */
 	public void addOptionnalHandler(IOptionalHandler handler) {
 		if(handlerBuilder == null) {
-			throw new IllegalAccessError("Cannot add an handler before initializing the program !");
+			throw new IllegalAccessError("Cannot add an handler neither before the initialization of the program nor after its launching!");
 		}else {
 			handlerBuilder.addOptionalHandler(handler);
 		}
@@ -188,7 +191,7 @@ public abstract class MainInitializer {
 	 */
 	public void addRequiredHandler(IHandler handler) {
 		if(handlerBuilder == null) {
-			throw new IllegalAccessError("Cannot add an handler before initializing the program !");
+			throw new IllegalAccessError("Cannot add an handler neither before the initialization of the program nor after its launching!");
 		}else {
 			handlerBuilder.addHandler(handler);
 		}
@@ -222,7 +225,7 @@ public abstract class MainInitializer {
 		}
 	}
 	
-	private class ClientInitListener implements EventListener {
+	private class ClientBuiltListener implements EventListener {
 
 		@Override
 		public void newEventReceived(IEvent e) {

@@ -46,15 +46,15 @@ public class HandlerManager {
 	/**
 	 * Initialize all the handlers
 	 */
-	public void initHandlers() {
-		requiredHandlers.forEach(h -> h.init());
+	public void buildHandlers() {
+		requiredHandlers.forEach(h -> h.build());
 	}
 	
 	/**
 	 * Initialize all the optional handlers
 	 */
-	public void initOptionalHandlers() {
-		optionalHandlers.forEach(h -> h.init());
+	public void buildOptionalHandlers() {
+		optionalHandlers.forEach(h -> h.build());
 	}
 
 	/**

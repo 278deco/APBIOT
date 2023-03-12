@@ -16,13 +16,12 @@ public abstract class AbstractImageHandler implements IOptionalHandler {
 	private Path permanentDirectory, temporaryDirectory;
 
 	@Override
-	public void init() {
+	public void build() {
 		permanentDirectory = MainInitializer.getDirectoriesManager().getLoadedDirectory("image:permanent_directory").getPath();
 		permanentDirectory = MainInitializer.getDirectoriesManager().getLoadedDirectory("image:temporary_directory").getPath();
 		
 		initDirectories();
 	}
-	
 	
 	public abstract void initDirectories();
 	
