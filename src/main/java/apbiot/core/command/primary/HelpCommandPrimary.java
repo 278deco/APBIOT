@@ -10,7 +10,6 @@ import java.util.Map;
 import apbiot.core.MainInitializer;
 import apbiot.core.builder.ColorBuilder;
 import apbiot.core.builder.DateBuilder;
-import apbiot.core.builder.EmbedBuilder;
 import apbiot.core.builder.TimedMessage;
 import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.SlashCommandInstance;
@@ -33,11 +32,12 @@ import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.PrivateChannel;
 import discord4j.core.spec.EmbedCreateFields;
 import discord4j.core.spec.EmbedCreateFields.Field;
+import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 
 public class HelpCommandPrimary extends NativeCommandInstance {
 	
-	private EmbedBuilder template;
+	private EmbedCreateSpec helpEmbed;
 	private final Snowflake ownerID;
 	private final String botUsername, botAvatarUrl;
 	
@@ -54,13 +54,14 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 	
 	@Override
 	public void initCommand() {
+		final EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
 		
-		this.template = new EmbedBuilder();
-
-		this.template.setAuthor(this.botUsername, null, this.botAvatarUrl);
-		this.template.setTitle("Commande d'aide");
-		this.template.setFooter(this.botUsername+" (278deco) "+new DateBuilder(ZoneId.of("Europe/Paris")).getYear()+" © | Tout droits réservés", null);
-		this.template.setColor(new ColorBuilder().randomColor().get());
+		builder.author(this.botUsername, null, this.botAvatarUrl);
+		builder.title("Commande d'aide");
+		builder.footer(this.botUsername+" (278deco) "+new DateBuilder(ZoneId.of("Europe/Paris")).getYear()+" © | Tout droits réservés", null);
+		builder.color(ColorBuilder.randomColor().get());
+		
+		this.helpEmbed = builder.build();
 		
 		Button funButton = Button.secondary(CommandHelper.generateComponentID(this, "fun_button"), "FUN");
 		Button gameButton = Button.secondary(CommandHelper.generateComponentID(this, "game_button"), "GAME");
@@ -108,25 +109,25 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 			return false;
 		}else {
 			
-			final EmbedBuilder[] helpEmbeds = new EmbedBuilder[Math.floorDiv(fields.size(), 25)+1];
+			final EmbedCreateSpec.Builder[] helpEmbeds = new EmbedCreateSpec.Builder[Math.floorDiv(fields.size(), 25)+1];
 			
 			int index = 0, arrayIndex = 0;
 			while(index < fields.size() && arrayIndex <= helpEmbeds.length) {
 				if(index%25 == 0) {
 					arrayIndex+=1;
-					helpEmbeds[arrayIndex-1] = new EmbedBuilder().copyLayout(this.template);
+					helpEmbeds[arrayIndex-1] = EmbedCreateSpec.builder().from(helpEmbed);
 				}
 				
-				helpEmbeds[arrayIndex-1].addExistingField(fields.get(index));
+				helpEmbeds[arrayIndex-1].addField(fields.get(index));
 
 				index+=1;
 			}
 			
-			helpEmbeds[0].setDescription("**Liste des commandes accessibles pour "+member.getUsername()+" :**");
+			helpEmbeds[0].description("**Liste des commandes accessibles pour "+member.getUsername()+" :**");
 			
 			final PrivateChannel memberPV = member.getPrivateChannel().block();
 			
-			for(EmbedBuilder eb : helpEmbeds) {
+			for(EmbedCreateSpec.Builder eb : helpEmbeds) {
 				memberPV.createMessage(eb.build()).block();
 			}
 			

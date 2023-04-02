@@ -8,7 +8,6 @@ import java.util.List;
 
 import apbiot.core.builder.ColorBuilder;
 import apbiot.core.builder.DateBuilder;
-import apbiot.core.builder.EmbedBuilder;
 import apbiot.core.builder.TimedMessage;
 import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.informations.CommandGatewayComponentInformations;
@@ -24,10 +23,11 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
+import discord4j.core.spec.EmbedCreateSpec;
 
 public class CommandatorCommandPrimary extends NativeCommandInstance {
 
-	private EmbedBuilder cmdtorEmbed;
+	private EmbedCreateSpec cmdtorEmbed;
 	private final long[] receivers;
 	private final String botUsername, botAvatarUrl;
 	
@@ -42,12 +42,14 @@ public class CommandatorCommandPrimary extends NativeCommandInstance {
 
 	@Override
 	public void initCommand() {
-		cmdtorEmbed = new EmbedBuilder();
+		final EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
 		
-		cmdtorEmbed.setAuthor(this.botUsername, null, this.botAvatarUrl);
-		cmdtorEmbed.setTitle("Amélioration Commandator");
-		cmdtorEmbed.setColor(new ColorBuilder().randomColor().get());
-		cmdtorEmbed.setFooter(this.botUsername+" (278deco) "+new DateBuilder(ZoneId.of("Europe/Paris")).getYear()+" © | Tout droits réservés", null);
+		builder.author(this.botUsername, null, this.botAvatarUrl);
+		builder.title("Amélioration Commandator");
+		builder.color(ColorBuilder.randomColor().get());
+		builder.footer(this.botUsername+" (278deco) "+new DateBuilder(ZoneId.of("Europe/Paris")).getYear()+" © | Tout droits réservés", null);
+		
+		this.cmdtorEmbed = builder.build();
 	}
 	
 	@Override
@@ -75,20 +77,21 @@ public class CommandatorCommandPrimary extends NativeCommandInstance {
 			new TimedMessage(chan.createMessage("⚠ Une erreur est survenue, merci de réessayer dans quelques secondes...").block())
 			.setDelayedDelete(Duration.ofSeconds(5), true);
 		}else {
+
+			final EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
+			embedBuilder.from(cmdtorEmbed);
 			
-			cmdtorEmbed.removeAllFields();
-			
-			cmdtorEmbed.addTextInline("Auteur", user.getUsername()+ "\n ID : ``"+user.getId().asString()+"``");
-			cmdtorEmbed.addTextInline("Heure", new DateBuilder(ZoneId.of("Europe/Paris")).getFormattedTime());
-			cmdtorEmbed.addTextBelow("Commande envoyée", cmdArgs.get(0));
-			cmdtorEmbed.addTextBelow("Commande indiquée", cmdArgs.get(1));
-			cmdtorEmbed.addTextBelow("Commande recherchée", cmdArgs.get(2));
+			embedBuilder.addField("Auteur", user.getUsername()+ "\n ID : ``"+user.getId().asString()+"``", true);
+			embedBuilder.addField("Heure", new DateBuilder(ZoneId.of("Europe/Paris")).getFormattedTime(), true);
+			embedBuilder.addField("Commande envoyée", cmdArgs.get(0), false);
+			embedBuilder.addField("Commande indiquée", cmdArgs.get(1), false);
+			embedBuilder.addField("Commande recherchée", cmdArgs.get(2), false);
 			
 			new TimedMessage(chan.createMessage("✅ Votre rapport à bien été envoyé ! *(Tout abus de cette commande sera sanctionné)*").block())
 			.setDelayedDelete(Duration.ofSeconds(7), true);
 			
 			for(Long id : receivers) {
-				guild.getMemberById(Snowflake.of(id)).block().getPrivateChannel().block().createMessage(cmdtorEmbed.build()).block();
+				guild.getMemberById(Snowflake.of(id)).block().getPrivateChannel().block().createMessage(embedBuilder.build()).block();
 			}
 			
 		}

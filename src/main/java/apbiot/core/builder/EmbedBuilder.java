@@ -10,6 +10,13 @@ import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
 import reactor.util.annotation.Nullable;
 
+/**
+ * Re-implementation of {@link discord4j.core.spec.EmbedCreateSpec} for more versatility<br>
+ * <strong>NOT THREAD-SAFE</strong>
+ * @author 278deco
+ * @deprecated 4.0
+ * @since 0.1
+ */
 public class EmbedBuilder {
 	
 	private EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
@@ -177,7 +184,7 @@ public class EmbedBuilder {
      * @param builder - the builder you want to copy from
      * @return an instance of EmbedBuilder
      */
-    public EmbedBuilder copyLayout(EmbedBuilder embedBuilderInstance) {
+    public synchronized EmbedBuilder copyLayout(EmbedBuilder embedBuilderInstance) {
     	this.builder.from(embedBuilderInstance.builder.build());
     	return this;
     }
@@ -187,7 +194,7 @@ public class EmbedBuilder {
      * @param builder - the builder you want to copy from
      * @return an instance of EmbedBuilder
      */
-    public EmbedBuilder fullCopy(EmbedBuilder embedBuilderInstance) {
+    public synchronized EmbedBuilder fullCopy(EmbedBuilder embedBuilderInstance) {
     	this.builder.from(embedBuilderInstance.builder.build());
     	this.fields = embedBuilderInstance.fields;
     	return this;

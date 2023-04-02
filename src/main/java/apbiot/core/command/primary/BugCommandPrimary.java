@@ -8,7 +8,6 @@ import java.util.List;
 
 import apbiot.core.builder.ColorBuilder;
 import apbiot.core.builder.DateBuilder;
-import apbiot.core.builder.EmbedBuilder;
 import apbiot.core.builder.TimedMessage;
 import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.informations.CommandGatewayComponentInformations;
@@ -21,10 +20,11 @@ import apbiot.core.objects.enums.ArgumentLevel;
 import apbiot.core.objects.enums.ArgumentType;
 import apbiot.core.objects.enums.CommandCategory;
 import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateSpec;
 
 public class BugCommandPrimary extends NativeCommandInstance {
 	
-	private EmbedBuilder bugEmbed;
+	private EmbedCreateSpec bugEmbed;
 	private final String botUsername, botAvatarUrl;
 	
 	public BugCommandPrimary(User botAccount) {
@@ -36,12 +36,14 @@ public class BugCommandPrimary extends NativeCommandInstance {
 	
 	@Override
 	public void initCommand() {
-		bugEmbed = new EmbedBuilder();
+		final EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
 		
-		bugEmbed.setAuthor(this.botUsername, null, this.botAvatarUrl);
-		bugEmbed.setTitle("Signalement de bug / Question");
-		bugEmbed.setColor(new ColorBuilder().randomColor().get());
-		bugEmbed.setFooter(this.botUsername+" (278deco) "+new DateBuilder(ZoneId.of("Europe/Paris")).getYear()+" © | Tout droits réservés", null);
+		builder.author(this.botUsername, null, this.botAvatarUrl);
+		builder.title("Signalement de bug / Question");
+		builder.color(ColorBuilder.randomColor().get());
+		builder.footer(this.botUsername+" (278deco) "+new DateBuilder(ZoneId.of("Europe/Paris")).getYear()+" © | Tout droits réservés", null);
+		
+		this.bugEmbed = builder.build();
 	}
 	
 	@Override
@@ -62,19 +64,19 @@ public class BugCommandPrimary extends NativeCommandInstance {
 			return;
 		}else {
 			
-			final EmbedBuilder result = new EmbedBuilder();
-			result.copyLayout(bugEmbed);
+			final EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
+			embedBuilder.from(bugEmbed);
 
-			result.addTextInline("Question / bug", msg);
-			result.addTextInline("Heure", new DateBuilder(ZoneId.of("Europe/Paris")).getFormattedTime())	;
-			result.addTextBelow("Auteur", infos.getExecutor().getUsername()+ "\n ID : ``"+infos.getExecutor().getId().asString()+"``");
+			embedBuilder.addField("Question / bug", msg, true);
+			embedBuilder.addField("Heure", new DateBuilder(ZoneId.of("Europe/Paris")).getFormattedTime(), true);
+			embedBuilder.addField("Auteur", infos.getExecutor().getUsername()+ "\n ID : ``"+infos.getExecutor().getId().asString()+"``", false);
 			
 			
 			new TimedMessage(infos.getChannel().createMessage(
 					"🆗 Votre message à bien été envoyé ! *(Tout abus de cette commande sera sanctionné)*").block())
 			.setDelayedDelete(Duration.ofSeconds(7), true);
 			
-			infos.getEvent().getClient().getApplicationInfo().block().getOwner().block().getPrivateChannel().block().createMessage(result.build()).block();
+			infos.getEvent().getClient().getApplicationInfo().block().getOwner().block().getPrivateChannel().block().createMessage(embedBuilder.build()).block();
 			
 		}
 	}
