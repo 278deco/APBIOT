@@ -473,11 +473,10 @@ public class ClientBuilder {
 	 * @see discord4j.core.DiscordClient#login()
 	 * @throws UnbuiltBotException
 	 */
-	public void build(String token, ClientPresence defaultStatus, IntentSet intent) throws UnbuiltBotException {
+	public synchronized void build(String token, ClientPresence defaultStatus, IntentSet intent) throws UnbuiltBotException {
 		if(NATIVE_COMMANDS == null) throw new UnbuiltBotException("You cannot launch a bot without building it.");
 		
 		final DiscordClient client = DiscordClientBuilder.create(token).build();
-		;
 		
 		clientThread = new Thread(new Runnable() {
 
@@ -517,8 +516,8 @@ public class ClientBuilder {
 	 * Used to disconnect the bot from discord
 	 * @throws UnbuiltBotException
 	 */
-	public void shutdownInstance() throws UnbuiltBotException {
-		if (gateway == null) throw new UnbuiltBotException("You cannot destroy a nonexistent bot.");
+	public synchronized void shutdownInstance() throws UnbuiltBotException {
+		if(gateway == null) throw new UnbuiltBotException("You cannot destroy a nonexistent bot.");
 		gateway.logout().block();
 	}
 	

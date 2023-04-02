@@ -32,28 +32,28 @@ public class HandlerManager {
 	 * Register all the handlers
 	 * @param gateway - the discord client gateway
 	 */
-	public void registerHandlers(GatewayDiscordClient gateway) {
+	public synchronized void registerHandlers(GatewayDiscordClient gateway) {
 		requiredHandlers.forEach(h -> h.register(gateway));
 	}
 	
 	/**
 	 * Register all the optional handlers
 	 */
-	public void registerOptionnalHandlers() {
+	public synchronized void registerOptionnalHandlers() {
 		optionalHandlers.forEach(h -> h.register());
 	}
 	
 	/**
 	 * Initialize all the handlers
 	 */
-	public void buildHandlers() {
+	public synchronized void buildHandlers() {
 		requiredHandlers.forEach(h -> h.build());
 	}
 	
 	/**
 	 * Initialize all the optional handlers
 	 */
-	public void buildOptionalHandlers() {
+	public synchronized void buildOptionalHandlers() {
 		optionalHandlers.forEach(h -> h.build());
 	}
 

@@ -50,7 +50,7 @@ public class CooldownHelper {
 	 * @param list - The list which contains the userlist cooldown
 	 * @return the list without null instance
 	 */
-	public static List<UserCommandCooldown> wipeNullInstance(List<UserCommandCooldown> list) {
+	public synchronized static List<UserCommandCooldown> wipeNullInstance(List<UserCommandCooldown> list) {
 		List<UserCommandCooldown> memory = new ArrayList<>(list);
 		
 		for(UserCommandCooldown cmdU : list) {

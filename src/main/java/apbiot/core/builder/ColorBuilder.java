@@ -7,6 +7,19 @@ import discord4j.rest.util.Color;
 public class ColorBuilder {
 	private Color color;
 	
+	private ColorBuilder(float r, float g, float b) { 
+		this.color = Color.of(r,g,b);
+	}
+	
+	private ColorBuilder(int hexValue) { 
+		this.color = Color.of(hexValue);
+	}
+	
+	private ColorBuilder(Color clr) { 
+		this.color = clr;
+	}
+	
+	
 	/**
 	 * Used to define a new color
 	 * @param r - the red value between 0 and 255
@@ -14,9 +27,8 @@ public class ColorBuilder {
 	 * @param b - the blue value between 0 and 255
 	 * @return and instance of ColorBuilder
 	 */
-	public ColorBuilder of(float r, float g, float b) {
-		this.color = Color.of(r, g, b);
-		return this;
+	public static ColorBuilder of(float r, float g, float b) {
+		return new ColorBuilder(r,g,b);
 	}
 	
 	/**
@@ -24,9 +36,8 @@ public class ColorBuilder {
 	 * @param hexValue - the hexadecimal value of the color
 	 * @return and instance of ColorBuilder
 	 */
-	public ColorBuilder of(int hexValue) {
-		this.color = Color.of(hexValue);
-		return this;
+	public static ColorBuilder of(int hexValue) {
+		return new ColorBuilder(hexValue);
 	}
 	
 	/**
@@ -34,15 +45,14 @@ public class ColorBuilder {
 	 * @see java.util.Random
 	 * @return an instance of ColorBuilder
 	 */
-	public ColorBuilder randomColor() {
-		Random random = new Random();
+	public static ColorBuilder randomColor() {
+		final Random random = new Random();
 		
 		float r = random.nextFloat();
 		float g = random.nextFloat();
 		float b = random.nextFloat();
 		
-		this.color = Color.of(r, g, b);
-		return this;
+		return new ColorBuilder(r,g,b);
 	}
 	
 	/**
@@ -57,12 +67,12 @@ public class ColorBuilder {
 		return new java.awt.Color(this.color.getRGB());
 	}
 	
-	public Color copy() {
-		return Color.of(this.color.getRGB());
+	public ColorBuilder copy() {
+		return new ColorBuilder(this.color);
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
-		return this.color.equals(obj);
+		return obj instanceof Color && this.color.equals((Color)obj);
 	}
 }

@@ -1,5 +1,7 @@
 package apbiot.core;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,7 +20,7 @@ public class ClientInstance {
 	//Builder
 	private ClientBuilder clientBuilder;
 	
-	private boolean running;
+	private AtomicBoolean running;
 	
 	public static ClientInstance createInstance(String clientPrefix) {
 		if(instance == null) {
@@ -54,18 +56,18 @@ public class ClientInstance {
 	 * @param intent - the intent used and required by the bot
 	 * @throws IllegalAccessException 
 	 */
-	public void launch(String[] args, ClientPresence defaultPresence, IntentSet intent) {
-		this.running = true;
+	public synchronized void launch(String[] args, ClientPresence defaultPresence, IntentSet intent) {
+		this.running.set(true);
 		
 		try {
 			clientBuilder.build(args[0], defaultPresence, intent);
 			
 		}catch (UnbuiltBotException e) {
 			LOGGER.fatal("Error thrown will launching the client",e);
-			this.running = false;
+			this.running.set(false);
 		}catch(ArrayIndexOutOfBoundsException e1) {
 			LOGGER.fatal("No token was found during the launch. Shutting down...");
-			this.running = false;
+			this.running.set(true);
 		}
 	}
 	
@@ -76,7 +78,7 @@ public class ClientInstance {
 	 * @param intent - the intent used and required by the bot
 	 * @throws IllegalAccessException 
 	 */
-	public void launch(String token, ClientPresence defaultPresence, IntentSet intent) {
+	public synchronized void launch(String token, ClientPresence defaultPresence, IntentSet intent) {
 		this.launch(new String[] {token}, defaultPresence, intent);
 	}
 	
@@ -84,8 +86,8 @@ public class ClientInstance {
 	 * Finish the build of the bot
 	 * @throws IllegalAccessException
 	 */
-	public void finishBuild() throws IllegalAccessException {
-		if(running == false) throw new IllegalAccessException("You cannot update the command references if the bot isn't built."); 
+	public synchronized void finishBuild() throws IllegalAccessException {
+		if(isInstanceAlive()) throw new IllegalAccessException("You cannot update the command references if the bot isn't built."); 
 		clientBuilder.finishBuild();
 	}
 	
@@ -93,8 +95,8 @@ public class ClientInstance {
 	 * Updated the command mapping of the bot
 	 * @throws IllegalAccessException
 	 */
-	public void updatedCommandReferences() throws IllegalAccessException {
-		if(running == false) throw new IllegalAccessException("You cannot update the command references if the bot isn't built."); 
+	public synchronized void updatedCommandReferences() throws IllegalAccessException {
+		if(isInstanceAlive()) throw new IllegalAccessException("You cannot update the command references if the bot isn't built."); 
 		clientBuilder.updatedCommandReferences(MainInitializer.getHandlers().getHandler(AbstractCommandHandler.class));
 		
 		clientBuilder.buildCommandator();
@@ -105,7 +107,7 @@ public class ClientInstance {
 	 * @return if the client is running
 	 */
 	public boolean isInstanceAlive() {
-		return this.running;
+		return this.running.get();
 	}
 	
 	/**
@@ -120,9 +122,17 @@ public class ClientInstance {
 	 * Used to shut down the client
 	 * @throws UnbuiltBotException
 	 */
-	public void shutdown() throws UnbuiltBotException {
-		if(isInstanceAlive()) {
-			clientBuilder.shutdownInstance();
+	public synchronized void shutdown() throws UnbuiltBotException {
+		if(isInstanceAlive()) clientBuilder.shutdownInstance();
+	}
+	
+	public synchronized void destroy() throws UnbuiltBotException {
+		if(clientBuilder != null) {
+			if(isInstanceAlive()) clientBuilder.shutdownInstance();
+			clientBuilder = null;
+				
+		}else {
+			throw new UnbuiltBotException("Couldn't destroy an non-existing instance of the bot.");
 		}
 	}
 	

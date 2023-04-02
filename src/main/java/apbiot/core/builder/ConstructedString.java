@@ -20,25 +20,11 @@ public class ConstructedString {
 	}
 	
 	/**
-	 * Create a new instance of ConstructedString
-	 */
-	public ConstructedString() {
-	}
-	
-	/**
-	 * Set the message contained in the ConstructedString
-	 * @param message - the message to be set
-	 */
-	public void setMessageString(String message) {
-		this.data = message;
-	}
-	
-	/**
 	 * Main method that tranforms placeholders to real arguments
 	 * @param list - the list of arguments
 	 * @return the same string with the arguments in it
 	 */
-	public ConstructedString decode(List<DataInput> list) {
+	public synchronized ConstructedString decode(List<DataInput> list) {
 		for(int i = 0; i < list.size(); i++) {
 			if(data.contains("#"+(i+1)+""+list.get(i).getSavedType()) && list.get(i).getSavedArgument() != null) {
 				data = data.replace("#"+(i+1)+""+list.get(i).getSavedType(), list.get(i).getSavedArgument());
@@ -52,7 +38,7 @@ public class ConstructedString {
 	 * Get the number of placeholders containing into the string
 	 * @return the number of placeholders
 	 */
-	public int getNumberOfArguments() {
+	public synchronized int getNumberOfArguments() {
 		int argsNb = 0;
 		
 		for(int i = 0; i < data.length(); i++) {

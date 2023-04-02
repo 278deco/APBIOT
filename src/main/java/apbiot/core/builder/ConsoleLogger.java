@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,7 +26,7 @@ public class ConsoleLogger {
 	private static ConsoleLogger instance;
 	private Map<List<String>, SystemCommand> COMMANDS = new HashMap<>();
 	
-	private boolean running;
+	private AtomicBoolean running;
 	private BufferedReader reader;
 	private InputStreamReader insReader;
 	
@@ -55,7 +56,7 @@ public class ConsoleLogger {
 	 * Start listening to every command launched into the console
 	 */
 	public void startListening() {
-		this.running = true;
+		this.running.set(true);
 		
 		insReader = new InputStreamReader(System.in);
 		reader = new BufferedReader(insReader);
@@ -63,7 +64,7 @@ public class ConsoleLogger {
 			
 			@Override
 			public void run() {
-				while(running) {
+				while(running.get()) {
 					String line = "";
 					
 					try {
@@ -94,7 +95,7 @@ public class ConsoleLogger {
 	 * @throws IOException
 	 */
 	public void stopListening() throws IOException {
-		this.running = false;
+		this.running.set(false);
 		
 		insReader.close();
 		reader.close();

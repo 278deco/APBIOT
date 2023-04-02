@@ -37,7 +37,7 @@ public class EditableTimeBuilder extends DateBuilder {
 	 * @param hour - the number of hours to be added
 	 * @return an instance of EditableTimeBuilder
 	 */
-	public EditableTimeBuilder addHour(int hour) {
+	public synchronized EditableTimeBuilder addHour(int hour) {
 		this.date = this.date.plusHours(hour);
 		return this;
 	}
@@ -47,7 +47,7 @@ public class EditableTimeBuilder extends DateBuilder {
 	 * @param hour - the number of minutes to be added
 	 * @return an instance of EditableTimeBuilder
 	 */
-	public EditableTimeBuilder addMinute(int minutes) {
+	public synchronized EditableTimeBuilder addMinute(int minutes) {
 		this.date = this.date.plusMinutes(minutes);
 		return this;
 	}
@@ -57,7 +57,7 @@ public class EditableTimeBuilder extends DateBuilder {
 	 * @param hour - the number of seconds to be added
 	 * @return an instance of EditableTimeBuilder
 	 */
-	public EditableTimeBuilder addSecond(int seconds) {
+	public synchronized EditableTimeBuilder addSecond(int seconds) {
 		this.date = this.date.plusSeconds(seconds);
 		return this;
 	}
@@ -67,7 +67,7 @@ public class EditableTimeBuilder extends DateBuilder {
 	 * @param hour - the number of years to be added
 	 * @return an instance of EditableTimeBuilder
 	 */
-	public EditableTimeBuilder addYear(int year) {
+	public synchronized EditableTimeBuilder addYear(int year) {
 		this.date = this.date.plusYears(year);
 		return this;
 	}
@@ -77,7 +77,7 @@ public class EditableTimeBuilder extends DateBuilder {
 	 * @param hour - the number of months to be added
 	 * @return an instance of EditableTimeBuilder
 	 */
-	public EditableTimeBuilder addMonth(int mouth) {
+	public synchronized EditableTimeBuilder addMonth(int mouth) {
 		this.date = this.date.plusMonths(mouth);
 		return this;
 	}
@@ -87,7 +87,7 @@ public class EditableTimeBuilder extends DateBuilder {
 	 * @param hour - the number of hours to be decreased
 	 * @return an instance of EditableTimeBuilder
 	 */
-	public EditableTimeBuilder removeHour(int hour) {
+	public synchronized EditableTimeBuilder removeHour(int hour) {
 		this.date = this.date.minusHours(hour);
 		return this;
 	}
@@ -97,7 +97,7 @@ public class EditableTimeBuilder extends DateBuilder {
 	 * @param hour - the number of minutes to be decreased
 	 * @return an instance of EditableTimeBuilder
 	 */
-	public EditableTimeBuilder removeMinute(int minutes) {
+	public synchronized EditableTimeBuilder removeMinute(int minutes) {
 		this.date = this.date.minusMinutes(minutes);
 		return this;
 	}
@@ -107,7 +107,7 @@ public class EditableTimeBuilder extends DateBuilder {
 	 * @param hour - the number of seconds to be decreased
 	 * @return an instance of EditableTimeBuilder
 	 */
-	public EditableTimeBuilder removeSecond(int seconds) {
+	public synchronized EditableTimeBuilder removeSecond(int seconds) {
 		this.date = this.date.minusSeconds(seconds);
 		return this;
 	}
@@ -117,7 +117,7 @@ public class EditableTimeBuilder extends DateBuilder {
 	 * @param hour - the number of years to be decreased
 	 * @return an instance of EditableTimeBuilder
 	 */
-	public EditableTimeBuilder removeYear(int year) {
+	public synchronized EditableTimeBuilder removeYear(int year) {
 		this.date = this.date.minusYears(year);
 		return this;
 	}
@@ -127,7 +127,7 @@ public class EditableTimeBuilder extends DateBuilder {
 	 * @param hour - the number of months to be decreased
 	 * @return an instance of EditableTimeBuilder
 	 */
-	public EditableTimeBuilder removeMonth(int mouth) {
+	public synchronized EditableTimeBuilder removeMonth(int mouth) {
 		this.date = this.date.minusMonths(mouth);
 		return this;
 	}
