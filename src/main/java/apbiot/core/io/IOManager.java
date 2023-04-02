@@ -240,12 +240,11 @@ public class IOManager {
 	 * @param elementClass - the file's class
 	 * @return the instance of the file saved in the list
 	 */
-	@SuppressWarnings("unchecked")
 	public <E extends IOElement> E get(Class<E> element) {
 		if(files.containsKey(element)) {
-			return (E) files.get(element);
+			return element.cast(files.get(element));
 		}else if(this.programConfiguration != null && element.equals(this.programConfigurationClass)) {
-			return (E) this.programConfiguration;
+			return element.cast(this.programConfiguration);
 		}else {
 			return null;
 		}

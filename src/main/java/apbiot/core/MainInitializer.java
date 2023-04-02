@@ -22,6 +22,7 @@ import apbiot.core.handler.AbstractCommandHandler;
 import apbiot.core.handler.AbstractSystemCommandHandler;
 import apbiot.core.io.DirectoriesManager;
 import apbiot.core.io.IOManager;
+import apbiot.core.io.ResourceManager;
 import apbiot.core.io.json.JSONConfiguration;
 import apbiot.core.objects.interfaces.IEvent;
 import apbiot.core.objects.interfaces.IHandler;
@@ -127,8 +128,9 @@ public abstract class MainInitializer {
 		dirManager.registerDirectories();
 		
 		IOManager.createInstance(dirManager.getLoadedDirectories(), dirManager.getConfigurationDirectory(), configurationClass);
-		//TODO Ressources
-		LOGGER.info("All ressources have been successfully loaded and parsed.");
+		LOGGER.info("Input Output management is now lauched.");
+		ResourceManager.createInstance(dirManager.getLoadedDirectories());
+		LOGGER.info("Resource management is now lauched.");
 	}
 	
 	/**

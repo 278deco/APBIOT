@@ -46,4 +46,17 @@ public class Directory {
 	public Path getPath() {
 		return directory;
 	}
+	
+	public boolean isPathSimilar(Path path) {
+		return path.equals(this.getPath());
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof Directory && AreEquals((Directory)obj);
+	}
+
+	private boolean AreEquals(Directory obj) {
+		return isPathSimilar(obj.getPath()) && obj.getName().equalsIgnoreCase(this.getName());
+	}
 }
