@@ -1,29 +1,27 @@
 package apbiot.core.io.objects;
 
-import java.nio.file.Path;
-
 public class Resource {
 	
 	private byte[] data;
 	private String name;
-	private Path path;
+	private Directory directory;
 	private String extension;
 	
 	private boolean isErasable;
 	
-	public Resource(Path path, String extension, byte[] data, String name, boolean isErasable) {
-		this.path = path;
+	public Resource(Directory directory, String name, String extension, byte[] data, boolean isErasable) {
+		this.directory = directory;
 		this.extension = extension;
 		this.data = data;
 		this.name = name;
 	}
 	
-	public Resource(Path path, String extension, byte[] data, String name) {
-		this(path, extension, data, name, true);
+	public Resource(Directory directory, String name, String extension, byte[] data) {
+		this(directory, name, extension, data, true);
 	}
 	
 	public Resource(byte[] data, String name) {
-		this(null, null, data, name, true);
+		this(null, name, null, data, true);
 	}
 	
 	public byte[] getData() {
@@ -34,12 +32,12 @@ public class Resource {
 		return name;
 	}
 	
-	public Path getPath() {
-		return path;
+	public Directory getDirectory() {
+		return directory;
 	}
 	
-	public boolean isPathPresent() {
-		return path != null;
+	public boolean isDirectoryPresent() {
+		return directory != null;
 	}
 	
 	public String getExtension() {

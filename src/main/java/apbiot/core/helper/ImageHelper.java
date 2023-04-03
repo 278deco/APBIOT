@@ -1,14 +1,17 @@
 package apbiot.core.helper;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 import apbiot.core.img.ConstructedImage;
 import apbiot.core.img.ConstructedImage.ImageStatus;
-import apbiot.core.objects.Tuple;
+import apbiot.core.io.ResourceManager;
+import apbiot.core.io.objects.Directory;
+import apbiot.core.io.objects.Resource;
 import discord4j.rest.util.Image;
 
 public class ImageHelper {
+	
 	/**
 	 * Convert a discord image into a constructed image
 	 * @param directory - the directory of the image
@@ -19,10 +22,8 @@ public class ImageHelper {
 	 * @return an instance of ConstructedImage
 	 * @throws IOException 
 	 */
-	public static ConstructedImage convertDiscordImage(String directory, Image discImage, String imageName) throws IOException {
-		if(directory == null || directory.isEmpty() || directory.isBlank()) throw new NullPointerException("The directory isn't correctly defined");
-		
-		return new ConstructedImage(directory, imageName, discImage.getData(), ImageStatus.TEMPORARY);
+	public static ConstructedImage convertDiscordImage(Directory directory, Image discordImage, String imageName) throws IOException {
+		return new ConstructedImage(Objects.requireNonNull(directory).getPath(), Objects.requireNonNull(discordImage).getData(), Objects.requireNonNull(imageName), ImageStatus.TEMPORARY);
 	}
 	
 	/**
@@ -32,26 +33,13 @@ public class ImageHelper {
 	 * @return a tuple containing the image name and the path to the image
 	 * @throws IOException 
 	 */
-	public static Tuple<String, String> getValidDiscordImage(String directory, ConstructedImage img) throws IOException {
-		if(directory == null || directory.isEmpty() || directory.isBlank()) throw new NullPointerException("The directory isn't correctly defined");
-		
-		String path = directory+File.separator+img.getName();
-		
-		img.saveImage(new File(path));
+	public static Resource getValidDiscordImage(Directory directory, ConstructedImage img) throws IOException {
+		if(!ResourceManager.doesInstanceExist()) throw new IllegalStateException("Cannot call this method if the resourceManager doesn't exist!");
+		final Resource resource = new Resource(Objects.requireNonNull(directory), img.getName(), img.getFormat(), img.getRawImage());
 
-		return new Tuple<String, String>(img.getName(), path);
-	}
-	
-	/**
-	 * Delete an file from the temporary folder
-	 * @param directory - the directory of the image
-	 * @param imageName - the name of the image and it extension
-	 * @return if the image has been successfully deleted
-	 */
-	public static boolean deleteTemporaryImage(String directory, String imageName) {
-		if(directory == null || directory.isEmpty() || directory.isBlank()) throw new NullPointerException("The directory isn't correctly defined");
-		
-		return new File(directory+File.separator+imageName).delete();
+		ResourceManager.getInstance().saveResource(resource);
+
+		return resource;
 	}
 	
 }

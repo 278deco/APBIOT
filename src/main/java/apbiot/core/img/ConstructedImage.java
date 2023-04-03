@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.awt.image.RescaleOp;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -14,6 +15,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
 
+import apbiot.core.io.objects.Directory;
 import apbiot.core.io.objects.Resource;
 
 /**
@@ -33,7 +35,7 @@ public class ConstructedImage {
 	}
 	
 	private BufferedImage image;
-	private Path path;
+	private Directory directory;
 	private String imgName;
 	private ImageStatus status;
 	
@@ -49,7 +51,7 @@ public class ConstructedImage {
 	 */
 	public ConstructedImage(Resource resource, ImageStatus status) throws IOException {
 		this.image = createImageFromBytes(resource.getData());
-		this.path = resource.getPath();
+		this.directory = resource.getDirectory();
 		this.imgName = resource.getName();
 		this.status = status;
 	}
@@ -65,6 +67,22 @@ public class ConstructedImage {
 	
 	/**
 	 * Create a new image object
+	 * @param directory The directory of the image
+	 * @param imgData A byte array containing the image data
+	 * @param name The name of the image
+	 * @param status the status of the image
+	 * @see ImageStatus
+	 * @throws IOException
+	 */
+	public ConstructedImage(Directory directory, byte[] imgData, String name, ImageStatus status) throws IOException {
+		this.image = createImageFromBytes(imgData);
+		this.directory = directory;
+		this.imgName = name;
+		this.status = status;
+	}
+	
+	/**
+	 * Create a new image object
 	 * @param path The path of the image
 	 * @param imgData A byte array containing the image data
 	 * @param name The name of the image
@@ -74,8 +92,20 @@ public class ConstructedImage {
 	 */
 	public ConstructedImage(Path path, byte[] imgData, String name, ImageStatus status) throws IOException {
 		this.image = createImageFromBytes(imgData);
+		this.directory = new Directory(path);
 		this.imgName = name;
 		this.status = status;
+	}
+	
+	/**
+	 * Create a new image object
+	 * @param directory The directory of the image
+	 * @param imgData A byte array containing the image data
+	 * @param name The name of the image
+	 * @throws IOException
+	 */
+	public ConstructedImage(Directory directory, byte[] imgData, String name) throws IOException {
+		this(directory, imgData, name, ImageStatus.TEMPORARY);
 	}
 	
 	/**
@@ -98,7 +128,9 @@ public class ConstructedImage {
 	 * @throws IOException
 	 */
 	public ConstructedImage(byte[] imgData, String name, ImageStatus status) throws IOException {
-		this(null, imgData, name, status);
+		this.image = createImageFromBytes(imgData);
+		this.imgName = name;
+		this.status = status;
 	}
 	
 	/**
@@ -108,7 +140,7 @@ public class ConstructedImage {
 	 * @throws IOException
 	 */
 	public ConstructedImage(byte[] imgData, String name) throws IOException {
-		this(null, imgData, name, ImageStatus.TEMPORARY);
+		this(imgData, name, ImageStatus.TEMPORARY);
 	}
 	
 	protected BufferedImage createImageFromBytes(byte[] imageData) throws IOException {
@@ -150,7 +182,7 @@ public class ConstructedImage {
 		FileImageOutputStream destination = null;
 		
 		try {
-			destination = new FileImageOutputStream(this.path.resolve(this.imgName+".png").toFile());
+			destination = new FileImageOutputStream(this.directory.getPath().resolve(this.imgName+".png").toFile());
 			writer.setOutput(destination);
 			writer.write(this.image);
 			
@@ -257,6 +289,13 @@ public class ConstructedImage {
 		this.imgName = newName;
 	}
 	
+	public byte[] getRawImage() throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ImageIO.write(this.getImage(), this.getFormat(), baos);
+		
+		return baos.toByteArray();
+	}
+	
 	/**
 	 * Get the stored image's width
 	 * @return an integer containing the image's width
@@ -298,6 +337,16 @@ public class ConstructedImage {
 	 */
 	public String getName() {
 		return this.imgName;
+	}
+
+	/**
+	 * Default format used by the constructed images<br>
+	 * Describe the extension used by the image<br><br>
+	 * <i>To be reworked</i>
+	 * @return the extension of the image
+	 */
+	public String getFormat() {
+		return "png";
 	}
 
 }

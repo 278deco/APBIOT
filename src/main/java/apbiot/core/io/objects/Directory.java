@@ -53,10 +53,10 @@ public class Directory {
 	
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof Directory && AreEquals((Directory)obj);
+		return obj instanceof Directory && areEquals((Directory)obj);
 	}
 
-	private boolean AreEquals(Directory obj) {
+	private boolean areEquals(Directory obj) {
 		return isPathSimilar(obj.getPath()) && obj.getName().equalsIgnoreCase(this.getName());
 	}
 }

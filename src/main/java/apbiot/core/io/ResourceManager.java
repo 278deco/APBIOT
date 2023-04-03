@@ -2,6 +2,7 @@ package apbiot.core.io;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.file.Files;
@@ -35,13 +36,19 @@ public class ResourceManager {
 		return instance;
 	}
 	
+	public static boolean doesInstanceExist() {
+		return instance != null;
+	}
+	
 	public static ResourceManager getInstance() {
 		return instance;
 	}
 	
 	public Resource getResource(Path resourcePath, String resource, boolean isErasable) throws IOException {
-		if(!isDirectoryExisting(resourcePath)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start!");
+		final Directory dir = new Directory(resourcePath);
 		final String[] splitName = resource.split(".");
+		
+		if(!isDirectoryExisting(dir)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start!");
 		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
 		
 		String resourceId = splitName[0];
@@ -69,7 +76,7 @@ public class ResourceManager {
 				if(inputStream != null) inputStream.close();
 			}
 			
-			return new Resource(resourcePath, splitName[1], fileResult, resourceId, isErasable);
+			return new Resource(dir, resourceId, splitName[1], fileResult, isErasable);
 		}
 	}
 	
@@ -88,10 +95,32 @@ public class ResourceManager {
 		return resourceBuffer.get(index);
 	}
 	
-	public boolean deleteResource(Path resourcePath, String resource) throws IOException {
-		if(!isDirectoryExisting(resourcePath)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
+	public void saveResource(Resource resource) throws IOException {
+		if(!isDirectoryExisting(resource.getDirectory())) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
+		final Path filePath = resource.getDirectory().getPath().resolve(resource.getFileName());
 		
-		return Files.deleteIfExists(resourcePath.resolve(resourcePath));
+		if(!Files.exists(filePath)) Files.createFile(filePath);
+		
+		try (FileOutputStream stream = new FileOutputStream(filePath.toFile())) {
+			stream.write(resource.getData());
+		}
+	}
+	
+	public void saveResource(Path resourcePath, String resource, byte[] data) throws IOException {
+		if(!isDirectoryExisting(resourcePath)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
+		final Path filePath = resourcePath.resolve(resource);
+		
+		if(!Files.exists(filePath)) Files.createFile(filePath);
+		
+		try (FileOutputStream stream = new FileOutputStream(filePath.toFile())) {
+			stream.write(data);
+		}
+	}
+	
+	public boolean deleteResource(Path resourcePath, String resource) throws IOException {
+		if(!isDirectoryExisting(new Directory(resourcePath))) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
+		
+		return Files.deleteIfExists(resourcePath.resolve(resource));
 	}
 	
 	public boolean deleteResource(String id) throws IOException {
@@ -99,7 +128,7 @@ public class ResourceManager {
 		
 		if(opt.isPresent()) {
 			resourceBuffer.remove(opt.get());
-			return Files.deleteIfExists(opt.get().getPath().resolve(opt.get().getFileName()));
+			return Files.deleteIfExists(opt.get().getDirectory().getPath().resolve(opt.get().getFileName()));
 		}
 			
 		return false;
@@ -108,7 +137,7 @@ public class ResourceManager {
 	public boolean deleteResource(int index) throws IOException {
 		if(index >= resourceBuffer.size()) throw new IllegalArgumentException("Cannot have an index greater than the buffer size!");
 		Resource rsc = resourceBuffer.remove(index);
-		return Files.deleteIfExists(rsc.getPath().resolve(rsc.getFileName()));
+		return Files.deleteIfExists(rsc.getDirectory().getPath().resolve(rsc.getFileName()));
 	}
 	
 	public synchronized Resource addResourceToBuffer(Resource rsc) {
@@ -146,6 +175,10 @@ public class ResourceManager {
 	
 	public synchronized void clearBuffer() {
 		resourceBuffer.clear();
+	}
+	
+	private boolean isDirectoryExisting(Directory directory) {
+		return directories.stream().anyMatch(dir -> dir.isPathSimilar(directory.getPath()));
 	}
 	
 	private boolean isDirectoryExisting(Path path) {
