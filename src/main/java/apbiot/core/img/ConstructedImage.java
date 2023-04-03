@@ -1,16 +1,20 @@
 package apbiot.core.img;
 
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
+import java.awt.image.RescaleOp;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
 
-import io.netty.util.concurrent.BlockingOperationException;
+import apbiot.core.io.objects.Resource;
 
 /**
  * A class used to store an image and all the informations about it
@@ -28,205 +32,226 @@ public class ConstructedImage {
 		USER_DECISION;
 	}
 	
-	protected BufferedImage img;
-	protected File file;
-	protected String path, imgName;
-	protected ImageStatus status;
-	protected boolean isModified = false;
+	private BufferedImage image;
+	private Path path;
+	private String imgName;
+	private ImageStatus status;
+	
+	private Graphics2D graph;
+	private boolean isDisposed;
 	
 	/**
-	 * @param path - the path of the image
-	 * @param name - the name of the image (and his extension)
-	 * @param status - the status of the image
-	 * @see apbiot.core.img
+	 * Create a new image object
+	 * @param resource the resource storing the image
+	 * @param status the status of the image
+	 * @see ImageStatus
 	 * @throws IOException
 	 */
-	public ConstructedImage(String path, String name, ImageStatus status) throws IOException {
-		this.path = path;
-		this.file = new File(path+File.separator+name);
+	public ConstructedImage(Resource resource, ImageStatus status) throws IOException {
+		this.image = createImageFromBytes(resource.getData());
+		this.path = resource.getPath();
+		this.imgName = resource.getName();
+		this.status = status;
+	}
+	
+	/**
+	 * Create a new image object
+	 * @param resource the resource storing the image
+	 * @throws IOException
+	 */
+	public ConstructedImage(Resource resource) throws IOException {
+		this(resource, ImageStatus.TEMPORARY);
+	}
+	
+	/**
+	 * Create a new image object
+	 * @param path The path of the image
+	 * @param imgData A byte array containing the image data
+	 * @param name The name of the image
+	 * @param status the status of the image
+	 * @see ImageStatus
+	 * @throws IOException
+	 */
+	public ConstructedImage(Path path, byte[] imgData, String name, ImageStatus status) throws IOException {
+		this.image = createImageFromBytes(imgData);
 		this.imgName = name;
 		this.status = status;
-		this.img = openImage();
 	}
 	
 	/**
-	 * @param path - the path of the image
-	 * @param name - the name of the image (and his extension)
+	 * Create a new image object
+	 * @param path The path of the image
+	 * @param imgData A byte array containing the image data
+	 * @param name The name of the image
 	 * @throws IOException
 	 */
-	public ConstructedImage(String path, String name) throws IOException {
-		this.path = path;
-		this.file = new File(path+File.separator+name);
-		this.imgName = name;
-		this.status = ImageStatus.TEMPORARY;
-		this.img = openImage();
+	public ConstructedImage(Path path, byte[] imgData, String name) throws IOException {
+		this(path, imgData, name, ImageStatus.TEMPORARY);
 	}
 	
 	/**
-	 * 
-	 * @param path - the path of the image
-	 * @param name - the name of the image (and his extension)
-	 * @param img - a BufferedImage to store
+	 * Create a new image object
+	 * @param imgData A byte array containing the image data
+	 * @param name The name of the image
+	 * @param status the status of the image
+	 * @see ImageStatus
 	 * @throws IOException
 	 */
-	public ConstructedImage(String path, String name, BufferedImage img) throws IOException {
-		this.path = path;
-		this.file = new File(path+File.separator+name);
-		this.imgName = name;
-		this.status = ImageStatus.TEMPORARY;
-		this.img = img;
+	public ConstructedImage(byte[] imgData, String name, ImageStatus status) throws IOException {
+		this(null, imgData, name, status);
 	}
 	
 	/**
-	 * @param path - the path of the image
-	 * @param name - the name of the image (and his extension)
-	 * @param img - a BufferedImage to store
-	 * @param status - the status of the image
-	 * @see apbiot.core.img
+	 * Create a new image object
+	 * @param imgData A byte array containing the image data
+	 * @param name The name of the image
 	 * @throws IOException
 	 */
-	public ConstructedImage(String path, String name, BufferedImage img, ImageStatus status) throws IOException {
-		this.path = path;
-		this.file = new File(path+File.separator+name);
-		this.imgName = name;
-		this.status = status;
-		this.img = img;
-	}
-	
-	/**
-	 * 
-	 * @param path - the path of the image
-	 * @param name - the name of the image (and his extension)
-	 * @param imgData - The data contained in an image
-	 * @throws IOException
-	 */
-	public ConstructedImage(String path, String name, byte[] imgData) throws IOException {
-		this.path = path;
-		this.file = new File(path+File.separator+name);
-		this.imgName = name;
-		this.status = ImageStatus.TEMPORARY;
-		this.img = createImageFromBytes(imgData);
-	}
-	
-	/**
-	 * @param path - the path of the image
-	 * @param name - the name of the image (and his extension)
-	 * @param imgData - The data contained in an image
-	 * @param status - the status of the image
-	 * @see apbiot.core.img
-	 * @throws IOException
-	 */
-	public ConstructedImage(String path, String name, byte[] imgData, ImageStatus status) throws IOException {
-		this.path = path;
-		this.file = new File(path+File.separator+name);
-		this.imgName = name;
-		this.status = status;
-		this.img = createImageFromBytes(imgData);
+	public ConstructedImage(byte[] imgData, String name) throws IOException {
+		this(null, imgData, name, ImageStatus.TEMPORARY);
 	}
 	
 	protected BufferedImage createImageFromBytes(byte[] imageData) throws IOException {
-	    ByteArrayInputStream bais = new ByteArrayInputStream(imageData);
-	    
-	    return ImageIO.read(bais);
+	    final ByteArrayInputStream bais = new ByteArrayInputStream(imageData);
+	    return ImageIO.read(bais); 
 	}
 	
 	/**
-	 * Used to read a file and store the image in a BufferedImage
-	 * @return the image contained in the file
+	 * Save the image stored in this instance at the new path given
+	 * @param savePath the new path
 	 * @throws IOException
 	 */
-	private BufferedImage openImage() throws IOException {
-		return ImageIO.read(this.file);
+	public void saveImage(Path savePath) throws IOException {
+		if(!isDisposed) throw new IllegalAccessError("Cannot access to the image's properties if it hasn't been disposed!");
+		ImageWriter writer = ImageIO.getImageWritersByFormatName("PNG").next();
+		FileImageOutputStream destination = null;
+		
+		try {
+			destination = new FileImageOutputStream(savePath.toFile());
+			writer.setOutput(destination);
+			writer.write(this.image);
+			
+		}finally {
+			if(destination != null) {
+				destination.flush();
+				destination.close();
+			}
+		}
+		
 	}
 	
 	/**
-	 * Used to save the image stored in this instance at the original image's path
+	 * Save the image stored in this instance at its original path
 	 * @throws IOException
 	 */
 	public void saveImage() throws IOException {
-		if(isModified) throw new BlockingOperationException("Can't save an image without call disposal method");
-		else {
-			ImageWriter writer = ImageIO.getImageWritersByFormatName("PNG").next();
-			
-			FileImageOutputStream destination = new FileImageOutputStream(this.file);
+		if(!isDisposed) throw new IllegalAccessError("Cannot access to the image's properties if it hasn't been disposed!");
+		ImageWriter writer = ImageIO.getImageWritersByFormatName("PNG").next();
+		FileImageOutputStream destination = null;
+		
+		try {
+			destination = new FileImageOutputStream(this.path.resolve(this.imgName+".png").toFile());
 			writer.setOutput(destination);
-			writer.write(this.img);
+			writer.write(this.image);
 			
-			destination.close();
+		}finally {
+			if(destination != null) {
+				destination.flush();
+				destination.close();
+			}
 		}
 	}
 	
 	/**
-	 * Used to save the image stored in this instance in a new position
-	 * @param file - where the image need to be save
-	 * @throws IOException
+	 * Release the graphic class using the image
+	 * Can't call the save method before dispose the picture
 	 */
-	public void saveImage(File file) throws IOException {
-		if(isModified) throw new BlockingOperationException("Can't save an image without call disposal method");
-		else {
-			ImageWriter writer = ImageIO.getImageWritersByFormatName("PNG").next();
-			
-			FileImageOutputStream destination = new FileImageOutputStream(file);
-			writer.setOutput(destination);
-			writer.write(this.img);
-			
-			destination.close();
-		}
+	public void dispose() {
+		if(graph != null) graph.dispose();
+		isDisposed = true;
 	}
 	
 	/**
-	 * Used to save the image stored in this instance with a new name but with the original image's path
-	 * @param name - the new name of the image
-	 * @throws IOException
-	 */
-	public void saveImage(String name) throws IOException {
-		if(isModified) throw new BlockingOperationException("Can't save an image without call disposal method");
-		else {
-			ImageWriter writer = ImageIO.getImageWritersByFormatName("PNG").next();
-			
-			FileImageOutputStream destination = new FileImageOutputStream(new File(this.path+name));
-			writer.setOutput(destination);
-			writer.write(this.img);
-			
-			destination.close();
-		}
-	}
-	
-	/**
-	 * Used to resize the stored image
+	 * Resize the stored image
 	 * @param newW - the new width of the image
 	 * @param newH - the new height of the image
 	 * @param conserveTransparence - if the image have transparency, setting this to true will cause the image to retain its transparency 
+	 * @throws IOException
+	 * @return an instance of ConstructedImage
 	 */
-	public void resizeImage(int newW, int newH, boolean conserveTransparence) {
-		Image result = this.img.getScaledInstance(newW, newH, Image.SCALE_DEFAULT);
-		int imgType = conserveTransparence ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+	public ConstructedImage resizeImage(int newW, int newH, boolean conserveTransparence) throws IOException {
+		final Image result = this.image.getScaledInstance(newW, newH, Image.SCALE_DEFAULT);
 		
-		BufferedImage returningImg = new BufferedImage(newW, newH, imgType);
-		returningImg.getGraphics().drawImage(result, 0, 0, null);
+		final BufferedImage newImage = new BufferedImage(newW, newH, (conserveTransparence ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB));
+		newImage.getGraphics().drawImage(result, 0, 0, null);
 		
-		this.img = returningImg;
+		isDisposed = false;
+		this.image = newImage;
+		
+		return this;
 	}
 	
-	public boolean deleteImage(boolean deleteIfTemporary) {
-		if(deleteIfTemporary) {
-			if(this.status == ImageStatus.TEMPORARY) {
-				return this.file.delete();
-			}else {
-				return false;
-			}
-		}else {
-			return this.file.delete();
-		}
+	/**
+	 * Used to merge two image together
+	 * @param img an other BufferedImage to paste on instance's image
+	 * @param x the X value where the image need to be paste
+	 * @param y the Y value where the image need to be paste
+	 * @return an instance of ConstructedImage
+	 */
+	public ConstructedImage mergeImages(BufferedImage img, int x, int y) {
+		if(graph == null) graph = image.createGraphics();
+		graph.drawImage(img, x, y, null);
+		isDisposed = false;
+		
+		return this;
+	}
+
+	/**
+	 * Used to merge two image together
+	 * @param constructedImg an other ConstructedImage to paste on instance's image
+	 * @param x the X value where the image need to be paste
+	 * @param y the Y value where the image need to be paste
+	 * @return an instance of ConstructedImage
+	 */
+	public ConstructedImage mergeImages(ConstructedImage constructedImg, int x, int y) {
+		if(graph == null) graph = image.createGraphics();
+		graph.drawImage(constructedImg.getImage(), x, y, null);
+		isDisposed = false;
+		
+		return this;
 	}
 	
-	public GraphicImage duplicateAndEditImage() throws IOException {
-		return new GraphicImage(this.path, this.imgName, this.img, this.status);
+	/**
+	 * Used to convert image's color into only black and white
+	 * @see java.awt.image.ColorConvertOp
+	 * @return an instance of ConstructedImage
+	 */
+	public ConstructedImage applyBlacknWhiteFilter() {	
+		ColorConvertOp gray = new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_GRAY),null);
+		gray.filter(this.image, this.image);
+		isDisposed = false;
+		
+		return this;
+	}
+	
+	/**
+	 * Used to change the brightness and increase the hue of an image
+	 * @param brightness the new brightness of the image
+	 * @param hue the new hue of the image
+	 * @see java.awt.image.RescaleOp
+	 * @return an instance of ConstructedImage
+	 */
+	public ConstructedImage changeBrightness(float brightness, int hue) {
+		RescaleOp bright = new RescaleOp(brightness, hue, null);
+		bright.filter(this.image, this.image);
+		isDisposed = false;
+		
+		return this;
 	}
 	
 	/**	
 	 * Change the name of the image contained in the instance
-	 * @param newName - the new name of the image
+	 * @param newName the new name of the image
 	 */
 	public void changeImageName(String newName) {
 		this.imgName = newName;
@@ -237,7 +262,8 @@ public class ConstructedImage {
 	 * @return an integer containing the image's width
 	 */
 	public int getWidth() {
-		return img.getWidth();
+		if(!isDisposed) throw new IllegalAccessError("Cannot access to the image's properties if it hasn't been disposed!");
+		return image.getWidth();
 	}
 	
 	/**
@@ -245,7 +271,8 @@ public class ConstructedImage {
 	 * @return an integer containing the image's height 
 	 */
 	public int getHeight() {
-		return img.getHeight();
+		if(!isDisposed) throw new IllegalAccessError("Cannot access to the image's properties if it hasn't been disposed!");
+		return image.getHeight();
 	}
 	
 	/**
@@ -253,15 +280,8 @@ public class ConstructedImage {
 	 * @return a BufferedImage, the stored image
 	 */
 	public BufferedImage getImage() {
-		return img;
-	}
-	
-	/**
-	 * Get the file where the image is stored
-	 * @return a File where the image is
-	 */
-	public File getFile() {
-		return file;
+		if(!isDisposed) throw new IllegalAccessError("Cannot access to the image if it hasn't been disposed!");
+		return image;
 	}
 	
 	/**

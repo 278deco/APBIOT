@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.BufferOverflowException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -39,8 +40,11 @@ public class ResourceManager {
 	}
 	
 	public Resource getResource(Path resourcePath, String resource, boolean isErasable) throws IOException {
-		if(!isDirectoryExisting(resourcePath)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
-		String resourceId = resource.split(".")[0];
+		if(!isDirectoryExisting(resourcePath)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start!");
+		final String[] splitName = resource.split(".");
+		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
+		
+		String resourceId = splitName[0];
 		
 		Resource opt = getResource(resourceId);
 		if(opt != null) { 
@@ -65,7 +69,7 @@ public class ResourceManager {
 				if(inputStream != null) inputStream.close();
 			}
 			
-			return new Resource(fileResult, resourceId, isErasable);
+			return new Resource(resourcePath, splitName[1], fileResult, resourceId, isErasable);
 		}
 	}
 	
@@ -74,13 +78,37 @@ public class ResourceManager {
 	}
 	
 	public Resource getResource(String id) {
-		final Optional<Resource> opt = resourceBuffer.stream().filter(rsc -> rsc.getId().equals(id)).findFirst(); 
+		final Optional<Resource> opt = resourceBuffer.stream().filter(rsc -> rsc.getName().equals(id)).findFirst(); 
 			
 		return opt.isPresent() ? opt.get() : null;
 	}
 	
 	public Resource getResource(int index) {
+		if(index >= resourceBuffer.size()) throw new IllegalArgumentException("Cannot have an index greater than the buffer size!");
 		return resourceBuffer.get(index);
+	}
+	
+	public boolean deleteResource(Path resourcePath, String resource) throws IOException {
+		if(!isDirectoryExisting(resourcePath)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
+		
+		return Files.deleteIfExists(resourcePath.resolve(resourcePath));
+	}
+	
+	public boolean deleteResource(String id) throws IOException {
+		final Optional<Resource> opt = resourceBuffer.stream().filter(rsc -> rsc.getName().equals(id)).findFirst(); 
+		
+		if(opt.isPresent()) {
+			resourceBuffer.remove(opt.get());
+			return Files.deleteIfExists(opt.get().getPath().resolve(opt.get().getFileName()));
+		}
+			
+		return false;
+	}
+	
+	public boolean deleteResource(int index) throws IOException {
+		if(index >= resourceBuffer.size()) throw new IllegalArgumentException("Cannot have an index greater than the buffer size!");
+		Resource rsc = resourceBuffer.remove(index);
+		return Files.deleteIfExists(rsc.getPath().resolve(rsc.getFileName()));
 	}
 	
 	public synchronized Resource addResourceToBuffer(Resource rsc) {
@@ -108,11 +136,12 @@ public class ResourceManager {
 	}
 	
 	public synchronized void removeResourceFromBuffer(int index) {
+		if(index >= resourceBuffer.size()) throw new IllegalArgumentException("Cannot have an index greater than the buffer size!");
 		resourceBuffer.remove(index);
 	}
 	
 	public synchronized void removeResourceFromBuffer(String id) {
-		resourceBuffer.removeIf(resource -> resource.getId().equals(id));
+		resourceBuffer.removeIf(resource -> resource.getName().equals(id));
 	}
 	
 	public synchronized void clearBuffer() {

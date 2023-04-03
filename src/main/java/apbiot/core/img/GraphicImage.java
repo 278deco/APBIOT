@@ -6,86 +6,31 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.awt.image.RescaleOp;
 import java.io.IOException;
+import java.nio.file.Path;
+
+import io.netty.util.concurrent.BlockingOperationException;
 
 /**
  * A class used to apply modification on all types of pictures
  * @see apbiot.core.img.ConstructedImage
  * @author 278deco
+ * @deprecated 4.0
  */
-public class GraphicImage extends ConstructedImage {
+public class GraphicImage {
 
+	private ConstructedImage constructedImg;
 	private Graphics2D graph;
+	private boolean isDisposed;
 	
 	/**
 	 * @param path - the path of the image
 	 * @param name - the name of the image (and his extension)
 	 * @throws IOException
 	 */
-	public GraphicImage(String path, String name) throws IOException {
-		super(path, name);
-		this.graph = this.img.createGraphics(); 
-	}
-	
-	/**
-	 * @param path - the path of the image
-	 * @param name - the name of the image (and his extension)
-	 * @param status - the status of the image
-	 * @see apbiot.core.img.ConstructedImage.ImageStatus
-	 * @throws IOException
-	 */
-	public GraphicImage(String path, String name, ImageStatus status) throws IOException {
-		super(path, name, status);
-		this.graph = this.img.createGraphics();
-	}
-	
-	/**
-	 * 
-	 * @param path - the path of the image
-	 * @param name - the name of the image (and his extension)
-	 * @param img - a BufferedImage to store
-	 * @throws IOException
-	 */
-	public GraphicImage(String path, String name, BufferedImage img) throws IOException {
-		super(path, name, img);
-		this.graph = this.img.createGraphics();
-	}
-	
-	/**
-	 * @param path - the path of the image
-	 * @param name - the name of the image (and his extension)
-	 * @param img - a BufferedImage to store
-	 * @param status - the status of the image
-	 * @see apbiot.core.img.ConstructedImage.ImageStatus
-	 * @throws IOException
-	 */
-	public GraphicImage(String path, String name, BufferedImage img, ImageStatus status) throws IOException {
-		super(path,name,img,status);
-		this.graph = this.img.createGraphics();
-	}
-	
-	/**
-	 * 
-	 * @param path - the path of the image
-	 * @param name - the name of the image (and his extension)
-	 * @param imgData - The data contained in an image
-	 * @throws IOException
-	 */
-	public GraphicImage(String path, String name, byte[] imgData) throws IOException {
-		super(path, name, imgData);
-		this.graph = this.img.createGraphics();
-	}
-	
-	/**
-	 * @param path - the path of the image
-	 * @param name - the name of the image (and his extension)
-	 * @param imgData - The data contained in an image
-	 * @param status - the status of the image
-	 * @see apbiot.core.img.ConstructedImage.ImageStatus
-	 * @throws IOException
-	 */
-	public GraphicImage(String path, String name, byte[] imgData, ImageStatus status) throws IOException {
-		super(path,name,imgData,status);
-		this.graph = this.img.createGraphics();
+	public GraphicImage(ConstructedImage image) throws IOException {
+		this.constructedImg = image;
+		this.graph = this.constructedImg.getImage().createGraphics();
+		this.isDisposed = true;
 	}
 	
 	/**
@@ -97,13 +42,11 @@ public class GraphicImage extends ConstructedImage {
 	 */
 	public GraphicImage mergeImages(BufferedImage img, int x, int y) {
 		graph.drawImage(img, x, y, null);
-		isModified = true;
+		isDisposed = false;
 		
 		return this;
 	}
-	
-	
-	
+
 	/**
 	 * Used to merge two image together
 	 * @param constructedImg - an other ConstructedImage to paste on instance's image
@@ -112,8 +55,8 @@ public class GraphicImage extends ConstructedImage {
 	 * @return an instance of GraphicImage
 	 */
 	public GraphicImage mergeImages(ConstructedImage constructedImg, int x, int y) {
-		graph.drawImage(constructedImg.img, x, y, null);
-		isModified = true;
+		graph.drawImage(constructedImg.getImage(), x, y, null);
+		isDisposed = false;
 		
 		return this;
 	}
@@ -125,8 +68,8 @@ public class GraphicImage extends ConstructedImage {
 	 */
 	public GraphicImage blackAndWhite() {
 		ColorConvertOp gray = new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_GRAY),null);
-		gray.filter(this.img, this.img);
-		isModified = true;
+		gray.filter(this.constructedImg.getImage(), this.constructedImg.getImage());
+		isDisposed = false;
 		
 		return this;
 	}
@@ -140,8 +83,8 @@ public class GraphicImage extends ConstructedImage {
 	 */
 	public GraphicImage changeBrightness(float brightness, int hue) {
 		RescaleOp bright = new RescaleOp(brightness, hue, null);
-		bright.filter(this.img, this.img);
-		isModified = true;
+		bright.filter(this.constructedImg.getImage(), this.constructedImg.getImage());
+		isDisposed = false;
 		
 		return this;
 	}
@@ -152,18 +95,17 @@ public class GraphicImage extends ConstructedImage {
 	 */
 	public void dispose() {
 		graph.dispose();
-		isModified = false;
+		isDisposed = true;
 	}
 	
-	/**
-	 * Same method as dispose but return a new instance
-	 * @return a new instance of a ConstructedImage with the change of the GraphicImage instance
-	 * @throws IOException
-	 */
-	public ConstructedImage disposeAndCreateNew() throws IOException {
-		graph.dispose();
-		isModified = false;
-		return new ConstructedImage(path, imgName, img, status);
+	public void saveImage() throws IOException {
+		if(!this.isDisposed) throw new BlockingOperationException("Can't save an image without call disposal method");
+		constructedImg.saveImage();
+	}
+	
+	public void saveImage(Path path) throws IOException {
+		if(!this.isDisposed) throw new BlockingOperationException("Can't save an image without call disposal method");
+		constructedImg.saveImage(path);
 	}
 
 }
