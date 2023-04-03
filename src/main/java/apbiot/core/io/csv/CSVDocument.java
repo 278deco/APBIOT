@@ -30,11 +30,11 @@ public class CSVDocument {
 		return !this.fileContent.get(row).set(column, cell).equals(cell);		
 	}
 	
-	public boolean addCell(CSVCell cell, int column) {
-		this.fileContent.add(new ArrayList<>());
-		//TODO Rework method because will throw IndexOutOfBoundExpection else
-		return !this.fileContent.get(this.fileContent.size()-1).set(column, cell).equals(cell);		
-	}
+//	public boolean addCell(CSVCell cell, int column) {
+//		this.fileContent.add(new ArrayList<>());
+//		//TODO Rework method because will throw IndexOutOfBoundExpection else
+//		return !this.fileContent.get(this.fileContent.size()-1).set(column, cell).equals(cell);		
+//	}
 	
 	public boolean addCell(CSVCell cell) {
 		this.fileContent.add(new ArrayList<>());
