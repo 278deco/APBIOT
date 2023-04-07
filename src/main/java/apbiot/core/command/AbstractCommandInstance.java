@@ -3,6 +3,9 @@ package apbiot.core.command;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import apbiot.core.command.informations.CommandGatewayComponentInformations;
 import apbiot.core.command.informations.CommandGatewayNativeInformations;
 import apbiot.core.command.informations.CommandGatewaySlashInformations;
@@ -13,6 +16,9 @@ import apbiot.core.time.CommandCooldown;
 import discord4j.rest.util.Permission;
 
 public abstract class AbstractCommandInstance {
+	
+	protected static final Logger LOGGER = LogManager.getLogger(AbstractCommandInstance.class);
+	
 	private List<String> commandNames = new ArrayList<>();
 	private String description;
 	private ICommandCategory category;
