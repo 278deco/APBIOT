@@ -25,7 +25,8 @@ public class IOManager {
 	
 	private static IOManager instance;
 	
-	private final Map<Class<? extends IOElement>, IOElement> files = new HashMap<>();
+	private final Map<Class<? extends IOElement>, IOElement> uniqueFiles = new HashMap<>();
+	private final Map<String, IOElement> files = new HashMap<>();
 	private Set<Directory> directories = new HashSet<>();
 	
 	@Nullable
@@ -214,7 +215,8 @@ public class IOManager {
 	}
 	
 	/**
-	 * Add a new file to the manager
+	 * Add a new file to the manager<br>
+	 * The file must be represented by its own class in the program
 	 * @param <E> a file instance who extends IOElement
 	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
 	 * @param fileName the file name (It name and its extension)
@@ -222,13 +224,13 @@ public class IOManager {
 	 * @param arguments optional argument needed by the file
 	 * @return this instance of IOManager
 	 */
-	public synchronized <E extends IOElement> IOManager add(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
+	public synchronized <E extends IOElement> IOManager addUniqueFile(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
 		LOGGER.info("Loading "+element.getSimpleName()+"...");
 		
 		E object = createFileObject(fileDirectory, fileName, element, arguments);
 		
 		if(object != null) {
-			if(files.putIfAbsent(element, object) != null)
+			if(uniqueFiles.putIfAbsent(element, object) != null)
 				LOGGER.info("Couldn't load and stored "+element.getSimpleName()+" because a mapping already exist for the file !");
 			else
 				LOGGER.info("Successfully loaded and stored "+element.getSimpleName()+" (Type: "+object.getFileType()+") !");
@@ -238,7 +240,8 @@ public class IOManager {
 	}
 	
 	/**
-	 * Add a new file to the manager
+	 * Add a new file to the manager<br>
+	 * The file must be represented by its own class in the program
 	 * @param <E> a file instance who extends IOElement
 	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
 	 * @param fileName the file name (It name and its extension)
@@ -247,12 +250,14 @@ public class IOManager {
 	 * @return this instance of IOManager
 	 * @see Directory
 	 */
-	public synchronized <E extends IOElement> IOManager add(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
-		return this.add(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
+	public synchronized <E extends IOElement> IOManager addUniqueFile(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
+		return this.addUniqueFile(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
 	}
 	
 	/**
-	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file
+	 * Add a new file to the manager<br>
+	 * The file will be registered in the manager with its id<br>
+	 * <strong>ID :</strong> name of the file on the disk
 	 * @param <E> a file instance who extends IOElement
 	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
 	 * @param fileName the file name (It name and its extension)
@@ -260,47 +265,178 @@ public class IOManager {
 	 * @param arguments optional argument needed by the file
 	 * @return this instance of IOManager
 	 */
-	public synchronized <E extends IOElement> IOManager addAnyways(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
+	public synchronized <E extends IOElement> IOManager addFile(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
+		LOGGER.info("Loading "+element.getSimpleName()+"...");
+
+		final String[] splitName = fileName.split(".");
+		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
+		
+		E object = createFileObject(fileDirectory, fileName, element, arguments);
+		
+		if(object != null) {
+			if(files.putIfAbsent(splitName[0], object) != null)
+				LOGGER.info("Couldn't load and stored "+element.getSimpleName()+" because a mapping already exist for the file !");
+			else
+				LOGGER.info("Successfully loaded and stored "+splitName[0]+" (Type: "+object.getFileType()+") !");
+		}
+		
+		return this;
+	}
+	
+	/**
+	 * Add a new file to the manager<br>
+	 * The file will be registered in the manager with its id<br>
+	 * <strong>ID :</strong> name of the file on the disk
+	 * @param <E> a file instance who extends IOElement
+	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileName the file name (It name and its extension)
+	 * @param element the file's class
+	 * @param arguments optional argument needed by the file
+	 * @return this instance of IOManager
+	 * @see Directory
+	 */
+	public synchronized <E extends IOElement> IOManager addFile(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
+		return this.addFile(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
+	}
+	
+	/**
+	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file<br>
+	 * The file must be represented by its own class in the program
+	 * @param <E> a file instance who extends IOElement
+	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileName the file name (It name and its extension)
+	 * @param element the file's class
+	 * @param arguments optional argument needed by the file
+	 * @return this instance of IOManager
+	 */
+	public synchronized <E extends IOElement> IOManager addUniqueFileAnyways(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
 		LOGGER.info("Loading "+element.getSimpleName()+"...");
 		
 		E object = createFileObject(fileDirectory, fileName, element, arguments);
 		
 		if(object != null) {
-			files.put(element, object);
+			uniqueFiles.put(element, object);
 			LOGGER.info("Successfully loaded and stored "+element.getSimpleName()+" (Type: "+object.getFileType()+") !");
 		}
 		
 		return this;
 	}
 	
-	public synchronized <E extends IOElement> IOManager addAnyways(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
-		return this.addAnyways(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
+	/**
+	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file<br>
+	 * The file must be represented by its own class in the program
+	 * @param <E> a file instance who extends IOElement
+	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileName the file name (It name and its extension)
+	 * @param element the file's class
+	 * @param arguments optional argument needed by the file
+	 * @return this instance of IOManager
+	 */
+	public synchronized <E extends IOElement> IOManager addUniqueFileAnyways(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
+		return this.addUniqueFileAnyways(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
 	}
+	
+	/**
+	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file<br>
+	 * The file will be registered in the manager with its id<br>
+	 * <strong>ID :</strong> name of the file on the disk
+	 * @param <E> a file instance who extends IOElement
+	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileName the file name (It name and its extension)
+	 * @param element the file's class
+	 * @param arguments optional argument needed by the file
+	 * @return this instance of IOManager
+	 */
+	public synchronized <E extends IOElement> IOManager addFileAnyways(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
+		LOGGER.info("Loading "+element.getSimpleName()+"...");
+		
+		final String[] splitName = fileName.split(".");
+		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
+		
+		E object = createFileObject(fileDirectory, fileName, element, arguments);
+		
+		if(object != null) {
+			files.put(splitName[0], object);
+			LOGGER.info("Successfully loaded and stored "+splitName[0]+" (Type: "+object.getFileType()+") !");
+		}
+		
+		return this;
+	}
+	
+	/**
+	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file<br>
+	 * The file will be registered in the manager with its id<br>
+	 * <strong>ID :</strong> name of the file on the disk
+	 * @param <E> a file instance who extends IOElement
+	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileName the file name (It name and its extension)
+	 * @param element the file's class
+	 * @param arguments optional argument needed by the file
+	 * @return this instance of IOManager
+	 */
+	public synchronized <E extends IOElement> IOManager addFileAnyways(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
+		return this.addFileAnyways(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
+	}
+	
 	/**
 	 * Remove an element from the list of accessible files. <br>
 	 * Safe remove means that any change made to the original file that are not saved will be saved
-	 * before removing it from the list
+	 * before removing it from the list<br>
+	 * The file to be removed must be a file represented by its own class in the program
 	 * @param <E> a file instance who extends IOElement
 	 * @param element the file's class
 	 * @return this instance of IOManager
 	 * @throws Exception
 	 */
-	public synchronized <E extends IOElement> IOManager safeRemove(Class<E> element) throws Exception {
-		files.get(element).saveFile();
+	public synchronized <E extends IOElement> IOManager safeRemoveUniqueFile(Class<E> element) throws Exception {
+		uniqueFiles.get(element).saveFile();
 		
-		files.remove(element);
+		uniqueFiles.remove(element);
 		return this;
 	}
 	
 	/**
 	 * Remove an element from the list of accessible files. <br>
-	 * Hard remove means that any change made to the original file that are not saved will be erased
+	 * Hard remove means that any change made to the original file that are not saved will be erased<br>
+	 * The file to be removed must be a file represented by its own class in the program
 	 * @param <E> a file instance who extends IOElement
 	 * @param element the file's class
 	 * @return this instance of IOManager
 	 */
-	public synchronized <E extends IOElement> IOManager hardRemove(Class<E> element) {
-		files.remove(element);
+	public synchronized <E extends IOElement> IOManager hardRemoveUniqueFile(Class<E> element) {
+		uniqueFiles.remove(element);
+		return this;
+	}
+	
+	/**
+	 * Remove an element from the list of accessible files. <br>
+	 * Safe remove means that any change made to the original file that are not saved will be saved
+	 * before removing it from the list<br>
+	 * The file to be removed must be registered with its id<br>
+	 * <strong>ID :</strong> name of the file on the disk
+	 * @param <E> a file instance who extends IOElement
+	 * @param element the file's class
+	 * @return this instance of IOManager
+	 * @throws Exception
+	 */
+	public synchronized <E extends IOElement> IOManager safeRemoveFile(String fileID) throws Exception {
+		files.get(fileID).saveFile();
+		
+		files.remove(fileID);
+		return this;
+	}
+	
+	/**
+	 * Remove an element from the list of accessible files. <br>
+	 * Hard remove means that any change made to the original file that are not saved will be erased<br>
+	 * The file to be removed must be registered with its id<br>
+	 * <strong>ID :</strong> name of the file on the disk
+	 * @param <E> a file instance who extends IOElement
+	 * @param element the file's class
+	 * @return this instance of IOManager
+	 */
+	public synchronized <E extends IOElement> IOManager hardRemoveFile(String fileID) {
+		files.remove(fileID);
 		return this;
 	}
 	
@@ -311,10 +447,25 @@ public class IOManager {
 	 * @return the instance of the file saved in the list
 	 */
 	public <E extends IOElement> E get(Class<E> element) {
-		if(files.containsKey(element)) {
-			return element.cast(files.get(element));
+		if(uniqueFiles.containsKey(element)) {
+			return element.cast(uniqueFiles.get(element));
 		}else if(this.programConfiguration != null && element.equals(this.programConfigurationClass)) {
 			return element.cast(this.programConfiguration);
+		}else {
+			return null;
+		}
+	}
+	
+	/**
+	 * Get the instance of a file
+	 * @param <E> a file instance who extends IOElement
+	 * @param cls The class object used to store the file in the program
+	 * @param fileID The id of the stored file
+	 * @return the instance of the file saved in the list
+	 */
+	public <E extends IOElement> E get(Class<E> cls, String fileID) {
+		if(files.containsKey(fileID)) {
+			return cls.cast(files.get(fileID));
 		}else {
 			return null;
 		}
