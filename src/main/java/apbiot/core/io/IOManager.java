@@ -12,6 +12,7 @@ import javax.annotation.Nullable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import apbiot.core.exceptions.NonExistingFileInstanceException;
 import apbiot.core.io.json.JSONConfiguration;
 import apbiot.core.io.objects.Directory;
 import apbiot.core.io.objects.IOArguments;
@@ -452,7 +453,7 @@ public class IOManager {
 		}else if(this.programConfiguration != null && element.equals(this.programConfigurationClass)) {
 			return element.cast(this.programConfiguration);
 		}else {
-			return null;
+			throw new NonExistingFileInstanceException("Couldn't find file in IOManager instance [class: "+element.getSimpleName()+"]");
 		}
 	}
 	
@@ -467,7 +468,7 @@ public class IOManager {
 		if(files.containsKey(fileID)) {
 			return cls.cast(files.get(fileID));
 		}else {
-			return null;
+			throw new NonExistingFileInstanceException("Couldn't find file in IOManager instance [id: "+fileID+", type: "+cls.getSimpleName()+"]");
 		}
 	}
 	
