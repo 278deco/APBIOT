@@ -1,13 +1,13 @@
-package apbiot.core.event.events;
+package apbiot.core.event.events.discord;
 
 import apbiot.core.objects.interfaces.ILoggerEvent;
 
-public class EventInstanceConnected implements ILoggerEvent {
+public class EventInstanceDisconnected implements ILoggerEvent {
 
 	@Override
 	public String getLoggerMessage() {
-		return "Client connected to gateway with success.";
-	}	
+		return "Client disconnected from gateway with success.";
+	}
 	
 	@Override
 	public EventPriority getEventPriority() {

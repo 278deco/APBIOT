@@ -21,7 +21,7 @@ public class IOManager {
 	
 	private static final String CONFIGURATION_FILE_NAME = "config.json";
 	
-	private static final Logger LOGGER = LogManager.getLogger(IOElement.class);
+	private static final Logger LOGGER = LogManager.getLogger(IOManager.class);
 	
 	private static IOManager instance;
 	
@@ -35,11 +35,8 @@ public class IOManager {
 	@Nullable
 	private Directory programConfigurationDirectory;
 	
-	private boolean running;
-	
 	private IOManager(Set<Directory> directories, Directory configurationDirectory, Class<? extends JSONConfiguration> configuration) {
 		LOGGER.info("Starting Input Output Communications...");
-		this.running = true;
 		
 		this.programConfigurationClass = configuration;
 		this.directories = directories;
@@ -48,6 +45,16 @@ public class IOManager {
 		if(configuration != null) generateConfiguration();
 	}
 	
+	/**
+	 * Create a new instance of {@link IOManager} as a singleton<br>
+	 * If the instance already exist return the existing instance
+	 * @param directories A set of directories
+	 * @param configurationDirectory the directory of the configuration file
+	 * @param configuration the class representing the configuration
+	 * @return the instance of IOManager
+	 * @see DirectoriesManager
+	 * @see JSONConfiguration
+	 */
 	public static IOManager createInstance(Set<Directory> directories, Directory configurationDirectory, Class<? extends JSONConfiguration> configuration) {
 		if(instance == null) {
 			synchronized (IOManager.class) {
@@ -57,6 +64,13 @@ public class IOManager {
 		return instance;
 	}
 	
+	/**
+	 * Create a new instance of {@link IOManager} as a singleton<br>
+	 * If the instance already exist return the existing instance
+	 * @param directories A set of directories
+	 * @return the instance of IOManager
+	 * @see DirectoriesManager
+	 */
 	public static IOManager createInstance(Set<Directory> directories) {
 		if(instance == null) {
 			synchronized (IOManager.class) {
@@ -67,10 +81,17 @@ public class IOManager {
 		return instance;
 	}
 	
+	/**
+	 * Get the instance of IOManager as a singleton
+	 * @return the instance of IOManager
+	 */
 	public static IOManager getInstance() {
 		return instance;
 	}
 	
+	/**
+	 * Generate the program configuration file to be saved in this instance
+	 */
 	private void generateConfiguration() {
 		LOGGER.info("Loading program's configuration...");
 		
@@ -82,10 +103,24 @@ public class IOManager {
 		}
 	}
 	
+	/**
+	 * Check if the directory wanted is loaded and ready to use
+	 * @param directory The directory wanted 
+	 * @return true if it's present
+	 */
 	private boolean isDirectoryAlreadyCreated(Directory directory) {
 		return this.directories.contains(directory);
 	}
 	
+	/**
+	 * Create a new file object stored in the IOManager
+	 * @param <E> a file instance who extends IOElement
+	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileName the file name (It name and its extension)
+	 * @param element the file's class
+	 * @param arguments optional argument needed by the file
+	 * @return the file instance
+	 */
 	private <E extends IOElement> E createFileObject(Directory fileDirectory, String fileName, Class<E> element, Object[] arguments) {
 		if(isDirectoryAlreadyCreated(fileDirectory)) {
 			E object = null;
@@ -111,10 +146,23 @@ public class IOManager {
 		}
 	}
 	
+	/**
+	 * Create a new file object stored in the IOManager
+	 * @param <E> a file instance who extends IOElement
+	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileName the file name (It name and its extension)
+	 * @param element the file's class
+	 * @param arguments optional argument needed by the file
+	 * @return the file instance
+	 */
 	private <E extends IOElement> E createFileObject(String fileDirectory, String fileName, Class<E> element, Object[] arguments) {
 		return this.createFileObject(new Directory(fileDirectory), fileName, element, arguments);
 	}
 	
+	/**
+	 * Reload all files from the disk saved in this IOManager instance
+	 * @throws Exception
+	 */
 	public void reloadAllFiles() throws Exception {
 		LOGGER.info("Reloading "+files.size()+" files...");
 		
@@ -125,6 +173,10 @@ public class IOManager {
 		LOGGER.info("Successfully reloaded "+files.size()+" files");
 	}
 	
+	/**
+	 * Save all saved files in this IOManager instance
+	 * @throws Exception
+	 */
 	public void saveAllFiles() throws Exception {
 		LOGGER.info("Saving "+files.size()+" files...");
 		
@@ -135,6 +187,10 @@ public class IOManager {
 		LOGGER.info("Successfully saved "+files.size()+" files");
 	}
 	
+	/**
+	 * Reload the program configuration from the disk if it exists else throw an IllegalAccessError
+	 * @throws Exception
+	 */
 	public void reloadConfiguration() throws Exception {
 		if(programConfiguration == null) throw new IllegalAccessError("No program's configuration was found");
 		LOGGER.info("Reloading program's configuration...");
@@ -144,6 +200,10 @@ public class IOManager {
 		LOGGER.info("Successfully reloaded program's configuration");
 	}
 	
+	/**
+	 * Save the program configuration if it exists else throw an IllegalAccessError
+	 * @throws Exception
+	 */
 	public void saveConfiguration() throws Exception {
 		if(programConfiguration == null) throw new IllegalAccessError("No program's configuration was found");
 		LOGGER.info("Saving program's configuration...");
@@ -155,14 +215,14 @@ public class IOManager {
 	
 	/**
 	 * Add a new file to the manager
-	 * @param <E> - a file instance who extends IOElement
-	 * @param fileDirectory - the directory where the file will be same. The directory must be already loaded
-	 * @param fileName - the file name (It name and its extension)
-	 * @param element - the file's class
-	 * @param arguments - optional argument needed by the file
+	 * @param <E> a file instance who extends IOElement
+	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileName the file name (It name and its extension)
+	 * @param element the file's class
+	 * @param arguments optional argument needed by the file
 	 * @return this instance of IOManager
 	 */
-	public <E extends IOElement> IOManager add(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
+	public synchronized <E extends IOElement> IOManager add(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
 		LOGGER.info("Loading "+element.getSimpleName()+"...");
 		
 		E object = createFileObject(fileDirectory, fileName, element, arguments);
@@ -177,20 +237,30 @@ public class IOManager {
 		return this;
 	}
 	
-	public <E extends IOElement> IOManager add(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
+	/**
+	 * Add a new file to the manager
+	 * @param <E> a file instance who extends IOElement
+	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileName the file name (It name and its extension)
+	 * @param element the file's class
+	 * @param arguments optional argument needed by the file
+	 * @return this instance of IOManager
+	 * @see Directory
+	 */
+	public synchronized <E extends IOElement> IOManager add(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
 		return this.add(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
 	}
 	
 	/**
 	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file
-	 * @param <E> - a file instance who extends IOElement
-	 * @param fileDirectory - the directory where the file will be same. The directory must be already loaded
-	 * @param fileName - the file name (It name and its extension)
-	 * @param element - the file's class
-	 * @param arguments - optional argument needed by the file
+	 * @param <E> a file instance who extends IOElement
+	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileName the file name (It name and its extension)
+	 * @param element the file's class
+	 * @param arguments optional argument needed by the file
 	 * @return this instance of IOManager
 	 */
-	public <E extends IOElement> IOManager addAnyways(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
+	public synchronized <E extends IOElement> IOManager addAnyways(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
 		LOGGER.info("Loading "+element.getSimpleName()+"...");
 		
 		E object = createFileObject(fileDirectory, fileName, element, arguments);
@@ -203,19 +273,19 @@ public class IOManager {
 		return this;
 	}
 	
-	public <E extends IOElement> IOManager addAnyways(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
+	public synchronized <E extends IOElement> IOManager addAnyways(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
 		return this.addAnyways(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
 	}
 	/**
-	 * Remove an element from the list of accessible files. 
+	 * Remove an element from the list of accessible files. <br>
 	 * Safe remove means that any change made to the original file that are not saved will be saved
 	 * before removing it from the list
-	 * @param <E> - a file instance who extends IOElement
-	 * @param element - the file's class
+	 * @param <E> a file instance who extends IOElement
+	 * @param element the file's class
 	 * @return this instance of IOManager
 	 * @throws Exception
 	 */
-	public <E extends IOElement> IOManager safeRemove(Class<E> element) throws Exception {
+	public synchronized <E extends IOElement> IOManager safeRemove(Class<E> element) throws Exception {
 		files.get(element).saveFile();
 		
 		files.remove(element);
@@ -223,21 +293,21 @@ public class IOManager {
 	}
 	
 	/**
-	 * Remove an element from the list of accessible files. 
+	 * Remove an element from the list of accessible files. <br>
 	 * Hard remove means that any change made to the original file that are not saved will be erased
-	 * @param <E> - a file instance who extends IOElement
-	 * @param element - the file's class
+	 * @param <E> a file instance who extends IOElement
+	 * @param element the file's class
 	 * @return this instance of IOManager
 	 */
-	public <E extends IOElement> IOManager hardRemove(Class<E> element) {
+	public synchronized <E extends IOElement> IOManager hardRemove(Class<E> element) {
 		files.remove(element);
 		return this;
 	}
 	
 	/**
 	 * Get the instance of a file
-	 * @param <E> - a file instance who extends IOElement
-	 * @param elementClass - the file's class
+	 * @param <E> a file instance who extends IOElement
+	 * @param elementClass the file's class
 	 * @return the instance of the file saved in the list
 	 */
 	public <E extends IOElement> E get(Class<E> element) {
@@ -250,11 +320,12 @@ public class IOManager {
 		}
 	}
 	
+	/**
+	 * Return true if a configuration file is present and loaded in the IOManager class
+	 * @return a boolean telling if it present or not
+	 * @see JSONConfiguration
+	 */
 	public boolean isConfigurationPresent() {
 		return this.programConfiguration != null;
-	}
-	
-	public boolean isIOManagerUp() {
-		return this.running;
 	}
 }

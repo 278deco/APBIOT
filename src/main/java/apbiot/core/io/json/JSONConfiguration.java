@@ -18,7 +18,7 @@ import apbiot.core.io.objects.IOElement;
 
 public abstract class JSONConfiguration extends IOElement {
 	
-	private static final Logger LOGGER = LogManager.getLogger(JSONConfiguration.class);
+	protected static final Logger LOGGER = LogManager.getLogger(JSONConfiguration.class);
 	private static final ObjectMapper CONFIGURATION_MAPPER = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
 	
 	private volatile Map<String, Object> data;

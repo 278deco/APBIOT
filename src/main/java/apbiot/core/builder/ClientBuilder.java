@@ -18,10 +18,10 @@ import apbiot.core.command.informations.CommandGatewayComponentInformations;
 import apbiot.core.command.informations.CommandGatewayNativeInformations;
 import apbiot.core.command.informations.CommandGatewaySlashInformations;
 import apbiot.core.commandator.Commandator;
-import apbiot.core.event.events.EventCommandError;
-import apbiot.core.event.events.EventCommandReceived;
-import apbiot.core.event.events.EventInstanceConnected;
-import apbiot.core.event.events.EventInstanceReady;
+import apbiot.core.event.events.discord.EventCommandError;
+import apbiot.core.event.events.discord.EventCommandReceived;
+import apbiot.core.event.events.discord.EventInstanceConnected;
+import apbiot.core.event.events.discord.EventInstanceReady;
 import apbiot.core.exceptions.UnbuiltBotException;
 import apbiot.core.handler.AbstractCommandHandler;
 import apbiot.core.helper.ArgumentHelper;
@@ -74,11 +74,9 @@ public class ClientBuilder {
 	
 	/**
 	 * Create a discord client with DiscordClientBuilder
-	 * @param botPrefix - the prefix of the bot
 	 * @return an instance of ClientBuilder
 	 */
-	public ClientBuilder createNewInstance(String botPrefix) {
-		this.botPrefix = botPrefix;
+	public ClientBuilder createNewInstance() {
 		this.commandCooldown = new ArrayList<>();
 		
 		this.NATIVE_COMMANDS = new HashMap<>();
@@ -89,14 +87,14 @@ public class ClientBuilder {
 	
 	/**
 	 * Initialize the commandMaps and make the bot ready to interact
-	 * @param nativeCommandsMap - the native command map
-	 * @param slashCommandsMap - the slash command map
+	 * @param botPrefix the prefix of the bot
 	 * @see apbiot.core.handler.ECommandHandler
 	 */
-	public void finishBuild() {
+	public void finishBuild(String botPrefix) {
 		MainInitializer.getEventDispatcher().dispatchEvent(new EventInstanceReady(true, botPrefix));
 		
-		ownerID = gateway.getApplicationInfo().block().getOwnerId();
+		this.botPrefix = botPrefix;
+		this.ownerID = gateway.getApplicationInfo().block().getOwnerId();
 	}
 	
 	/**

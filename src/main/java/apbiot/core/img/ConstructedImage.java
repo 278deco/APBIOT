@@ -16,7 +16,7 @@ import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
 
 import apbiot.core.io.objects.Directory;
-import apbiot.core.io.objects.Resource;
+import apbiot.core.io.resources.Resource;
 
 /**
  * A class used to store an image and all the informations about it

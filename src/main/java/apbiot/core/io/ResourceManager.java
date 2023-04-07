@@ -4,28 +4,44 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.BufferOverflowException;
+import java.lang.reflect.Constructor;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.Set;
 
+import javax.naming.spi.DirectoryManager;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import apbiot.core.event.EventDispatcher;
+import apbiot.core.event.events.io.EventResourceDeleted;
 import apbiot.core.io.objects.Directory;
-import apbiot.core.io.objects.Resource;
+import apbiot.core.io.resources.AbstractBuffer;
+import apbiot.core.io.resources.Resource;
 
 public class ResourceManager {
 
-	private static ResourceManager instance;
-	private Set<Directory> directories = new HashSet<>();
+	private static final Logger LOGGER = LogManager.getLogger(ResourceManager.class);
 	
-	private static final byte BUFFER_SIZE = 32;
-	private List<Resource> resourceBuffer = new ArrayList<>(BUFFER_SIZE);
+	private static ResourceManager instance;
+	
+	private Set<Directory> directories = new HashSet<>();
+	private final Map<Class<? extends AbstractBuffer>, AbstractBuffer> buffers = new HashMap<>();
+	private final EventDispatcher ioEventDispatcher = new EventDispatcher();
 	
 	private ResourceManager() { }
 	
+	/**
+	 * Create a new instance of {@link ResourceManager} as a singleton<br>
+	 * If the instance already exist return the existing instance
+	 * @param directories A set of directories
+	 * @return the instance of ResourceManager
+	 * @see DirectoriesManager
+	 */
 	public static ResourceManager createInstance(Set<Directory> directories) {
 		if(instance == null) {
 			synchronized (ResourceManager.class) {
@@ -36,14 +52,31 @@ public class ResourceManager {
 		return instance;
 	}
 	
+	/**
+	 * Check if the instance of ResourceManager has already been created
+	 * @return if the instance exist or not
+	 */
 	public static boolean doesInstanceExist() {
 		return instance != null;
 	}
 	
+	/**
+	 * Get the instance of {@link ResourceManager} as a singleton
+	 * @return the instance of ResourceManager
+	 */
 	public static ResourceManager getInstance() {
 		return instance;
 	}
 	
+	/**
+	 * Get a resource from the disk and use it as a {@link Resource} in the program<br>
+	 * The resource can only be obtained from directory that have been loaded by {@link DirectoryManager}
+	 * @param resourcePath The path where the resource is stored
+	 * @param resource The name of the resource (the file name)
+	 * @param isErasable Tells the program that the resource could be deleted from memory if the it runs out of space
+	 * @return The newly created resource class
+	 * @throws IOException
+	 */
 	public Resource getResource(Path resourcePath, String resource, boolean isErasable) throws IOException {
 		final Directory dir = new Directory(resourcePath);
 		final String[] splitName = resource.split(".");
@@ -52,49 +85,47 @@ public class ResourceManager {
 		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
 		
 		String resourceId = splitName[0];
+
+		byte[] fileResult = null;
+		FileInputStream inputStream = null;
+		BufferedInputStream buffer = null;
 		
-		Resource opt = getResource(resourceId);
-		if(opt != null) { 
+		try {
+			inputStream = new FileInputStream(resourcePath.resolve(resource).toFile());
+			//buffer = new BufferedInputStream(inputStream);
 			
-			return opt;
-		}else {
+			fileResult = inputStream.readAllBytes();
 			
-			byte[] fileResult = null;
-			FileInputStream inputStream = null;
-			BufferedInputStream buffer = null;
-			
-			try {
-				inputStream = new FileInputStream(resourcePath.resolve(resource).toFile());
-				//buffer = new BufferedInputStream(inputStream);
-				
-				fileResult = inputStream.readAllBytes();
-				
-			}catch(Exception e) {
-				e.printStackTrace();
-			}finally {
-				if(buffer != null) buffer.close();
-				if(inputStream != null) inputStream.close();
-			}
-			
-			return new Resource(dir, resourceId, splitName[1], fileResult, isErasable);
+		}catch(Exception e) {
+			e.printStackTrace();
+		}finally {
+			if(buffer != null) buffer.close();
+			if(inputStream != null) inputStream.close();
 		}
+		
+		return new Resource(dir, resourceId, splitName[1], fileResult, isErasable);
+		
 	}
 	
+	/**
+	 * Get a resource from the disk and use it as a {@link Resource} in the program<br>
+	 * The resource can only be obtained from directory that have been loaded by {@link DirectoryManager}<br>
+	 * By default this method will set the flag <i>isErasable</i> to true
+	 * @param resourcePath The path where the resource is stored
+	 * @param resource The name of the resource (the file name)
+	 * @return The newly created resource class
+	 * @throws IOException
+	 * @see {@link ResourceManager#getResource(Path, String, isErasable)}
+	 */
 	public Resource getResource(Path resourcePath, String resource) throws IOException {
 		return getResource(resourcePath, resource, true);
 	}
 	
-	public Resource getResource(String id) {
-		final Optional<Resource> opt = resourceBuffer.stream().filter(rsc -> rsc.getName().equals(id)).findFirst(); 
-			
-		return opt.isPresent() ? opt.get() : null;
-	}
-	
-	public Resource getResource(int index) {
-		if(index >= resourceBuffer.size()) throw new IllegalArgumentException("Cannot have an index greater than the buffer size!");
-		return resourceBuffer.get(index);
-	}
-	
+	/**
+	 * Save a resource to the disk<br>
+	 * @param resource The resource to be saved
+	 * @throws IOException
+	 */
 	public void saveResource(Resource resource) throws IOException {
 		if(!isDirectoryExisting(resource.getDirectory())) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
 		final Path filePath = resource.getDirectory().getPath().resolve(resource.getFileName());
@@ -106,8 +137,17 @@ public class ResourceManager {
 		}
 	}
 	
+	/**
+	 * Save a resource element to the disk<br>
+	 * The resource can only be saved in directory that have been loaded by {@link DirectoryManager}<br>
+	 * @param resourcePath The path where the resource is stored
+	 * @param resource The name of the resource (the file name)
+	 * @param data The data to be saved in the file
+	 * @throws IOException
+	 */
 	public void saveResource(Path resourcePath, String resource, byte[] data) throws IOException {
 		if(!isDirectoryExisting(resourcePath)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
+		
 		final Path filePath = resourcePath.resolve(resource);
 		
 		if(!Files.exists(filePath)) Files.createFile(filePath);
@@ -117,64 +157,100 @@ public class ResourceManager {
 		}
 	}
 	
+	/**
+	 * Delete a resource present on the disk<br>
+	 * @param rsc The resource to be deleted
+	 * @return if the resource have been correctly deleted
+	 * @throws IOException
+	 */
+	public boolean deleteResource(Resource rsc) throws IOException {
+		if(!isDirectoryExisting(rsc.getDirectory())) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
+		final boolean response = Files.deleteIfExists(rsc.getDirectory().getPath().resolve(rsc.getFileName()));
+		
+		ioEventDispatcher.dispatchEvent(new EventResourceDeleted(rsc.getName()));
+		
+		return response;
+	}
+	
+	/**
+	 * Delete a resource present on the disk<br>
+	 * The resource can only be deleted from directory that have been loaded by {@link DirectoryManager}<br>
+	 * @param resourcePath The path where the resource is stored
+	 * @param resource The name of the resource (the file name)
+	 * @return if the resource have been correctly deleted
+	 * @throws IOException
+	 */
 	public boolean deleteResource(Path resourcePath, String resource) throws IOException {
-		if(!isDirectoryExisting(new Directory(resourcePath))) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
+		final String[] splitName = resource.split(".");
 		
-		return Files.deleteIfExists(resourcePath.resolve(resource));
+		if(!isDirectoryExisting(resourcePath)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
+		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
+		
+		final boolean response = Files.deleteIfExists(resourcePath.resolve(resource));
+		
+		ioEventDispatcher.dispatchEvent(new EventResourceDeleted(splitName[0]));
+		
+		return response;
 	}
 	
-	public boolean deleteResource(String id) throws IOException {
-		final Optional<Resource> opt = resourceBuffer.stream().filter(rsc -> rsc.getName().equals(id)).findFirst(); 
-		
-		if(opt.isPresent()) {
-			resourceBuffer.remove(opt.get());
-			return Files.deleteIfExists(opt.get().getDirectory().getPath().resolve(opt.get().getFileName()));
-		}
+	private <E extends AbstractBuffer> E createFileObject(Class<E> cls) {
+		E object = null;
+		try {
+			Constructor<E> constructor = cls.getConstructor(Set.class);
 			
-		return false;
-	}
-	
-	public boolean deleteResource(int index) throws IOException {
-		if(index >= resourceBuffer.size()) throw new IllegalArgumentException("Cannot have an index greater than the buffer size!");
-		Resource rsc = resourceBuffer.remove(index);
-		return Files.deleteIfExists(rsc.getDirectory().getPath().resolve(rsc.getFileName()));
-	}
-	
-	public synchronized Resource addResourceToBuffer(Resource rsc) {
-		if(resourceBuffer.size() >= BUFFER_SIZE) {
-			byte index = 0;
-			while(resourceBuffer.size() >= BUFFER_SIZE && index < resourceBuffer.size()) {
-				if(resourceBuffer.get(index).isErasable()) resourceBuffer.remove(index);
-				index+=1;
-			}
-			if(resourceBuffer.size() >= BUFFER_SIZE) throw new BufferOverflowException();
+			object = constructor.newInstance(this.directories);
+		} catch (Exception e) {
+			LOGGER.warn("Unexpected error happened when creating new buffer [Err:{}]. Skipping buffer {}",e.getMessage(), cls.getSimpleName());
 		}
+		return object;
+
+	}
+	
+	/**
+	 * Add a new buffer to the manager
+	 * @param <E> A buffer instance which extends AbstractBuffer
+	 * @param cls The class representing the buffer
+	 * @see AbstractBuffer
+	 */
+	public synchronized <E extends AbstractBuffer> void addNewBuffer(Class<E> cls) {
+		LOGGER.info("Creating new buffer "+cls.getSimpleName()+"...");
 		
-		if(!resourceBuffer.contains(rsc))
-			resourceBuffer.add(rsc);
+		E object = createFileObject(cls);
 		
-		return rsc;
+		if(object != null) {
+			if(buffers.putIfAbsent(cls, object) != null)
+				LOGGER.info("Couldn't load and stored {} because a mapping already exist for this buffer !", cls.getSimpleName());
+			else {
+				ioEventDispatcher.addListener(object);
+				LOGGER.info("Successfully loaded and stored buffer {} !", cls.getSimpleName());
+			}
+		}
 	}
 	
-	public synchronized Resource addResourceToBuffer(Path resourcePath, String resource) throws IOException {	
-		return addResourceToBuffer(getResource(resourcePath, resource));
+	/**
+	 * Remove a saved buffer from this instance of ResourceManager
+	 * @param <E> A buffer instance which extends AbstractBuffer
+	 * @param cls The class representing the buffer
+	 * @return if the buffer has been correctly remove
+	 */
+	public synchronized <E extends AbstractBuffer> boolean removeBuffer(Class<E> cls) {
+		final AbstractBuffer bf = buffers.get(cls);
+		
+		if(bf == null) return false;
+		else {
+			ioEventDispatcher.removeListener(bf);
+			return buffers.remove(cls) != null;
+		}		
 	}
 	
-	public synchronized Resource addResourceToBuffer(Path resourcePath, String resource, boolean isErasable) throws IOException {	
-		return addResourceToBuffer(getResource(resourcePath, resource, isErasable));
-	}
-	
-	public synchronized void removeResourceFromBuffer(int index) {
-		if(index >= resourceBuffer.size()) throw new IllegalArgumentException("Cannot have an index greater than the buffer size!");
-		resourceBuffer.remove(index);
-	}
-	
-	public synchronized void removeResourceFromBuffer(String id) {
-		resourceBuffer.removeIf(resource -> resource.getName().equals(id));
-	}
-	
-	public synchronized void clearBuffer() {
-		resourceBuffer.clear();
+	/**
+	 * Get a buffer saved in the ResourceManager instance
+	 * @param <E> a buffer instance which extends {@link AbstractBuffer}
+	 * @param cls the buffer class
+	 * @return the instance of the file saved in the list
+	 */
+	public <E extends AbstractBuffer> E get(Class<E> cls) {
+		return buffers.containsKey(cls) ? cls.cast(buffers.get(cls)) : null;
 	}
 	
 	private boolean isDirectoryExisting(Directory directory) {

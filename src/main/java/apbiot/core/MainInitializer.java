@@ -16,7 +16,7 @@ import apbiot.core.builder.ConsoleLogger;
 import apbiot.core.builder.HandlerManager;
 import apbiot.core.event.EventDispatcher;
 import apbiot.core.event.EventListener;
-import apbiot.core.event.events.EventInstanceConnected;
+import apbiot.core.event.events.discord.EventInstanceConnected;
 import apbiot.core.exceptions.UnbuiltBotException;
 import apbiot.core.handler.AbstractCommandHandler;
 import apbiot.core.handler.AbstractSystemCommandHandler;
@@ -51,7 +51,7 @@ public abstract class MainInitializer {
 	 * Program's logger
 	 * @see org.apache.logging.log4j.Logger
 	 */
-	private static final Logger LOGGER = LogManager.getLogger(MainInitializer.class);
+	protected static final Logger LOGGER = LogManager.getLogger(MainInitializer.class);
 	
 	/**
 	 * Program's json factory and Object Mapper
@@ -76,7 +76,7 @@ public abstract class MainInitializer {
 	 * @see apbiot.core.handler.EmojiRessources
 	 */
 	public void init(DirectoriesManager dirManager, @Nullable Class<? extends JSONConfiguration> configuration, 
-			AbstractCommandHandler commandHandler, AbstractSystemCommandHandler sysCmdHandler, @Nullable String prefix) {
+			AbstractCommandHandler commandHandler, AbstractSystemCommandHandler sysCmdHandler) {
 		this.initWithoutConsole = false;
 		
 		initIOFilesAndRessources(dirManager, configuration);
@@ -91,9 +91,8 @@ public abstract class MainInitializer {
 		eventDispatcher = new EventDispatcher();
 		eventDispatcher.addListener(ConsoleLogger.getInstance().new ConsoleLoggerListener());
 		eventDispatcher.addListener(new ClientBuiltListener());
-		
-		final Optional<String> optPrefix = Optional.ofNullable(prefix);
-		ClientInstance.createInstance(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
+
+		ClientInstance.createInstance();
 		
 		LOGGER.info("Initializing sequence finished. Ready to build the program and launch the client.");
 	}
@@ -105,7 +104,7 @@ public abstract class MainInitializer {
 	 * @see apbiot.core.handler.ECommandHandler
 	 * @see apbiot.core.handler.EmojiRessources
 	 */
-	public void init(DirectoriesManager dirManager, @Nullable Class<? extends JSONConfiguration> configuration, AbstractCommandHandler commandHandler, @Nullable String prefix) {
+	public void init(DirectoriesManager dirManager, @Nullable Class<? extends JSONConfiguration> configuration, AbstractCommandHandler commandHandler) {
 		this.initWithoutConsole = true;
 		
 		initIOFilesAndRessources(dirManager, configuration);
@@ -117,8 +116,7 @@ public abstract class MainInitializer {
 		eventDispatcher = new EventDispatcher();
 		eventDispatcher.addListener(new ClientBuiltListener());
 		
-		final Optional<String> optPrefix = Optional.ofNullable(prefix);
-		ClientInstance.createInstance(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
+		ClientInstance.createInstance();
 		
 		LOGGER.info("Initializing sequence finished. Ready to build the program and launch the client.");
 	}
@@ -139,14 +137,17 @@ public abstract class MainInitializer {
 	 * @param defaultPresence - the default presence shown by the bot
 	 * @param intent - the intent used and required by the bot
 	 */
-	public void buildAndLaunchClient(String[] args, ClientPresence defaultPresence, IntentSet intent) {
+	public void buildAndLaunchClient(String[] args, ClientPresence defaultPresence, IntentSet intent, @Nullable String prefix) {
 		handlerManager = this.handlerBuilder.build();
 		this.handlerBuilder = null;
 		
 		handlerManager.buildHandlers();
 		handlerManager.buildOptionalHandlers();
 		
+		final Optional<String> optPrefix = Optional.ofNullable(prefix);
 		try {
+			ClientInstance.getInstance().finishBuild(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
+			
 			ClientInstance.getInstance().launch(args, defaultPresence, intent);
 		}catch(Exception e) {
 			LOGGER.error("Unexpected error during client launch",e);
@@ -169,8 +170,8 @@ public abstract class MainInitializer {
 	 * @param defaultPresence - the default presence shown by the bot
 	 * @param intent - the intent used and required by the bot
 	 */
-	public void buildAndLaunchClient(String token, ClientPresence defaultPresence, IntentSet intent) {
-		this.buildAndLaunchClient(new String[] {token}, defaultPresence, intent);
+	public void buildAndLaunchClient(String token, ClientPresence defaultPresence, IntentSet intent, @Nullable String prefix) {
+		this.buildAndLaunchClient(new String[] {token}, defaultPresence, intent, prefix);
 	}
 	
 	/**

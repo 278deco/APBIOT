@@ -7,7 +7,7 @@ import apbiot.core.img.ConstructedImage;
 import apbiot.core.img.ConstructedImage.ImageStatus;
 import apbiot.core.io.ResourceManager;
 import apbiot.core.io.objects.Directory;
-import apbiot.core.io.objects.Resource;
+import apbiot.core.io.resources.Resource;
 import discord4j.rest.util.Image;
 
 public class ImageHelper {

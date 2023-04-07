@@ -1,4 +1,4 @@
-package apbiot.core.event.events;
+package apbiot.core.event.events.discord;
 
 import apbiot.core.objects.interfaces.ILoggerEvent;
 

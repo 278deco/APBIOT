@@ -1,4 +1,6 @@
-package apbiot.core.io.objects;
+package apbiot.core.io.resources;
+
+import apbiot.core.io.objects.Directory;
 
 public class Resource {
 	

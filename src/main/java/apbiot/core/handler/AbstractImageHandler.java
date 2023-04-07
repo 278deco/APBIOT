@@ -18,7 +18,7 @@ public abstract class AbstractImageHandler implements IOptionalHandler {
 	@Override
 	public void build() {
 		permanentDirectory = MainInitializer.getDirectoriesManager().getLoadedDirectory("image:permanent_directory").getPath();
-		permanentDirectory = MainInitializer.getDirectoriesManager().getLoadedDirectory("image:temporary_directory").getPath();
+		temporaryDirectory = MainInitializer.getDirectoriesManager().getLoadedDirectory("image:temporary_directory").getPath();
 		
 		initDirectories();
 	}

@@ -1,26 +1,28 @@
 package apbiot.core.event;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import apbiot.core.objects.interfaces.IEvent;
 
 public class EventDispatcher {
 	
-	private List<EventListener> listenerLst;
+	private Set<EventListener> listeners;
 	
 	public EventDispatcher() {
-		this.listenerLst = new ArrayList<EventListener>();
+		this.listeners = new HashSet<EventListener>();
 	}
 	
-	public void addListener(EventListener listener) {
-		this.listenerLst.add(listener);
+	public boolean addListener(EventListener listener) {
+		return this.listeners.add(listener);
+	}
+	
+	public boolean removeListener(EventListener listener) {
+		return this.listeners.remove(listener);
 	}
 	
 	public void dispatchEvent(IEvent event) {
-		for(EventListener listener : this.listenerLst) {
-			listener.newEventReceived(event);
-		}
+		this.listeners.forEach(listener -> listener.newEventReceived(event));
 	}
 
 }

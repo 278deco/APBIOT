@@ -22,10 +22,10 @@ public class ClientInstance {
 	
 	private AtomicBoolean running;
 	
-	public static ClientInstance createInstance(String clientPrefix) {
+	public static ClientInstance createInstance() {
 		if(instance == null) {
 			synchronized (ClientInstance.class) {
-				if(instance == null) instance = new ClientInstance(clientPrefix);
+				if(instance == null) instance = new ClientInstance();
 			}
 		}
 		return instance;
@@ -41,19 +41,18 @@ public class ClientInstance {
 	
 	/**
 	 * Create a new instance of ClientInstance & build the client
-	 * @param clientPrefix - the prefix used by the client
 	 */
-	private ClientInstance(String clientPrefix) {
+	private ClientInstance() {
 		clientBuilder = new ClientBuilder();
 		
-		clientBuilder.createNewInstance(clientPrefix);
+		clientBuilder.createNewInstance();
 	}
 	
 	/**
 	 * Used to launch the client
-	 * @param args - the program's arguments
-	 * @param defaultPresence - the default presence used by the bot
-	 * @param intent - the intent used and required by the bot
+	 * @param args The program's arguments
+	 * @param defaultPresence The default presence used by the bot
+	 * @param intent The intent used and required by the bot
 	 * @throws IllegalAccessException 
 	 */
 	public synchronized void launch(String[] args, ClientPresence defaultPresence, IntentSet intent) {
@@ -67,15 +66,15 @@ public class ClientInstance {
 			this.running.set(false);
 		}catch(ArrayIndexOutOfBoundsException e1) {
 			LOGGER.fatal("No token was found during the launch. Shutting down...");
-			this.running.set(true);
+			this.running.set(false);
 		}
 	}
 	
 	/**
 	 * Used to launch the client
-	 * @param token - the token of the bot
-	 * @param defaultPresence - the default presence used by the bot
-	 * @param intent - the intent used and required by the bot
+	 * @param token The token of the bot
+	 * @param defaultPresence The default presence used by the bot
+	 * @param intent The intent used and required by the bot
 	 * @throws IllegalAccessException 
 	 */
 	public synchronized void launch(String token, ClientPresence defaultPresence, IntentSet intent) {
@@ -84,11 +83,12 @@ public class ClientInstance {
 	
 	/**
 	 * Finish the build of the bot
+	 * @param clientPrefix The prefix used by the client
 	 * @throws IllegalAccessException
 	 */
-	public synchronized void finishBuild() throws IllegalAccessException {
+	public synchronized void finishBuild(String clientPrefix) throws IllegalAccessException {
 		if(isInstanceAlive()) throw new IllegalAccessException("You cannot update the command references if the bot isn't built."); 
-		clientBuilder.finishBuild();
+		clientBuilder.finishBuild(clientPrefix);
 	}
 	
 	/**
