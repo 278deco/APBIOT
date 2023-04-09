@@ -19,7 +19,7 @@ import apbiot.core.objects.enums.FileType;
 
 public abstract class JSONObjectFile extends IOElement {
 	
-	private static final Logger LOGGER = LogManager.getLogger(JSONObjectFile.class);
+	protected static final Logger LOGGER = LogManager.getLogger(JSONObjectFile.class);
 	private static final ObjectMapper FILES_MAPPER = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
 	
 	private volatile Map<String, Object> dataMap;
@@ -97,6 +97,18 @@ public abstract class JSONObjectFile extends IOElement {
 		return (HashMap<String, Object>) this.dataMap;
 	}
 
+	/**
+     * Cast key representing an HashMap to access data
+     *
+     * @return a HashMap representing a JSON Object
+     */
+    @SuppressWarnings("unchecked")
+    protected HashMap<String, Object> getData(String src) {
+        Object obj = getData().get(src);
+        if (obj instanceof HashMap) return (HashMap<String, Object>) obj;
+        else throw new ClassCastException("The key " + src + " didn't contained a HashMap!");
+    }
+	
 	/**
 	 * Read the file's content
 	 * @return the content of the json file

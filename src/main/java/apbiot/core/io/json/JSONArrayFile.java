@@ -19,7 +19,7 @@ import apbiot.core.objects.enums.FileType;
 
 public abstract class JSONArrayFile extends IOElement {
 	
-	private static final Logger LOGGER = LogManager.getLogger(JSONArrayFile.class);
+	protected static final Logger LOGGER = LogManager.getLogger(JSONArrayFile.class);
 	private static final ObjectMapper FILES_MAPPER = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
 
 	private volatile List<Object> dataList;
