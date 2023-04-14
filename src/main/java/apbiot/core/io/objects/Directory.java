@@ -51,6 +51,10 @@ public class Directory {
 		return path.equals(this.getPath());
 	}
 	
+	public boolean isNameSimilar(String nameID) {
+		return nameID.equals(this.getName());
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		return obj instanceof Directory && areEquals((Directory)obj);

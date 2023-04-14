@@ -1,8 +1,8 @@
 package apbiot.core.io.json;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,14 +27,14 @@ public abstract class JSONConfiguration extends IOElement {
 		super(args);
 		
 		try {
-			new File(this.filePath+File.separator+this.fileName).createNewFile();
+			Files.createFile(directory.getPath().resolve(this.fileName));
 			
 			readFile();
 			
 			controlRegistredProperties();
 			
 		} catch (IOException e) {
-			LOGGER.warn("Unexpected error while loading file "+this.filePath,e);
+			LOGGER.error("Unexpected error while loading JSON Configuration [dir: {}, name: {}] with message {}", this.directory.getName(), this.fileName, e.getMessage());
 		}
 		
 	}
@@ -100,7 +100,7 @@ public abstract class JSONConfiguration extends IOElement {
 			@Override
 			public void run() {
 				try {
-					FileWriter fw = new FileWriter(filePath);
+					FileWriter fw = new FileWriter(directory.getPath().toFile());
 					
 					fw.write(CONFIGURATION_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(data));
 					
@@ -110,7 +110,7 @@ public abstract class JSONConfiguration extends IOElement {
 					readFile();
 					
 				} catch (IOException e) {
-					LOGGER.warn("Unexpected error while saving file "+filePath, e);
+					LOGGER.error("Unexpected error while saving JSON Configuration [dir: {}, name: {}] with message {}", directory.getName(), fileName, e.getMessage());
 				}
 				
 			}
@@ -132,7 +132,7 @@ public abstract class JSONConfiguration extends IOElement {
 	@Override
 	protected void readFile() throws IOException {
 		try {
-			this.data = CONFIGURATION_MAPPER.readValue(new File(this.filePath), HashMap.class);
+			this.data = CONFIGURATION_MAPPER.readValue(directory.getPath().toFile(), HashMap.class);
 		}catch(DatabindException e) {
 			this.data = new HashMap<>();
 		}

@@ -2,12 +2,12 @@ package apbiot.core.io.files;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -30,8 +30,6 @@ public class TextFile extends IOElement {
 
 	private static final Logger LOGGER = LogManager.getLogger(TextFile.class);
 	
-	protected File file;
-	
 	private List<String> content;
 	
 	/**
@@ -45,10 +43,15 @@ public class TextFile extends IOElement {
 	public TextFile(IOArguments args) throws IOException {
 		super(args);
 		
-		this.file = new File(this.filePath+File.separator+this.fileName);
-		this.content = new ArrayList<>();
-		
-		readFile();
+		try {
+			Files.createFile(this.directory.getPath().resolve(this.fileName));
+			this.content = new ArrayList<>();
+			
+			readFile();
+			
+		} catch (IOException e) {
+			LOGGER.error("Unexpected error while loading text file [dir: {}, name: {}] with message {}", this.directory.getName(), this.fileName, e.getMessage());
+		}
 	}
 	
 	/**
@@ -56,13 +59,13 @@ public class TextFile extends IOElement {
 	 * @throws IOException
 	 */
 	@Override
-	protected void readFile() throws IOException {
+	protected void readFile() {
 		FileInputStream input = null;
 		InputStreamReader fileReader = null;
 		BufferedReader buffer = null;
 		
 		try {
-			input = new FileInputStream(this.file);
+			input = new FileInputStream(this.directory.getPath().toFile());
 			fileReader = new InputStreamReader(input, "UTF-8");
 			buffer = new BufferedReader(fileReader);
 			
@@ -74,15 +77,11 @@ public class TextFile extends IOElement {
 			}
 			
 		}catch(IOException e) {
-			try {
-				this.file.createNewFile();
-			}catch(IOException e1) {
-				LOGGER.warn("Unexpected error while reading file "+this.filePath,e);
-			}
+			LOGGER.error("Unexpected error while loading text file [dir: {}, name: {}] with message {}", this.directory.getName(), this.fileName, e.getMessage());
 		}finally {
-			if(buffer != null) buffer.close();
-			if(input != null) input.close();
-			if(fileReader != null) fileReader.close();
+			try { if(input != null) input.close(); }catch(IOException e) {}
+			try { if(buffer != null) buffer.close(); }catch(IOException e) {}
+			try { if(fileReader != null) fileReader.close(); }catch(IOException e) {}
 		}
 	}
 	
@@ -91,28 +90,34 @@ public class TextFile extends IOElement {
 	 * @throws IOException
 	 */
 	@Override
-	public void saveFile() throws IOException {
-		FileOutputStream output = null;
-		OutputStreamWriter fileWriter = null;
-		BufferedWriter buffer = null;
-		
-		try {
-			output = new FileOutputStream(this.file);
-			fileWriter = new OutputStreamWriter(output, "UTF-8");
-			buffer = new BufferedWriter(fileWriter);
+	public void saveFile() {
+		new Thread(new Runnable() {
 			
-			for(int i = 0; i < this.content.size(); i++) {
-				buffer.write(this.content.get(i));
-				if(i != this.content.size()-1) buffer.newLine();
+			@Override
+			public void run() {
+				FileOutputStream output = null;
+				OutputStreamWriter fileWriter = null;
+				BufferedWriter buffer = null;
+				
+				try {
+					output = new FileOutputStream(directory.getPath().toFile());
+					fileWriter = new OutputStreamWriter(output, "UTF-8");
+					buffer = new BufferedWriter(fileWriter);
+					
+					for(int i = 0; i < content.size(); i++) {
+						buffer.write(content.get(i));
+						if(i != content.size()-1) buffer.newLine();
+					}
+					
+				}catch(IOException e) {
+					LOGGER.error("Unexpected error while writing to text file [dir: {}, name: {}] with message {}", directory.getName(), fileName, e.getMessage());
+				}finally {
+					try { if(output != null) output.close(); }catch(IOException e) {}
+					try { if(buffer != null) buffer.close(); }catch(IOException e) {}
+					try { if(fileWriter != null) fileWriter.close(); }catch(IOException e) {}
+				}
 			}
-			
-		}catch(IOException e) {
-			LOGGER.warn("Unexpected error while writing file "+this.filePath,e);
-		}finally {
-			if(buffer != null) buffer.close();
-			if(output != null) output.close();
-			if(fileWriter != null) fileWriter.close();
-		}
+		},"File-Save-Thread").start();
 	}
 	
 	/**

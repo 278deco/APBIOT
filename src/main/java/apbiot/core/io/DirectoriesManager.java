@@ -51,8 +51,8 @@ public class DirectoriesManager {
 		}
 	}
 	
-	public Directory getLoadedDirectory(String name) {
-		return this.directories.stream().filter(dir -> dir.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
+	public Directory getLoadedDirectory(String nameId) {
+		return this.directories.stream().filter(dir -> dir.isNameSimilar(nameId)).findFirst().orElse(null);
 	}
 	
 	/**

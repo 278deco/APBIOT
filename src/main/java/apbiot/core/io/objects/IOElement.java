@@ -6,12 +6,12 @@ public abstract class IOElement {
 	
 	protected IOArguments classArguments;
 	
-	protected final String filePath;
+	protected final Directory directory;
 	protected final String fileName;
 	
 	public IOElement(IOArguments args) {
 		this.classArguments = args;
-		this.filePath = this.classArguments.getDirectory().getPath().toAbsolutePath().toString();
+		this.directory = this.classArguments.getDirectory();
 		this.fileName = this.classArguments.getName();
 	}
 	
@@ -25,8 +25,8 @@ public abstract class IOElement {
 	 * Get the absolute file path 
 	 * @return the file path
 	 */
-	public String getFilePath() {
-		return this.filePath;
+	public Directory getDirectory() {
+		return this.directory;
 	}
 	
 	/**

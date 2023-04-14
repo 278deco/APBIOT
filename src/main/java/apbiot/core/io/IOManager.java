@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import apbiot.core.exceptions.NonExistingFileInstanceException;
+import apbiot.core.helper.DirectoryHelper;
 import apbiot.core.io.json.JSONConfiguration;
 import apbiot.core.io.objects.Directory;
 import apbiot.core.io.objects.IOArguments;
@@ -97,7 +98,7 @@ public class IOManager {
 	private void generateConfiguration() {
 		LOGGER.info("Loading program's configuration...");
 		
-		final JSONConfiguration temp = createFileObject(this.programConfigurationDirectory.getPath().toAbsolutePath().toString(), CONFIGURATION_FILE_NAME, this.programConfigurationClass, null);
+		final JSONConfiguration temp = createFileObject(this.programConfigurationDirectory, CONFIGURATION_FILE_NAME, this.programConfigurationClass, null);
 		
 		if(temp != null) {
 			this.programConfiguration = temp;
@@ -117,14 +118,17 @@ public class IOManager {
 	/**
 	 * Create a new file object stored in the IOManager
 	 * @param <E> a file instance who extends IOElement
-	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileDirectory the directory where the file is saved or will be saved. The directory must be already loaded
 	 * @param fileName the file name (It name and its extension)
 	 * @param element the file's class
 	 * @param arguments optional argument needed by the file
 	 * @return the file instance
 	 */
 	private <E extends IOElement> E createFileObject(Directory fileDirectory, String fileName, Class<E> element, Object[] arguments) {
-		if(isDirectoryAlreadyCreated(fileDirectory)) {
+		if(fileDirectory == null) { 
+			LOGGER.error("Unexpected error while loading "+element.getSimpleName()+". Provided directory is null!");
+			return null;
+		}else if(isDirectoryAlreadyCreated(fileDirectory)) {
 			E object = null;
 			try {
 				Constructor<E> constructor = element.getConstructor(IOArguments.class);
@@ -146,19 +150,6 @@ public class IOManager {
 			
 			return null;
 		}
-	}
-	
-	/**
-	 * Create a new file object stored in the IOManager
-	 * @param <E> a file instance who extends IOElement
-	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
-	 * @param fileName the file name (It name and its extension)
-	 * @param element the file's class
-	 * @param arguments optional argument needed by the file
-	 * @return the file instance
-	 */
-	private <E extends IOElement> E createFileObject(String fileDirectory, String fileName, Class<E> element, Object[] arguments) {
-		return this.createFileObject(new Directory(fileDirectory), fileName, element, arguments);
 	}
 	
 	/**
@@ -219,13 +210,28 @@ public class IOManager {
 	 * Add a new file to the manager<br>
 	 * The file must be represented by its own class in the program
 	 * @param <E> a file instance who extends IOElement
-	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileDirectoryID the name id of the directory where the is saved or will be saved. The directory must be already loaded
 	 * @param fileName the file name (It name and its extension)
 	 * @param element the file's class
 	 * @param arguments optional argument needed by the file
 	 * @return this instance of IOManager
 	 */
-	public synchronized <E extends IOElement> IOManager addUniqueFile(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
+	public synchronized <E extends IOElement> IOManager addUniqueFile(String fileDirectoryID, String fileName, Class<E> element, Object... arguments) {
+		return this.addUniqueFile(DirectoryHelper.getDirectoryByName(directories, fileDirectoryID), fileName, element, arguments);
+	}
+	
+	/**
+	 * Add a new file to the manager<br>
+	 * The file must be represented by its own class in the program
+	 * @param <E> a file instance who extends IOElement
+	 * @param fileDirectory the directory where the file is saved or will be saved. The directory must be already loaded
+	 * @param fileName the file name (It name and its extension)
+	 * @param element the file's class
+	 * @param arguments optional argument needed by the file
+	 * @return this instance of IOManager
+	 * @see Directory
+	 */
+	public synchronized <E extends IOElement> IOManager addUniqueFile(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
 		LOGGER.info("Loading "+element.getSimpleName()+"...");
 		
 		E object = createFileObject(fileDirectory, fileName, element, arguments);
@@ -242,17 +248,17 @@ public class IOManager {
 	
 	/**
 	 * Add a new file to the manager<br>
-	 * The file must be represented by its own class in the program
+	 * The file will be registered in the manager with its id<br>
+	 * <strong>ID :</strong> name of the file on the disk
 	 * @param <E> a file instance who extends IOElement
-	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileDirectoryID the name id of the directory where the file is saved or will be saved. The directory must be already loaded
 	 * @param fileName the file name (It name and its extension)
 	 * @param element the file's class
 	 * @param arguments optional argument needed by the file
 	 * @return this instance of IOManager
-	 * @see Directory
 	 */
-	public synchronized <E extends IOElement> IOManager addUniqueFile(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
-		return this.addUniqueFile(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
+	public synchronized <E extends IOElement> IOManager addFile(String fileDirectoryID, String fileName, Class<E> element, Object... arguments) {
+		return this.addFile(DirectoryHelper.getDirectoryByName(directories, fileDirectoryID), fileName, element, arguments);
 	}
 	
 	/**
@@ -260,13 +266,14 @@ public class IOManager {
 	 * The file will be registered in the manager with its id<br>
 	 * <strong>ID :</strong> name of the file on the disk
 	 * @param <E> a file instance who extends IOElement
-	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileDirectory the directory where the file is saved or will be saved. The directory must be already loaded
 	 * @param fileName the file name (It name and its extension)
 	 * @param element the file's class
 	 * @param arguments optional argument needed by the file
 	 * @return this instance of IOManager
+	 * @see Directory
 	 */
-	public synchronized <E extends IOElement> IOManager addFile(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
+	public synchronized <E extends IOElement> IOManager addFile(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
 		LOGGER.info("Loading "+element.getSimpleName()+"...");
 
 		final String[] splitName = fileName.split(".");
@@ -285,70 +292,30 @@ public class IOManager {
 	}
 	
 	/**
-	 * Add a new file to the manager<br>
-	 * The file will be registered in the manager with its id<br>
-	 * <strong>ID :</strong> name of the file on the disk
+	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file<br>
+	 * The file must be represented by its own class in the program
 	 * @param <E> a file instance who extends IOElement
-	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileDirectoryID the name id of directory where the file is saved or will be saved. The directory must be already loaded
 	 * @param fileName the file name (It name and its extension)
 	 * @param element the file's class
 	 * @param arguments optional argument needed by the file
 	 * @return this instance of IOManager
-	 * @see Directory
 	 */
-	public synchronized <E extends IOElement> IOManager addFile(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
-		return this.addFile(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
+	public synchronized <E extends IOElement> IOManager addUniqueFileAnyways(String fileDirectoryID, String fileName, Class<E> element, Object... arguments) {
+		return this.addUniqueFileAnyways(DirectoryHelper.getDirectoryByName(directories, fileDirectoryID), fileName, element, arguments);
 	}
 	
 	/**
 	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file<br>
 	 * The file must be represented by its own class in the program
 	 * @param <E> a file instance who extends IOElement
-	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
-	 * @param fileName the file name (It name and its extension)
-	 * @param element the file's class
-	 * @param arguments optional argument needed by the file
-	 * @return this instance of IOManager
-	 */
-	public synchronized <E extends IOElement> IOManager addUniqueFileAnyways(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
-		LOGGER.info("Loading "+element.getSimpleName()+"...");
-		
-		E object = createFileObject(fileDirectory, fileName, element, arguments);
-		
-		if(object != null) {
-			uniqueFiles.put(element, object);
-			LOGGER.info("Successfully loaded and stored "+element.getSimpleName()+" (Type: "+object.getFileType()+") !");
-		}
-		
-		return this;
-	}
-	
-	/**
-	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file<br>
-	 * The file must be represented by its own class in the program
-	 * @param <E> a file instance who extends IOElement
-	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
+	 * @param fileDirectory the directory where the file is saved or will be saved. The directory must be already loaded
 	 * @param fileName the file name (It name and its extension)
 	 * @param element the file's class
 	 * @param arguments optional argument needed by the file
 	 * @return this instance of IOManager
 	 */
 	public synchronized <E extends IOElement> IOManager addUniqueFileAnyways(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
-		return this.addUniqueFileAnyways(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
-	}
-	
-	/**
-	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file<br>
-	 * The file will be registered in the manager with its id<br>
-	 * <strong>ID :</strong> name of the file on the disk
-	 * @param <E> a file instance who extends IOElement
-	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
-	 * @param fileName the file name (It name and its extension)
-	 * @param element the file's class
-	 * @param arguments optional argument needed by the file
-	 * @return this instance of IOManager
-	 */
-	public synchronized <E extends IOElement> IOManager addFileAnyways(String fileDirectory, String fileName, Class<E> element, Object... arguments) {
 		LOGGER.info("Loading "+element.getSimpleName()+"...");
 		
 		final String[] splitName = fileName.split(".");
@@ -367,16 +334,41 @@ public class IOManager {
 	/**
 	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file<br>
 	 * The file will be registered in the manager with its id<br>
-	 * <strong>ID :</strong> name of the file on the disk
-	 * @param <E> a file instance who extends IOElement
-	 * @param fileDirectory the directory where the file will be same. The directory must be already loaded
-	 * @param fileName the file name (It name and its extension)
-	 * @param element the file's class
+	 * @param <E> A file instance who extends IOElement
+	 * @param fileDirectoryID The id of the directory where the file is saved or will be saved. The directory must be already loaded
+	 * @param fileName The file name (It name and its extension)
+	 * @param element The file's class
+	 * @param arguments optional argument needed by the file
+	 * @return this instance of IOManager
+	 */
+	public synchronized <E extends IOElement> IOManager addFileAnyways(String fileDirectoryID, String fileName, Class<E> element, Object... arguments) {
+		return this.addUniqueFileAnyways(DirectoryHelper.getDirectoryByName(directories, fileDirectoryID), fileName, element, arguments);
+	}
+	
+	/**
+	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file<br>
+	 * The file will be registered in the manager with its id<br>
+	 * @param <E> A file instance who extends IOElement
+	 * @param fileDirectory The directory where the file is saved or will be saved. The directory must be already loaded
+	 * @param fileName The file name (It name and its extension)
+	 * @param element The file's class
 	 * @param arguments optional argument needed by the file
 	 * @return this instance of IOManager
 	 */
 	public synchronized <E extends IOElement> IOManager addFileAnyways(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
-		return this.addFileAnyways(fileDirectory.getPath().toAbsolutePath().toString(), fileName, element, arguments);
+		LOGGER.info("Loading "+element.getSimpleName()+"...");
+		
+		final String[] splitName = fileName.split(".");
+		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
+		
+		E object = createFileObject(fileDirectory, fileName, element, arguments);
+		
+		if(object != null) {
+			files.put(splitName[0], object);
+			LOGGER.info("Successfully loaded and stored "+splitName[0]+" (Type: "+object.getFileType()+") !");
+		}
+		
+		return this;
 	}
 	
 	/**
