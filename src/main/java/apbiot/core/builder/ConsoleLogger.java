@@ -24,32 +24,46 @@ public class ConsoleLogger {
 	private static final Logger LOGGER = LogManager.getLogger(ConsoleLogger.class);
 	
 	private static ConsoleLogger instance;
+	
 	private Map<List<String>, SystemCommand> COMMANDS = new HashMap<>();
+	private final Class<? extends AbstractSystemCommandHandler> clsCommandHandler;
 	
 	private AtomicBoolean running;
 	private BufferedReader reader;
 	private InputStreamReader insReader;
 	
-	private ConsoleLogger() {}
+	private ConsoleLogger(Class<? extends AbstractSystemCommandHandler> clsSysCommandHandler) {
+		this.running = new AtomicBoolean();
+		
+		this.clsCommandHandler = clsSysCommandHandler;
+	}
 	
-	public static ConsoleLogger getInstance() {
+	public static ConsoleLogger createInstance(Class<? extends AbstractSystemCommandHandler> clsSysCommandHandler) {
 		if(instance == null) {
 			synchronized (ConsoleLogger.class) {
-				if(instance == null) instance = new ConsoleLogger();
+				if(instance == null) instance = new ConsoleLogger(clsSysCommandHandler);
 			}
 		}
 		return instance;
 	}
 	
-	public static boolean doesInstanceExists() {
+	public static ConsoleLogger getInstance() {
+		return instance;
+	}
+	
+	public static boolean doesInstanceExist() {
 		return instance != null;
+	}
+	
+	public boolean isInstanceRunning() {
+		return this.running.get();
 	}
 	
 	/**
 	 * Updated the command mapping of the console logger
 	 */
 	public void updatedCommandReferences() {
-		this.COMMANDS = MainInitializer.getHandlers().getHandler(AbstractSystemCommandHandler.class).COMMANDS;
+		this.COMMANDS = MainInitializer.getHandlers().getHandler(clsCommandHandler).COMMANDS;
 	}
 	
 	/**

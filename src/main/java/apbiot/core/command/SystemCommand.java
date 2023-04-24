@@ -2,8 +2,13 @@ package apbiot.core.command;
 
 import java.util.List;
 
-public abstract class SystemCommand {
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+public abstract class SystemCommand {
+	
+	protected static final Logger LOGGER = LogManager.getLogger(SystemCommand.class);
+	
 	private List<String> cmdNames;
 	
 	/**

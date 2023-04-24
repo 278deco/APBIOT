@@ -12,28 +12,28 @@ public class Directory {
 	
 	public Directory(String pathDir) {
 		final Path temp = Paths.get(pathDir);
-		if(!Files.isDirectory(temp)) throw new InvalidPathException(pathDir, "The directory cannot be constructed with a file path");
+		if(Files.exists(temp) && !Files.isDirectory(temp)) throw new InvalidPathException(pathDir, "The directory cannot be constructed with a file path");
 			
 		this.directory = temp;
 		this.name = pathDir;
 	}
 	
 	public Directory(Path path) {
-		if(!Files.isDirectory(path)) throw new InvalidPathException(path.toString(), "The directory cannot be constructed with a file path");
+		if(Files.exists(path) && !Files.isDirectory(path)) throw new InvalidPathException(path.toString(), "The directory cannot be constructed with a file path");
 		this.name = path.toString();
 		this.directory = path;
 	}
 	
 	public Directory(String name, String pathDir) {
 		final Path temp = Paths.get(pathDir);
-		if(!Files.isDirectory(temp)) throw new InvalidPathException(pathDir, "The directory cannot be constructed with a file path");
+		if(Files.exists(temp) && !Files.isDirectory(temp)) throw new InvalidPathException(pathDir, "The directory cannot be constructed with a file path");
 		
 		this.directory = temp;
 		this.name = name;
 	}
 	
 	public Directory(String name, Path path) {
-		if(!Files.isDirectory(path)) throw new InvalidPathException(path.toString(), "The directory cannot be constructed with a file path");
+		if(Files.exists(path) && !Files.isDirectory(path)) throw new InvalidPathException(path.toString(), "The directory cannot be constructed with a file path");
 		
 		this.directory = path;
 		this.name = name;

@@ -31,7 +31,7 @@ public abstract class NativeCommandInstance extends AbstractCommandInstance {
 	public void execute(CommandGatewaySlashInformations gatewayInformation) { }
 	
 	@Override
-	public void initCommand() { initialize = true; }
+	public void buildCommand() { built = true; }
 
 	/**
 	 * Define the help description of the command

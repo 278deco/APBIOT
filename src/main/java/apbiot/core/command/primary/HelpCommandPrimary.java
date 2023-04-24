@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import apbiot.core.MainInitializer;
+import apbiot.core.ClientInstance;
 import apbiot.core.builder.ColorBuilder;
 import apbiot.core.builder.DateBuilder;
 import apbiot.core.builder.TimedMessage;
@@ -16,7 +16,6 @@ import apbiot.core.command.SlashCommandInstance;
 import apbiot.core.command.informations.CommandGatewayComponentInformations;
 import apbiot.core.command.informations.CommandGatewayNativeInformations;
 import apbiot.core.commandator.HelpDescription;
-import apbiot.core.handler.AbstractCommandHandler;
 import apbiot.core.helper.CommandHelper;
 import apbiot.core.helper.PermissionHelper;
 import apbiot.core.objects.Argument;
@@ -38,10 +37,10 @@ import discord4j.core.spec.MessageCreateSpec;
 public class HelpCommandPrimary extends NativeCommandInstance {
 	
 	private EmbedCreateSpec helpEmbed;
+	private ActionRow buttonsRow;
+	
 	private final Snowflake ownerID;
 	private final String botUsername, botAvatarUrl;
-	
-	private ActionRow buttonsRow;
 	
 	public HelpCommandPrimary(Snowflake ownerID, User botAccount) {
 		super(Arrays.asList("help"), "Permet d'obtenir la liste des commandes éxécutables.", CommandCategory.UTILITY);
@@ -53,7 +52,9 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 	}
 	
 	@Override
-	public void initCommand() {
+	public void buildCommand() {
+		this.built = true;
+		
 		final EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
 		
 		builder.author(this.botUsername, null, this.botAvatarUrl);
@@ -63,13 +64,13 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 		
 		this.helpEmbed = builder.build();
 		
-		Button funButton = Button.secondary(CommandHelper.generateComponentID(this, "fun_button"), "FUN");
-		Button gameButton = Button.secondary(CommandHelper.generateComponentID(this, "game_button"), "GAME");
-		Button adminButton = Button.secondary(CommandHelper.generateComponentID(this, "admin_button"), "ADMIN");
-		Button musicButton = Button.secondary(CommandHelper.generateComponentID(this, "music_button"), "MUSIC");
-		Button utilityButton = Button.secondary(CommandHelper.generateComponentID(this, "utility_button"), "UTILITY");
+		final Button funButton = Button.secondary(CommandHelper.generateComponentID(this, "fun_button"), "FUN");
+		final Button gameButton = Button.secondary(CommandHelper.generateComponentID(this, "game_button"), "GAME");
+		final Button adminButton = Button.secondary(CommandHelper.generateComponentID(this, "admin_button"), "ADMIN");
+		final Button musicButton = Button.secondary(CommandHelper.generateComponentID(this, "music_button"), "MUSIC");
+		final Button utilityButton = Button.secondary(CommandHelper.generateComponentID(this, "utility_button"), "UTILITY");
 		
-		buttonsRow = ActionRow.of(funButton, gameButton, adminButton, musicButton, utilityButton);
+		this.buttonsRow = ActionRow.of(funButton, gameButton, adminButton, musicButton, utilityButton);
 	}
 	
 	@Override
@@ -89,16 +90,16 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 	private boolean process(Member member, CommandCategory choosenCat) {
 		final List<Field> fields = new ArrayList<>();
 		
-		for(Map.Entry<List<String>, NativeCommandInstance> entry : MainInitializer.getHandlers().getHandler(AbstractCommandHandler.class).NATIVE_COMMANDS.entrySet()) {
-			if(entry.getValue().isInHelpListed() && entry.getValue().getCommandCategory() == choosenCat) {
+		for(Map.Entry<List<String>, NativeCommandInstance> entry : ClientInstance.getInstance().getClientBuilder().getNativeCommandMap().entrySet()) {
+			if(entry.getValue().isInHelpListed() && entry.getValue().isSameCommandCategory(choosenCat)) {
 				if(PermissionHelper.compareCommandPermissions(member, this, this.ownerID)) {
 					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getMainName()+" ➭", entry.getValue().getDescription(), false));
 				}
 			}
 		}
 		
-		for(Map.Entry<List<String>, SlashCommandInstance> entry : MainInitializer.getHandlers().getHandler(AbstractCommandHandler.class).SLASH_COMMANDS.entrySet()) {
-			if(entry.getValue().isInHelpListed() && entry.getValue().getCommandCategory() == choosenCat) {
+		for(Map.Entry<List<String>, SlashCommandInstance> entry : ClientInstance.getInstance().getClientBuilder().getSlashCommandMap().entrySet()) {
+			if(entry.getValue().isInHelpListed() && entry.getValue().isSameCommandCategory(choosenCat)) {
 				if(PermissionHelper.compareCommandPermissions(member, this, this.ownerID)) {
 					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getMainName()+" ➭", "	*Se référer au menu commandes slash* ", false));
 				}

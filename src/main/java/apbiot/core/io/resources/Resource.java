@@ -5,21 +5,21 @@ import apbiot.core.io.objects.Directory;
 public class Resource {
 	
 	private byte[] data;
-	private String name;
+	private String nameID;
 	private Directory directory;
 	private String extension;
 	
 	private boolean isErasable;
 	
-	public Resource(Directory directory, String name, String extension, byte[] data, boolean isErasable) {
+	public Resource(Directory directory, String id, String extension, byte[] data, boolean isErasable) {
 		this.directory = directory;
 		this.extension = extension;
 		this.data = data;
-		this.name = name;
+		this.nameID = id;
 	}
 	
-	public Resource(Directory directory, String name, String extension, byte[] data) {
-		this(directory, name, extension, data, true);
+	public Resource(Directory directory, String id, String extension, byte[] data) {
+		this(directory, id, extension, data, true);
 	}
 	
 	public Resource(byte[] data, String name) {
@@ -30,8 +30,8 @@ public class Resource {
 		return data;
 	}
 	
-	public String getName() {
-		return name;
+	public String getID() {
+		return nameID;
 	}
 	
 	public Directory getDirectory() {
@@ -51,7 +51,7 @@ public class Resource {
 	}
 	
 	public String getFileName() {
-		return this.name+"."+this.extension;
+		return this.nameID+"."+this.extension;
 	}
 	
 	public boolean isErasable() {
@@ -60,11 +60,11 @@ public class Resource {
 	
 	@Override
 	public String toString() {
-		return "Resource[Name:"+name+", isErasable:"+isErasable+"]";
+		return "Resource[Name:"+nameID+", isErasable:"+isErasable+"]";
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof Resource && ((Resource)obj).getName().equals(this.name);
+		return obj instanceof Resource && ((Resource)obj).getID().equals(this.nameID);
 	}
 }

@@ -26,7 +26,7 @@ public abstract class AbstractCommandInstance {
 	
 	private final String commandId;
 	
-	protected boolean initialize;
+	protected boolean built;
 	
 	/**
 	 * Create a new CommandInstance
@@ -65,14 +65,14 @@ public abstract class AbstractCommandInstance {
 	 * This method is only call one time at the start of the bot
 	 * Useful when a command use a Embed
 	 */
-	public void initCommand() { }
+	public void buildCommand() { }
 	
 	/**
 	 * Define if a command has been successfully initialized
 	 * @see #initCommand()
 	 * @return if the command has been initialized
 	 */
-	public boolean isInitialized() { return initialize; }
+	public boolean isBuilt() { return built; }
 	
 	/**
 	 * Execute the code contained in the command instance
@@ -136,6 +136,15 @@ public abstract class AbstractCommandInstance {
 	 */
 	public ICommandCategory getCommandCategory() {
 		return this.category;
+	}
+	
+	/**
+	 * Check if the given category correspond to the category of the command
+	 * @param cat The given category
+	 * @return if the two categories matches
+	 */
+	public boolean isSameCommandCategory(ICommandCategory cat) {
+		return this.category.equals(cat);
 	}
 	
 	/**

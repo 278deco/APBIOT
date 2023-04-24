@@ -35,7 +35,9 @@ public class BugCommandPrimary extends NativeCommandInstance {
 	}
 	
 	@Override
-	public void initCommand() {
+	public void buildCommand() {
+		this.built = true;
+		
 		final EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
 		
 		builder.author(this.botUsername, null, this.botAvatarUrl);

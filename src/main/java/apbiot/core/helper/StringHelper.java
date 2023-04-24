@@ -2,6 +2,7 @@ package apbiot.core.helper;
 
 import java.text.Normalizer;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 import discord4j.common.util.Snowflake;
@@ -14,7 +15,7 @@ public class StringHelper {
 	
 	/**
 	 * Used to convert a list (in case of the .split(" ")) into a string
-	 * @param list - the list which contains all the words
+	 * @param list The list which contains all the words
 	 * @return the list converted into string
 	 */
 	public static String listToString(List<String> list, String separator) {
@@ -28,7 +29,7 @@ public class StringHelper {
 	
 	/**
 	 * Used to convert an array into a string
-	 * @param list - the array which contains all the words
+	 * @param list The array which contains all the words
 	 * @return the array converted into string
 	 */
 	public static String listToString(String[] list, String separator) {
@@ -42,26 +43,28 @@ public class StringHelper {
 	
 	/**
 	 * Return a random element from a list
-	 * @param list - A list of String
+	 * @param list A list of String
 	 * @return an element from the list
 	 */
 	public static String getRandomElement(List<String> list) {
-		return list.get(new Random().nextInt(list.size()));
+		Objects.requireNonNull(list);
+		return list.size() > 0 ? list.get(new Random().nextInt(list.size())) : null;
 	}
 	
 	/**
 	 * Return a random element from an array
-	 * @param array - An array of String
+	 * @param array An array of String
 	 * @return an element from the array
 	 */
 	public static String getRandomElement(String[] array) {
-		return array[new Random().nextInt(array.length)];
+		Objects.requireNonNull(array);
+		return array.length > 0 ? array[new Random().nextInt(array.length)] : null;
 	}
 	
 	/**
 	 * Used to convert a message containing an unrecognizable mention to an message containing an usable mention 
-	 * @param message - the message which contain the mention
-	 * @param guild - the guild of the member
+	 * @param message The message which contain the mention
+	 * @param guild The guild of the member
 	 * @return a string which contain a formatted discord mention
 	 */
 	public static String getFormattedDiscordMention(String message, Guild guild) {
@@ -91,7 +94,7 @@ public class StringHelper {
 	
 	/**
 	 * Used to know if an specified message contains a valid discord ID
-	 * @param message - the message send by the user
+	 * @param message The message send by the user
 	 * @return if the message contains a valid discord ID
 	 * @see discord4j.core.object.util.Snowflake
 	 */
@@ -113,7 +116,7 @@ public class StringHelper {
 	
 	/**
 	 * Used to know if an specified message contains a valid discord ID
-	 * @param message - the message send by the user
+	 * @param message The message send by the user
 	 * @return if the message contains a valid discord ID
 	 * @see discord4j.core.object.util.Snowflake
 	 */
@@ -135,7 +138,7 @@ public class StringHelper {
 	
 	/**
 	 * Used to know if an specified message contains a valid discord ID
-	 * @param message - the message send by the user
+	 * @param message The message send by the user
 	 * @return if the message contains a valid discord ID
 	 * @see discord4j.core.object.util.Snowflake
 	 */
@@ -157,7 +160,7 @@ public class StringHelper {
 	
 	/**
 	 * The function will remove unrequired character for getting user's id
-	 * @param message - the message send by the user
+	 * @param message The message send by the user
 	 * @return the converted message
 	 */
 	public static String getFormattedDiscordID(String message) {
@@ -178,8 +181,8 @@ public class StringHelper {
 	
 	/**
 	 * convert a text containing the ID of a role to a role object
-	 * @param text - the text containg the ID
-	 * @param guild - the guild where the role is
+	 * @param text The text containg the ID
+	 * @param guild The guild where the role is
 	 * @return a mono containing the role
 	 */
 	public static Mono<Role> getRoleFromRawString(String text, Guild guild) {
@@ -207,8 +210,8 @@ public class StringHelper {
 	
 	/**
 	 * The function will return a parsed discord ID
-	 * @param discordID - the discord id get from a message
-	 * @param formatID - set it to true if the function need to format the ID before parsing it
+	 * @param discordID The discord id get from a message
+	 * @param formatID Set it to true if the function need to format the ID before parsing it
 	 * @return a converted discord id
 	 */
 	public static long getParsedDiscordID(String discordID, boolean formatID) {
@@ -229,15 +232,14 @@ public class StringHelper {
 	public static void formatCommandArguments() { }
 	
 	/**
-	 * Create a random string ID 
-	 * ID Format: !!!!!%-%%%%%!
-	 * ! represent letters, % represent numbers
-	 *  
-	 * @param charNumber - the number of character to be present in the first part of the ID
-	 * @param maxNumbers - the maximum of number to be present in the first part of the ID
-	 * @param maxIDNumber - the maximum of character to be present in the second part of the ID
-	 * @param uppercase - Are the letter going to be uppercases or lowercases
-	 * @return the constructed string
+	 * Create a random string ID based on the following pattern<br>
+	 * <strong>ID Format:</strong> LLLLLN-NNNNNL<br>
+	 *<i>L represent letters, N represent numbers</i><br>
+	 * @param charNumber The number of character to be present in the first part of the ID
+	 * @param maxNumbers The maximum of number to be present in the first part of the ID
+	 * @param maxIDNumber The maximum of character to be present in the second part of the ID
+	 * @param uppercase Are the letter going to be uppercases or lowercases
+	 * @return the newly created ID
 	 */
 	public static String getRandomIDString(int charNumber, int maxNumbers, int maxIDNumber, boolean uppercase) {
 		char[] alphabet = uppercase ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray() : "abcdefghijklmnopqrstuvwxyz".toCharArray();
@@ -259,8 +261,8 @@ public class StringHelper {
 	
 	/**
 	 * Used to remove all accents, space, and other characters except numbers and letters
-	 * @param text - a random string
-	 * @return the converted string
+	 * @param text A random string
+	 * @return The converted string
 	 */
 	public static String getRawCharacterString(String text) {
 		return Normalizer.normalize(text, Normalizer.Form.NFD).replaceAll("[\\W]|_", "");
@@ -268,7 +270,7 @@ public class StringHelper {
 	
 	/**
 	 * Used to remove all excess blank spaces
-	 * @param text - a random string
+	 * @param text A random string
 	 * @return the converted string
 	 */
 	public static String deleteBlankSpaceExcess(String text) {
@@ -276,8 +278,18 @@ public class StringHelper {
 	}
 	
 	/**
+	 * Change the first letter of a string to be uppercase and make the rest of the string lowercase
+	 * @param text The text to be formatted
+	 * @return The formatted string
+	 */
+	public static String capitalize(String text) {
+		if(text == null || text == "") return "";
+		return text.substring(0,1).toUpperCase() + text.substring(1).toLowerCase();
+	}
+	
+	/**
 	 * Format a string by replacing all _ with blank space and making all letters, after a blank space, upper case 
-	 * @param text - the text to format
+	 * @param text The text to be formatted
 	 * @return the formatted text
 	 */
 	public static String formatString(String text) {

@@ -1,5 +1,7 @@
 package apbiot.core.time;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * A dynamic class that manage time and used to create cooldown
  * @author 278deco
@@ -18,7 +20,7 @@ public class Time extends StaticTime {
 	 */
 	public Time create(Long duration, TimeUnit unit) {
 		this.timeUnit = unit;
-		this.durationTime = convertTimeUnit(duration, TimeUnit.NANOSECOND);
+		this.durationTime = unit.toNanos(duration);
 		this.sysTime = System.nanoTime();
 		this.elapsedTime = 0L;
 		this.hasBeenInit = true;
@@ -71,7 +73,7 @@ public class Time extends StaticTime {
 	
 	public void reset() {
 		elapsedTime = 0L;
-		timeUnit = TimeUnit.NULL;
+		timeUnit = null;
 		sysTime = 0L;
 	}
 	

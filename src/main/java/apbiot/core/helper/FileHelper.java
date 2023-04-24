@@ -5,12 +5,7 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
-
-import org.apache.logging.log4j.Logger;
-
-import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
 
 public class FileHelper {
 	

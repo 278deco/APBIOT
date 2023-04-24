@@ -1,6 +1,7 @@
 package apbiot.core;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,10 +24,9 @@ import apbiot.core.handler.AbstractSystemCommandHandler;
 import apbiot.core.io.DirectoriesManager;
 import apbiot.core.io.IOManager;
 import apbiot.core.io.ResourceManager;
-import apbiot.core.io.json.JSONConfiguration;
+import apbiot.core.io.json.JSONProperties;
 import apbiot.core.objects.interfaces.IEvent;
 import apbiot.core.objects.interfaces.IHandler;
-import apbiot.core.objects.interfaces.IOptionalHandler;
 import apbiot.core.objects.interfaces.IRunnableMethod;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.intent.IntentSet;
@@ -75,7 +75,7 @@ public abstract class MainInitializer {
 	 * @see apbiot.core.handler.ECommandHandler
 	 * @see apbiot.core.handler.EmojiRessources
 	 */
-	public void init(DirectoriesManager dirManager, @Nullable Class<? extends JSONConfiguration> configuration, 
+	public void init(DirectoriesManager dirManager, @Nullable Class<? extends JSONProperties> configuration, 
 			AbstractCommandHandler commandHandler, AbstractSystemCommandHandler sysCmdHandler) {
 		this.initWithoutConsole = false;
 		
@@ -86,14 +86,15 @@ public abstract class MainInitializer {
 		handlerBuilder.addHandler(commandHandler)
 			.addHandler(sysCmdHandler);
 		
-		LOGGER.info("Initializing handlers phase 1 completed.");
+		LOGGER.info("Initializing handlers (phase 1) completed.");
+		
+		ClientInstance.createInstance(commandHandler.getClass());
+		ConsoleLogger.createInstance(sysCmdHandler.getClass());
 		
 		eventDispatcher = new EventDispatcher();
 		eventDispatcher.addListener(ConsoleLogger.getInstance().new ConsoleLoggerListener());
-		eventDispatcher.addListener(new ClientBuiltListener());
+		eventDispatcher.addListener(new ClientConnectionListener());
 
-		ClientInstance.createInstance();
-		
 		LOGGER.info("Initializing sequence finished. Ready to build the program and launch the client.");
 	}
 	
@@ -104,7 +105,7 @@ public abstract class MainInitializer {
 	 * @see apbiot.core.handler.ECommandHandler
 	 * @see apbiot.core.handler.EmojiRessources
 	 */
-	public void init(DirectoriesManager dirManager, @Nullable Class<? extends JSONConfiguration> configuration, AbstractCommandHandler commandHandler) {
+	public void init(DirectoriesManager dirManager, @Nullable Class<? extends JSONProperties> configuration, AbstractCommandHandler commandHandler) {
 		this.initWithoutConsole = true;
 		
 		initIOFilesAndRessources(dirManager, configuration);
@@ -112,16 +113,17 @@ public abstract class MainInitializer {
 		handlerBuilder = HandlerManager.builder();
 		handlerBuilder.addHandler(commandHandler);
 		
-		LOGGER.info("Initializing handlers phase completed.");
-		eventDispatcher = new EventDispatcher();
-		eventDispatcher.addListener(new ClientBuiltListener());
+		LOGGER.info("Initializing handlers (phase 1) completed.");
 		
-		ClientInstance.createInstance();
+		ClientInstance.createInstance(commandHandler.getClass());
+		
+		eventDispatcher = new EventDispatcher();
+		eventDispatcher.addListener(new ClientConnectionListener());
 		
 		LOGGER.info("Initializing sequence finished. Ready to build the program and launch the client.");
 	}
 	
-	private void initIOFilesAndRessources(DirectoriesManager dirManager, @Nullable Class<? extends JSONConfiguration> configurationClass) {
+	private void initIOFilesAndRessources(DirectoriesManager dirManager, @Nullable Class<? extends JSONProperties> configurationClass) {
 		directoriesManager = dirManager;
 		dirManager.registerDirectories();
 		
@@ -141,23 +143,21 @@ public abstract class MainInitializer {
 		handlerManager = this.handlerBuilder.build();
 		this.handlerBuilder = null;
 		
-		handlerManager.buildHandlers();
-		handlerManager.buildOptionalHandlers();
+		handlerManager.preRegisterHandlers();
 		
 		final Optional<String> optPrefix = Optional.ofNullable(prefix);
-		try {
-			ClientInstance.getInstance().finishBuild(optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
-			
-			ClientInstance.getInstance().launch(args, defaultPresence, intent);
+		try {			
+			ClientInstance.getInstance().launch(args, defaultPresence, intent, optPrefix.isPresent() ? optPrefix.get() : DISCORD_SLASH_PREFIX);
 		}catch(Exception e) {
-			LOGGER.error("Unexpected error during client launch",e);
+			LOGGER.fatal("Unexpected error during client launch with message {}. Shutting down...",e.getMessage());
+			System.exit(-1);
 		}
 		
 		if(!this.initWithoutConsole) {
 			try {
 				ConsoleLogger.getInstance().startListening();
 			}catch(Exception e) {
-				LOGGER.error("Unexpected error during console logger launch",e);
+				LOGGER.error("Unexpected error during console logger launch with message {}",e.getMessage());
 			}
 			
 			LOGGER.info("Console logger has been successfully launched.");
@@ -172,19 +172,6 @@ public abstract class MainInitializer {
 	 */
 	public void buildAndLaunchClient(String token, ClientPresence defaultPresence, IntentSet intent, @Nullable String prefix) {
 		this.buildAndLaunchClient(new String[] {token}, defaultPresence, intent, prefix);
-	}
-	
-	/**
-	 * Used to add another optionnal handler
-	 * @param handler - the handler to add
-	 * @throws IllegalAccessError
-	 */
-	public void addOptionnalHandler(IOptionalHandler handler) {
-		if(handlerBuilder == null) {
-			throw new IllegalAccessError("Cannot add an handler neither before the initialization of the program nor after its launching!");
-		}else {
-			handlerBuilder.addOptionalHandler(handler);
-		}
 	}
 	
 	/**
@@ -228,26 +215,24 @@ public abstract class MainInitializer {
 		}
 	}
 	
-	private class ClientBuiltListener implements EventListener {
+	private class ClientConnectionListener implements EventListener {
 
 		@Override
 		public void newEventReceived(IEvent e) {
 			if(e instanceof EventInstanceConnected) {
 				handlerManager.registerHandlers(ClientInstance.getInstance().getClientBuilder().getGateway());
-				handlerManager.registerOptionnalHandlers();
-				LOGGER.info("Building handlers phase 2 completed.");
-				LOGGER.info("All handlers have been registered ("+handlerManager.getRequiredHandlerNumber()+" required, "+handlerManager.getOptionalHandlerNumber()+" optional(s))");
+				LOGGER.info("Registering handlers (phase 2) completed.");
+				
+				handlerManager.postRegisterHandlers();
+				LOGGER.info("Building handlers (phase 3) completed.");
+				LOGGER.info("All handlers have been completly registered ("+handlerManager.getRequiredHandlerNumber()+")");
 				
 				try {
 					ClientInstance.getInstance().updatedCommandReferences();
 					ConsoleLogger.getInstance().updatedCommandReferences();
-				} catch (IllegalAccessException err) {
-					LOGGER.error("Unexpected error during client build, Shutting down...",err);
-					try {
-						ClientInstance.getInstance().shutdown();
-					} catch (UnbuiltBotException e1) {
-						LOGGER.error("Couldn't shutdown the client correctly",err);
-					}
+				} catch (IllegalAccessException | NoSuchElementException err) {
+					LOGGER.fatal("Unexpected error during client build with message {}. Shutting down...",err.getMessage());
+					new ShutdownProgram();
 				}
 			}
 		}

@@ -3,6 +3,9 @@ package apbiot.core.builder;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.TimeUnit;
+
+import apbiot.core.objects.Tuple;
 
 public class EditableTimeBuilder extends DateBuilder {
 
@@ -74,7 +77,7 @@ public class EditableTimeBuilder extends DateBuilder {
 	
 	/**
 	 * Increase the number of months
-	 * @param hour - the number of months to be added
+	 * @param hour The number of months to be added
 	 * @return an instance of EditableTimeBuilder
 	 */
 	public synchronized EditableTimeBuilder addMonth(int mouth) {
@@ -83,8 +86,29 @@ public class EditableTimeBuilder extends DateBuilder {
 	}
 	
 	/**
+	 * Increase a field of the time depending on the {@link TimeUnit}
+	 * @param value The number to be added to the field
+	 * @param valueUnit The field which will be incremented
+	 * @return an instance of {@link EditableTimeBuilder}
+	 */
+	public synchronized EditableTimeBuilder add(int value, TimeUnit valueUnit) {
+		this.date = this.date.plus(value, valueUnit.toChronoUnit());
+		return this;
+	}
+	
+	/**
+	 * Increase a field of the time depending on the {@link TimeUnit}
+	 * @param values A tuple containing the number to be added to the field and the field  which will be incremented
+	 * @return an instance of {@link EditableTimeBuilder}
+	 */
+	public synchronized EditableTimeBuilder add(Tuple<Integer, TimeUnit> values) {
+		this.date = this.date.plus(values.getValueA(), values.getValueB().toChronoUnit());
+		return this;
+	}
+	
+	/**
 	 * Decrease the number of hours
-	 * @param hour - the number of hours to be decreased
+	 * @param hour The number of hours to be decreased
 	 * @return an instance of EditableTimeBuilder
 	 */
 	public synchronized EditableTimeBuilder removeHour(int hour) {

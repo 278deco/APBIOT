@@ -14,19 +14,19 @@ public abstract class SlashCommandInstance extends AbstractCommandInstance {
 	public SlashCommandInstance(List<String> cmdName, String description, ICommandCategory category) {
 		super(cmdName, description, category);
 		
-		initialize = false;
+		built = false;
 		
 	}
 	
 	public SlashCommandInstance(List<String> cmdName, String description, ICommandCategory category, String staticID) {
 		super(cmdName, description, category, staticID);
 		
-		initialize = false;
+		built = false;
 		
 	}
 	
 	public ApplicationCommandRequest createApplicationCommand(List<ApplicationCommandOptionData> arguments) {
-		initialize = true;
+		built = true;
 		
 		Builder request = ApplicationCommandRequest.builder().name(getMainName()).description(getDescription());
 		

@@ -9,13 +9,9 @@ import java.awt.image.RescaleOp;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.Path;
 
 import javax.imageio.ImageIO;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.FileImageOutputStream;
 
-import apbiot.core.io.objects.Directory;
 import apbiot.core.io.resources.Resource;
 
 /**
@@ -34,13 +30,12 @@ public class ConstructedImage {
 		USER_DECISION;
 	}
 	
-	private BufferedImage image;
-	private Directory directory;
-	private String imgName;
-	private ImageStatus status;
+	protected String nameID;
+	protected BufferedImage image;
+	protected ImageStatus status;
 	
-	private Graphics2D graph;
-	private boolean isDisposed;
+	protected Graphics2D graph;
+	protected boolean isDisposed;
 	
 	/**
 	 * Create a new image object
@@ -51,8 +46,7 @@ public class ConstructedImage {
 	 */
 	public ConstructedImage(Resource resource, ImageStatus status) throws IOException {
 		this.image = createImageFromBytes(resource.getData());
-		this.directory = resource.getDirectory();
-		this.imgName = resource.getName();
+		this.nameID = resource.getID();
 		this.status = status;
 	}
 	
@@ -74,28 +68,11 @@ public class ConstructedImage {
 	 * @see ImageStatus
 	 * @throws IOException
 	 */
-	public ConstructedImage(Directory directory, byte[] imgData, String name, ImageStatus status) throws IOException {
+	public ConstructedImage(byte[] imgData, ImageStatus status) throws IOException {
 		this.image = createImageFromBytes(imgData);
-		this.directory = directory;
-		this.imgName = name;
 		this.status = status;
 	}
-	
-	/**
-	 * Create a new image object
-	 * @param path The path of the image
-	 * @param imgData A byte array containing the image data
-	 * @param name The name of the image
-	 * @param status the status of the image
-	 * @see ImageStatus
-	 * @throws IOException
-	 */
-	public ConstructedImage(Path path, byte[] imgData, String name, ImageStatus status) throws IOException {
-		this.image = createImageFromBytes(imgData);
-		this.directory = new Directory(path);
-		this.imgName = name;
-		this.status = status;
-	}
+
 	
 	/**
 	 * Create a new image object
@@ -104,21 +81,10 @@ public class ConstructedImage {
 	 * @param name The name of the image
 	 * @throws IOException
 	 */
-	public ConstructedImage(Directory directory, byte[] imgData, String name) throws IOException {
-		this(directory, imgData, name, ImageStatus.TEMPORARY);
+	public ConstructedImage(byte[] imgData, String name) throws IOException {
+		this(imgData, name, ImageStatus.TEMPORARY);
 	}
-	
-	/**
-	 * Create a new image object
-	 * @param path The path of the image
-	 * @param imgData A byte array containing the image data
-	 * @param name The name of the image
-	 * @throws IOException
-	 */
-	public ConstructedImage(Path path, byte[] imgData, String name) throws IOException {
-		this(path, imgData, name, ImageStatus.TEMPORARY);
-	}
-	
+
 	/**
 	 * Create a new image object
 	 * @param imgData A byte array containing the image data
@@ -129,18 +95,8 @@ public class ConstructedImage {
 	 */
 	public ConstructedImage(byte[] imgData, String name, ImageStatus status) throws IOException {
 		this.image = createImageFromBytes(imgData);
-		this.imgName = name;
+		this.nameID = name;
 		this.status = status;
-	}
-	
-	/**
-	 * Create a new image object
-	 * @param imgData A byte array containing the image data
-	 * @param name The name of the image
-	 * @throws IOException
-	 */
-	public ConstructedImage(byte[] imgData, String name) throws IOException {
-		this(imgData, name, ImageStatus.TEMPORARY);
 	}
 	
 	protected BufferedImage createImageFromBytes(byte[] imageData) throws IOException {
@@ -149,54 +105,8 @@ public class ConstructedImage {
 	}
 	
 	/**
-	 * Save the image stored in this instance at the new path given
-	 * @param savePath the new path
-	 * @throws IOException
-	 */
-	public void saveImage(Path savePath) throws IOException {
-		if(!isDisposed) throw new IllegalAccessError("Cannot access to the image's properties if it hasn't been disposed!");
-		ImageWriter writer = ImageIO.getImageWritersByFormatName("PNG").next();
-		FileImageOutputStream destination = null;
-		
-		try {
-			destination = new FileImageOutputStream(savePath.toFile());
-			writer.setOutput(destination);
-			writer.write(this.image);
-			
-		}finally {
-			if(destination != null) {
-				destination.flush();
-				destination.close();
-			}
-		}
-		
-	}
-	
-	/**
-	 * Save the image stored in this instance at its original path
-	 * @throws IOException
-	 */
-	public void saveImage() throws IOException {
-		if(!isDisposed) throw new IllegalAccessError("Cannot access to the image's properties if it hasn't been disposed!");
-		ImageWriter writer = ImageIO.getImageWritersByFormatName("PNG").next();
-		FileImageOutputStream destination = null;
-		
-		try {
-			destination = new FileImageOutputStream(this.directory.getPath().resolve(this.imgName+".png").toFile());
-			writer.setOutput(destination);
-			writer.write(this.image);
-			
-		}finally {
-			if(destination != null) {
-				destination.flush();
-				destination.close();
-			}
-		}
-	}
-	
-	/**
-	 * Release the graphic class using the image
-	 * Can't call the save method before dispose the picture
+	 * Release the graphic class using the image<br>
+	 * Cannot access any method related to the image's properties or do any action to the image (save, get, ...)
 	 */
 	public void dispose() {
 		if(graph != null) graph.dispose();
@@ -286,11 +196,13 @@ public class ConstructedImage {
 	 * @param newName the new name of the image
 	 */
 	public void changeImageName(String newName) {
-		this.imgName = newName;
+		this.nameID = newName;
 	}
 	
 	public byte[] getRawImage() throws IOException {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		if(!isDisposed) throw new IllegalAccessError("Cannot access the image if it hasn't been disposed!");
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		
 		ImageIO.write(this.getImage(), this.getFormat(), baos);
 		
 		return baos.toByteArray();
@@ -301,7 +213,7 @@ public class ConstructedImage {
 	 * @return an integer containing the image's width
 	 */
 	public int getWidth() {
-		if(!isDisposed) throw new IllegalAccessError("Cannot access to the image's properties if it hasn't been disposed!");
+		if(!isDisposed) throw new IllegalAccessError("Cannot access the image's properties if it hasn't been disposed!");
 		return image.getWidth();
 	}
 	
@@ -310,7 +222,7 @@ public class ConstructedImage {
 	 * @return an integer containing the image's height 
 	 */
 	public int getHeight() {
-		if(!isDisposed) throw new IllegalAccessError("Cannot access to the image's properties if it hasn't been disposed!");
+		if(!isDisposed) throw new IllegalAccessError("Cannot access the image's properties if it hasn't been disposed!");
 		return image.getHeight();
 	}
 	
@@ -319,7 +231,7 @@ public class ConstructedImage {
 	 * @return a BufferedImage, the stored image
 	 */
 	public BufferedImage getImage() {
-		if(!isDisposed) throw new IllegalAccessError("Cannot access to the image if it hasn't been disposed!");
+		if(!isDisposed) throw new IllegalAccessError("Cannot access the image if it hasn't been disposed!");
 		return image;
 	}
 	
@@ -336,7 +248,7 @@ public class ConstructedImage {
 	 * @return the name of the image
 	 */
 	public String getName() {
-		return this.imgName;
+		return this.nameID;
 	}
 
 	/**

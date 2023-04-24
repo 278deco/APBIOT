@@ -87,29 +87,8 @@ public class DirectoryHelper {
 	 * @param fileName The file's name
 	 * @return The number of file found. If the directory doesn't exist, return -1
 	 */
-	public static long countFileWithName(Path dir, String fileName) {
-		if(!Files.exists(dir) && !Files.isDirectory(dir)) return -1L;
-		
-		DirectoryStream<Path> paths = null;
-		long estimateCount = 0;
-		
-		try {
-			paths =Files.newDirectoryStream(dir, new DirectoryStream.Filter<Path>() {
-	
-				@Override
-				public boolean accept(Path entry) throws IOException {
-					return entry.getFileName().toString().matches(".*"+fileName+".*");
-				}
-			});
-			
-			estimateCount = paths.spliterator().estimateSize();
-		}catch(IOException e) {
-			return -1L;
-		}finally {
-			if(paths != null) try { paths.close(); } catch (IOException e) {}
-		}
-		
-		return estimateCount;
+	public static int countFileWithName(Path dir, String fileName) {
+		return getDirectorySubfiles(dir, fileName, 0).size();
 	}
 	
 	/**
@@ -118,24 +97,30 @@ public class DirectoryHelper {
 	 * @param fileName The file's name
 	 * @return The number of file found. If the directory doesn't exist, return -1
 	 */
-	public static long countFile(Path dir) {
-		if(!Files.exists(dir) && !Files.isDirectory(dir)) return -1L;
-		
-		Stream<Path> paths = null;
-		long estimateCount = 0;
-		
-		try {
-			paths = Files.list(dir);
-			
-			estimateCount = paths.count();
-		}catch(IOException e) {
-			return -1L;
-		}finally {
-			if(paths != null) paths.close();
-		}
-		
-		return estimateCount;
+	public static int countFileWithName(Directory dir, String fileName) {
+		return countFileWithName(dir.getPath(), fileName);
 	}
+	
+	/**
+	 * Count every files in a specified directory matching with the specified file name
+	 * @param dir The directory
+	 * @param fileName The file's name
+	 * @return The number of file found. If the directory doesn't exist, return -1
+	 */
+	public static int countFile(Path dir) {
+		return getDirectorySubfiles(dir, 0).size();
+	}
+	
+	/**
+	 * Count every files in a specified directory matching with the specified file name
+	 * @param dir The directory
+	 * @param fileName The file's name
+	 * @return The number of file found. If the directory doesn't exist, return -1
+	 */
+	public static int countFile(Directory dir) {
+		return countFile(dir.getPath());
+	}
+	
 	
 	/**
 	 * Get every files as path in a specified directory matching with the specified file name
@@ -181,6 +166,16 @@ public class DirectoryHelper {
 	 * @param threshold The maximum number of file to be fetched from the method. Set it to 0 or lower to have no threshold.
 	 * @return A set of path representing the found files or an empty one if an error occur
 	 */
+	public static Set<Path> getDirectorySubfiles(Directory dir, String fileName, int threshold) {
+		return getDirectorySubfiles(dir.getPath(), fileName, threshold);
+	}
+	
+	/**
+	 * Get every files as path in a specified directory matching with the specified file name
+	 * @param dir The directory
+	 * @param threshold The maximum number of file to be fetched from the method. Set it to 0 or lower to have no threshold.
+	 * @return A set of path representing the found files or an empty one if an error occur
+	 */
 	public static Set<Path> getDirectorySubfiles(Path dir, int threshold) {
 		final Set<Path> result = new HashSet<>();
 		if(!Files.exists(dir) && !Files.isDirectory(dir)) return result;
@@ -203,6 +198,16 @@ public class DirectoryHelper {
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * Get every files as path in a specified directory matching with the specified file name
+	 * @param dir The directory
+	 * @param threshold The maximum number of file to be fetched from the method. Set it to 0 or lower to have no threshold.
+	 * @return A set of path representing the found files or an empty one if an error occur
+	 */
+	public static Set<Path> getDirectorySubfiles(Directory dir, int threshold) {
+		return getDirectorySubfiles(dir.getPath(), threshold);
 	}
 	
 }

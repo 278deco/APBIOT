@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -44,7 +45,10 @@ public class TextFile extends IOElement {
 		super(args);
 		
 		try {
-			Files.createFile(this.directory.getPath().resolve(this.fileName));
+			final Path temp = directory.getPath().resolve(this.fileName);
+			
+			if(!Files.exists(temp))
+				Files.createFile(temp);
 			this.content = new ArrayList<>();
 			
 			readFile();
@@ -56,16 +60,17 @@ public class TextFile extends IOElement {
 	
 	/**
 	 * Read and add all file's content in a list
-	 * @throws IOException
+	 * @return true if the file has been read successfully
 	 */
 	@Override
-	protected void readFile() {
+	protected boolean readFile() {
 		FileInputStream input = null;
 		InputStreamReader fileReader = null;
 		BufferedReader buffer = null;
+		boolean success = true;
 		
 		try {
-			input = new FileInputStream(this.directory.getPath().toFile());
+			input = new FileInputStream(this.directory.getPath().resolve(fileName).toFile());
 			fileReader = new InputStreamReader(input, "UTF-8");
 			buffer = new BufferedReader(fileReader);
 			
@@ -78,19 +83,23 @@ public class TextFile extends IOElement {
 			
 		}catch(IOException e) {
 			LOGGER.error("Unexpected error while loading text file [dir: {}, name: {}] with message {}", this.directory.getName(), this.fileName, e.getMessage());
+			success = false;
 		}finally {
 			try { if(input != null) input.close(); }catch(IOException e) {}
 			try { if(buffer != null) buffer.close(); }catch(IOException e) {}
 			try { if(fileReader != null) fileReader.close(); }catch(IOException e) {}
 		}
+		
+		return success;
 	}
 	
 	/**
-	 * Write all lines contained in the list
-	 * @throws IOException
+	 * Write all lines contained in the list to the disk<br>
+	 * This method will always return true as the file is saved in his own thread
+	 * @return true
 	 */
 	@Override
-	public void saveFile() {
+	public boolean saveFile() {
 		new Thread(new Runnable() {
 			
 			@Override
@@ -100,7 +109,7 @@ public class TextFile extends IOElement {
 				BufferedWriter buffer = null;
 				
 				try {
-					output = new FileOutputStream(directory.getPath().toFile());
+					output = new FileOutputStream(directory.getPath().resolve(fileName).toFile());
 					fileWriter = new OutputStreamWriter(output, "UTF-8");
 					buffer = new BufferedWriter(fileWriter);
 					
@@ -118,25 +127,27 @@ public class TextFile extends IOElement {
 				}
 			}
 		},"File-Save-Thread").start();
+		
+		return true;
 	}
 	
 	/**
-	 * Reload the file instance running in the program
+	 * Reload the file instance running in the program<br>
 	 * Any change made to the original file that are not saved will be overwritten
-	 * @throws IOException
+	 * @return true if the file has been correctly reloaded
 	 */
 	@Override
-	public void reloadFile() throws IOException {
+	public boolean reloadFile() {
 		this.content.clear();
 		
-		readFile();
+		return readFile();
 	}
 	
 	/**
-	 * Add a new line to content of the file
+	 * Add a new line to content of the file<br>
 	 * If the file is never saved, the line while only be added to this instance of the TextFileManager
-	 * @see fr.o278deco.devbot.file.TextFileManager#saveTextFile()
 	 * @param lines all the line which needs to added
+	 * @see fr.o278deco.devbot.file.TextFileManager#saveTextFile()
 	 */
 	public void addNewLine(String... lines) {
 		for(String line : lines) {
@@ -153,8 +164,8 @@ public class TextFile extends IOElement {
 	
 	/**
 	 * Return the content of the i line
-	 * @param i the index of the line
-	 * @return the String line
+	 * @param i The index of the line
+	 * @return the line of the file
 	 */
 	public String getLine(int i) {
 		return this.content.size() <= i ? null : this.content.get(i);
@@ -162,7 +173,7 @@ public class TextFile extends IOElement {
 	
 	/**
 	 * Get file's content size
-	 * @return list containing the content
+	 * @return the size of the content
 	 */
 	public int getContentSize() {
 		return this.content.size();
@@ -170,7 +181,7 @@ public class TextFile extends IOElement {
 	
 	/**
 	 * Get a random line of file's content
-	 * @return a random string
+	 * @return a random line of the file
 	 */
 	public String getRandomLine() {
 		return getContentSize() > 0 ? getLine(new Random().nextInt(getContentSize())) : "";

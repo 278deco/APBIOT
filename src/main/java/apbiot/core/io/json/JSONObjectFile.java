@@ -1,9 +1,9 @@
 package apbiot.core.io.json;
 
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,20 +27,23 @@ public abstract class JSONObjectFile extends IOElement {
 
 	/**
 	 * Create a new JSON file instance
-	 * @param path - the path of the file
-	 * @param fileName - the file name with the extension
+	 * @param path The path of the file
+	 * @param fileName The file name with the extension
 	 */
 	public JSONObjectFile(IOArguments args) {
 		super(args);
 		
 		try {
-			Files.createFile(directory.getPath().resolve(this.fileName));
+			final Path temp = directory.getPath().resolve(this.fileName);
+			
+			if(!Files.exists(temp))
+				Files.createFile(temp);
 			
 			readFile();
 			reviewFormat();
 			
 		} catch (IOException e) {
-			LOGGER.error("Unexpected error while loading JSON file [dir: {}, name: {}] with message {}", this.directory.getName(), this.fileName, e.getMessage());
+			LOGGER.error("Unexpected error while loading JSON file [dir: {}, name: {}] with error {} and message {}", this.directory.getName(), this.fileName, e.getClass().getName(), e.getMessage());
 		} catch(JSONAssertionException e) {
 			LOGGER.warn("A JSON Assertion Exception has been thrown : {}", e.getMessage());
 		}
@@ -57,11 +60,12 @@ public abstract class JSONObjectFile extends IOElement {
 	public abstract void preSave();
 	
 	/**
-	 * Save the file and write the content
-	 * @throws IOException
+	 * Save the file and write the content on the disk<br>
+	 * This method will always return true as the file is saved in his own thread
+	 * @return true
 	 */
 	@Override
-	public void saveFile() {
+	public boolean saveFile() {
 		preSave();
 		
 		new Thread(new Runnable() {
@@ -70,7 +74,7 @@ public abstract class JSONObjectFile extends IOElement {
 			public void run() {
 				FileWriter fw = null;
 				try {
-					fw = new FileWriter(directory.getPath().toFile());
+					fw = new FileWriter(directory.getPath().resolve(fileName).toFile());
 					fw.write(FILES_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(dataMap));
 					
 					fw.flush();
@@ -78,30 +82,32 @@ public abstract class JSONObjectFile extends IOElement {
 					readFile();
 					
 				} catch (IOException e) {
-					LOGGER.error("Unexpected error while saving JSON file [dir: {}, name: {}] with message {}", directory.getName(), fileName, e.getMessage());
+					LOGGER.error("Unexpected error while saving JSON file [dir: {}, name: {}] with error {} and message {}", directory.getName(), fileName, e.getClass().getName(), e.getMessage());
 				}finally {
 					try { if(fw != null) fw.close(); }catch(IOException e) {}
 				}
 				
 			}
 		},"File-Save-Thread").start();
+		
+		return true;
 	}
 	
 	/**
-	 * Reload the file instance running in the program
+	 * Reload the file instance running in the program<br>
 	 * Any change made to the original file that are not saved will be overwritten
-	 * @throws IOException
+	 * @return true if the file has been correctly reloaded
 	 */
 	@Override
-	public void reloadFile() throws IOException {
+	public boolean reloadFile() {
 		dataMap.clear();
 
-		readFile();
+		return readFile();
 	}
 	
 	/**
-	 * Cast the raw file object to a JSONObject
-	 * @return a JSONObject representing the file
+	 * Get the data stored in the JSON file
+	 * @return a HashMap of the content
 	 */
 	protected HashMap<String, Object> getData() {
 		return (HashMap<String, Object>) this.dataMap;
@@ -109,7 +115,6 @@ public abstract class JSONObjectFile extends IOElement {
 
 	/**
      * Cast key representing an HashMap to access data
-     *
      * @return a HashMap representing a JSON Object
      */
     @SuppressWarnings("unchecked")
@@ -120,20 +125,21 @@ public abstract class JSONObjectFile extends IOElement {
         else throw new ClassCastException("The key " + src + " didn't contained a HashMap!");
     }
 	
-	/**
-	 * Read the file's content
-	 * @return the content of the json file
-	 * @throws FileNotFoundException
-	 * @throws IOException
+    /**
+	 * Read JSON file's content
+	 * @return true if the file has been read successfully
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	protected void readFile() throws IOException {
+	protected boolean readFile(){
 		try {
-			this.dataMap = FILES_MAPPER.readValue(this.directory.getPath().toFile()
-					, HashMap.class);
-		}catch(Exception e) {
+			this.dataMap = FILES_MAPPER.readValue(this.directory.getPath().resolve(fileName).toFile(), HashMap.class);
+			
+			return true;
+		}catch(IOException e) {
 			this.dataMap = new HashMap<>();
+			
+			return false;
 		}
 	}
 	

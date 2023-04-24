@@ -19,13 +19,14 @@ public class ClientInstance {
 	
 	//Builder
 	private ClientBuilder clientBuilder;
+	private final Class<? extends AbstractCommandHandler> clsCommandHandler;
 	
 	private AtomicBoolean running;
 	
-	public static ClientInstance createInstance() {
+	public static ClientInstance createInstance(Class<? extends AbstractCommandHandler> clsCommandHandler) {
 		if(instance == null) {
 			synchronized (ClientInstance.class) {
-				if(instance == null) instance = new ClientInstance();
+				if(instance == null) instance = new ClientInstance(clsCommandHandler);
 			}
 		}
 		return instance;
@@ -42,24 +43,28 @@ public class ClientInstance {
 	/**
 	 * Create a new instance of ClientInstance & build the client
 	 */
-	private ClientInstance() {
+	private ClientInstance(Class<? extends AbstractCommandHandler> clsCommandHandler) {
 		clientBuilder = new ClientBuilder();
-		
 		clientBuilder.createNewInstance();
+		
+		this.clsCommandHandler = clsCommandHandler;
+		
+		this.running = new AtomicBoolean();
 	}
-	
+
 	/**
 	 * Used to launch the client
 	 * @param args The program's arguments
 	 * @param defaultPresence The default presence used by the bot
 	 * @param intent The intent used and required by the bot
+	 * @param prefix The prefix used by the bot
 	 * @throws IllegalAccessException 
 	 */
-	public synchronized void launch(String[] args, ClientPresence defaultPresence, IntentSet intent) {
+	public synchronized void launch(String[] args, ClientPresence defaultPresence, IntentSet intent, String prefix) {
 		this.running.set(true);
 		
 		try {
-			clientBuilder.build(args[0], defaultPresence, intent);
+			clientBuilder.build(args[0], defaultPresence, intent, prefix);
 			
 		}catch (UnbuiltBotException e) {
 			LOGGER.fatal("Error thrown will launching the client",e);
@@ -77,18 +82,8 @@ public class ClientInstance {
 	 * @param intent The intent used and required by the bot
 	 * @throws IllegalAccessException 
 	 */
-	public synchronized void launch(String token, ClientPresence defaultPresence, IntentSet intent) {
-		this.launch(new String[] {token}, defaultPresence, intent);
-	}
-	
-	/**
-	 * Finish the build of the bot
-	 * @param clientPrefix The prefix used by the client
-	 * @throws IllegalAccessException
-	 */
-	public synchronized void finishBuild(String clientPrefix) throws IllegalAccessException {
-		if(isInstanceAlive()) throw new IllegalAccessException("You cannot update the command references if the bot isn't built."); 
-		clientBuilder.finishBuild(clientPrefix);
+	public synchronized void launch(String token, ClientPresence defaultPresence, IntentSet intent, String prefix) {
+		this.launch(new String[] {token}, defaultPresence, intent, prefix);
 	}
 	
 	/**
@@ -96,8 +91,9 @@ public class ClientInstance {
 	 * @throws IllegalAccessException
 	 */
 	public synchronized void updatedCommandReferences() throws IllegalAccessException {
-		if(isInstanceAlive()) throw new IllegalAccessException("You cannot update the command references if the bot isn't built."); 
-		clientBuilder.updatedCommandReferences(MainInitializer.getHandlers().getHandler(AbstractCommandHandler.class));
+		if(!isInstanceAlive()) throw new IllegalAccessException("You cannot update the command references if the bot isn't built.");
+		if(clsCommandHandler == null) throw new NullPointerException("Cannot launch the bot if the command handler class isn't defined!");
+		clientBuilder.updatedCommandReferences(MainInitializer.getHandlers().getHandler(clsCommandHandler));
 		
 		clientBuilder.buildCommandator();
 	}

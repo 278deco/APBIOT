@@ -5,7 +5,6 @@ import java.util.List;
 
 import apbiot.core.command.AbstractCommandInstance;
 import apbiot.core.command.UserCommandCooldown;
-import apbiot.core.time.StaticTime.TimeUnit;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
@@ -36,7 +35,7 @@ public class CooldownHelper {
 					return true;
 				}else {
 					chan.createMessage("⛔ Vous ne pourrez éxécuter cette commande que dans **"
-							+convertTimeUnit(cmdU.getCooldown().getRemainingTime(), TimeUnit.NANOSECOND, TimeUnit.SECOND)+" seconde(s)** !").block();
+							+cmdU.getCooldown().getTimeUnit().toSeconds(cmdU.getCooldown().getRemainingTime())+" seconde(s)** !").block();
 					return false;
 				}
 			}
@@ -78,44 +77,6 @@ public class CooldownHelper {
 			return PermissionHelper.userHaveTheRole(cmd.getCooldown().getRoles(), guild.getMemberById(user.getId()).block()) ? 
 					null : new UserCommandCooldown(cmd, user, cmd.getCooldown().getTimer());
 		}
-	}
-	
-	/**
-	 * Convert a time in a new unit (seconds to hours, weeks to days)
-	 * @param toConvert - the variable which contains the "time"
-	 * @param oldUnit - the unit of the toConvert variable
-	 * @param newUnit - the unit of the output
-	 * @return a converted time in the an unit we want
-	 * @see apbiot.core.time.StaticTime.TimeUnit
-	 */
-	public static Long convertTimeUnit(Long toConvert, TimeUnit oldUnit, TimeUnit newUnit) {
-		long temporary = toConvert;
-		if(oldUnit.getIndex() == -1 || oldUnit.getIndex() == -1) return 0L;
-		
-		int i = oldUnit.getIndex();
-		while(i != newUnit.getIndex()) {
-			if(isGreaterThanCurrentUnit(oldUnit, newUnit)) {
-				if(i+1 < TimeUnit.values().length)
-					temporary/=TimeUnit.values()[i+1].getOperation();
-				i+=1;
-			}else {
-				temporary*=TimeUnit.values()[i].getOperation();
-				
-				i-=1;
-			}
-		}
-		return temporary;
-	}
-	
-	/**
-	 * Check if a unit is "greater" than another (seconds is greater than milliseconds, days are smaller than weeks)
-	 * @param old - the unit we want to compare
-	 * @param compared - the comparator
-	 * @return boolean if the comparator is greater than the compare
-	 * @see apbiot.core.time.StaticTime.TimeUnit
-	 */
-	private static boolean isGreaterThanCurrentUnit(TimeUnit old, TimeUnit compared) {
-		return compared.getIndex() > old.getIndex();
 	}
 	
 }

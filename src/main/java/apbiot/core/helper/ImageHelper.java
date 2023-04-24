@@ -22,8 +22,8 @@ public class ImageHelper {
 	 * @return an instance of ConstructedImage
 	 * @throws IOException 
 	 */
-	public static ConstructedImage convertDiscordImage(Directory directory, Image discordImage, String imageName) throws IOException {
-		return new ConstructedImage(Objects.requireNonNull(directory).getPath(), Objects.requireNonNull(discordImage).getData(), Objects.requireNonNull(imageName), ImageStatus.TEMPORARY);
+	public static ConstructedImage convertDiscordImage(Image discordImage, String name) throws IOException {
+		return new ConstructedImage(Objects.requireNonNull(discordImage).getData(), name, ImageStatus.TEMPORARY);
 	}
 	
 	/**

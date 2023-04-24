@@ -1,6 +1,5 @@
 package apbiot.core.io.resources;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.file.Files;
@@ -9,65 +8,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-
-import javax.naming.spi.DirectoryManager;
 
 import apbiot.core.event.EventListener;
 import apbiot.core.event.events.io.EventResourceDeleted;
-import apbiot.core.io.objects.Directory;
 import apbiot.core.objects.interfaces.IEvent;
 
 public abstract class AbstractBuffer implements EventListener {
 	
 	private final List<Resource> resourceBuffer = new ArrayList<>(getBufferSize());
-	private final Set<Directory> directories;
 	
-	public AbstractBuffer(Set<Directory> directories) {
-		this.directories = directories;
+	public AbstractBuffer() {
+		
 	}
 	
 	public abstract void registerResources();
 
 	/**
-	 * Get a resource from the disk and use it as a {@link Resource} in the program<br>
-	 * The resource can only be obtained from directory that have been loaded by {@link DirectoryManager}<br>
-	 * <i>The function check if the requested resource isn't already saved in the buffer</i>
-	 * @param resourcePath The path where the resource is stored
+	 * Get a resource from the buffer with its name (the file name)<br>
 	 * @param resource The name of the resource (the file name)
-	 * @param isErasable Tells the program that the resource could be deleted from memory if the buffer runs out of space
 	 * @return The newly created resource class
 	 * @throws IOException
 	 */
-	public Resource getResource(Path resourcePath, String resource, boolean isErasable) throws IOException {
-		final Directory dir = new Directory(resourcePath);
-		final String[] splitName = resource.split(".");
-		
-		if(!isDirectoryExisting(dir)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start!");
+	public Resource getResourceByName(String resource) throws IOException {
+		final String[] splitName = resource.split("\\.");
 		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
 		
-		String resourceId = splitName[0];
-		
-		Resource opt = getResource(resourceId);
-		if(opt != null) { 
-			
-			return opt;
-		}else {
-			byte[] fileResult = null;
-			FileInputStream inputStream = null;
-
-			try {
-				inputStream = new FileInputStream(resourcePath.resolve(resource).toFile());
-				fileResult = inputStream.readAllBytes();
-				
-			}catch(Exception e) {
-				throw new IOException(e.getMessage());
-			}finally {
-				if(inputStream != null) inputStream.close();
-			}
-			
-			return new Resource(dir, resourceId, splitName[1], fileResult, isErasable);
-		}
+		return getResourceByID(splitName[0]);
 	}
 	
 	/**
@@ -75,8 +41,8 @@ public abstract class AbstractBuffer implements EventListener {
 	 * @param id The resource's ID
 	 * @see AbstractBuffer#getResource(Path, String, boolean)
 	 */
-	public Resource getResource(String id) {
-		final Optional<Resource> opt = resourceBuffer.stream().filter(rsc -> rsc.getName().equals(id)).findFirst(); 
+	public Resource getResourceByID(String id) {
+		final Optional<Resource> opt = resourceBuffer.stream().filter(rsc -> rsc.getID().equals(id)).findFirst(); 
 			
 		return opt.isPresent() ? opt.get() : null;
 	}
@@ -98,7 +64,7 @@ public abstract class AbstractBuffer implements EventListener {
 	 * @param id The resource's id
 	 */
 	public boolean deleteResource(String id) throws IOException {
-		final Optional<Resource> opt = resourceBuffer.stream().filter(rsc -> rsc.getName().equals(id)).findFirst(); 
+		final Optional<Resource> opt = resourceBuffer.stream().filter(rsc -> rsc.getID().equals(id)).findFirst(); 
 		
 		if(opt.isPresent()) {
 			resourceBuffer.remove(opt.get());
@@ -142,32 +108,6 @@ public abstract class AbstractBuffer implements EventListener {
 	}
 	
 	/**
-	 * Add a new resource into the buffer<br>
-	 * The resource can only be saved in directory that have been loaded by {@link DirectoryManager}<br>
-	 * By default this method will set the flag <i>isErasable</i> to true
-	 * @param resourcePath The path where the resource is stored
-	 * @param resource The name of the resource (the file name)
-	 * @return the newly added resource
-	 * @throws IOException
-	 */
-	public synchronized Resource add(Path resourcePath, String resource) throws IOException {	
-		return add(getResource(resourcePath, resource, true));
-	}
-	
-	/**
-	 * Add a new resource into the buffer<br>
-	 * The resource can only be saved in directory that have been loaded by {@link DirectoryManager}<br>
-	 * @param resourcePath The path where the resource is stored
-	 * @param resource The name of the resource (the file name)
-	 * @param isErasable Tells the program that the resource could be deleted from memory if the buffer runs out of it
-	 * @return the newly added resource
-	 * @throws IOException
-	 */
-	public synchronized Resource add(Path resourcePath, String resource, boolean isErasable) throws IOException {	
-		return add(getResource(resourcePath, resource, isErasable));
-	}
-	
-	/**
 	 * Remove a resource from the buffer with its instance<br>
 	 * @param index The resource's instance
 	 */
@@ -190,7 +130,7 @@ public abstract class AbstractBuffer implements EventListener {
 	 * @param id The resource's id
 	 */
 	public synchronized void remove(String id) {
-		resourceBuffer.removeIf(resource -> resource.getName().equals(id));
+		resourceBuffer.removeIf(resource -> resource.getID().equals(id));
 	}
 	
 	/**
@@ -206,15 +146,6 @@ public abstract class AbstractBuffer implements EventListener {
 	 */
 	public byte getBufferSize() {
 		return 32;
-	}
-	
-	/**
-	 * Check if the directory exist in the directory set
-	 * @param directory The directory to be checked
-	 * @return if it exits
-	 */
-	private boolean isDirectoryExisting(Directory directory) {
-		return directories.stream().anyMatch(dir -> dir.isPathSimilar(directory.getPath()));
 	}
 	
 	@Override

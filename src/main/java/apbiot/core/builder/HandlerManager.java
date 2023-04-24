@@ -5,7 +5,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import apbiot.core.objects.interfaces.IHandler;
-import apbiot.core.objects.interfaces.IOptionalHandler;
 import discord4j.core.GatewayDiscordClient;
 
 /**
@@ -21,11 +20,16 @@ import discord4j.core.GatewayDiscordClient;
 public class HandlerManager {
 	
 	private Set<IHandler> requiredHandlers = new HashSet<>();
-	private Set<IOptionalHandler> optionalHandlers = new HashSet<>();
 	
 	private HandlerManager(HandlerManager.Builder builder) {
 		this.requiredHandlers = builder.getRequiredHandlers();
-		this.optionalHandlers = builder.getOptionalHandlers();
+	}
+	
+	/**
+	 * Pre-register all the handlers<br>
+	 */
+	public synchronized void preRegisterHandlers() {
+		requiredHandlers.forEach(h -> h.preRegister());
 	}
 	
 	/**
@@ -37,24 +41,10 @@ public class HandlerManager {
 	}
 	
 	/**
-	 * Register all the optional handlers
+	 * Pre-register all the handlers<br>
 	 */
-	public synchronized void registerOptionnalHandlers() {
-		optionalHandlers.forEach(h -> h.register());
-	}
-	
-	/**
-	 * Initialize all the handlers
-	 */
-	public synchronized void buildHandlers() {
-		requiredHandlers.forEach(h -> h.build());
-	}
-	
-	/**
-	 * Initialize all the optional handlers
-	 */
-	public synchronized void buildOptionalHandlers() {
-		optionalHandlers.forEach(h -> h.build());
+	public synchronized void postRegisterHandlers() {
+		requiredHandlers.forEach(h -> h.postRegister());
 	}
 
 	/**
@@ -69,38 +59,11 @@ public class HandlerManager {
 	}
 	
 	/**
-	 * Get an optional handler registered and initialized by the HandlerBuilder
-	 * @param <E> The optional handler needed
-	 * @param cls The class of the optional handler needed
-	 * @return the optional handler instance
-	 * @throws NoSuchElementException
-	 */
-	public <E extends IOptionalHandler> IOptionalHandler getOptionalHandler(Class<E> cls) {
-		return this.optionalHandlers.stream().filter(let -> let.getClass().equals(cls)).findFirst().orElseThrow();
-	}
-	
-	/**
-	 * Check if at least one optional handler is present
-	 * @return if an optional handler is present
-	 */
-	public boolean isAnOptionalHandlerPresent() {
-		return optionalHandlers.size() > 0;
-	}
-	
-	/**
 	 * Get the number of handlers listed in this instance
 	 * @return number of handlers
 	 */
 	public int getRequiredHandlerNumber() {
 		return this.requiredHandlers.size();
-	}
-	
-	/**
-	 * Get the number of optional handlers listed in this instance
-	 * @return number of optional handlers
-	 */
-	public int getOptionalHandlerNumber() {
-		return this.optionalHandlers.size();
 	}
 	
 	public static HandlerManager.Builder builder() {
@@ -110,8 +73,6 @@ public class HandlerManager {
 	public static class Builder {
 		
 		private Set<IHandler> requiredHandlers = new HashSet<>();
-		private Set<IOptionalHandler> optionalHandlers = new HashSet<>();
-		
 		private Builder() { }
 		
 		/**
@@ -125,23 +86,8 @@ public class HandlerManager {
 			return this;
 		}
 		
-		/**
-		 * Add a new optional handler
-		 * @param handler - the optional handler to be added
-		 */
-		public Builder addOptionalHandler(IOptionalHandler... handler) {
-			for(IOptionalHandler h : handler) 
-				optionalHandlers.add(h);
-			
-			return this;
-		}
-		
 		public HandlerManager build() {
 			return new HandlerManager(this);
-		}
-		
-		private Set<IOptionalHandler> getOptionalHandlers() {
-			return optionalHandlers;
 		}
 		
 		private Set<IHandler> getRequiredHandlers() {

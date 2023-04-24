@@ -58,7 +58,7 @@ public class CSVFile extends IOElement {
 	 * @throws IOException
 	 */
 	@Override
-	public void saveFile() {
+	public boolean saveFile() {
 		new Thread(new Runnable() {
 			
 			@Override
@@ -87,18 +87,19 @@ public class CSVFile extends IOElement {
 				
 			}
 		},"File-Save-Thread").start();
+		
+		return true;
 	}
 
 	/**
 	 * Reload the file instance running in the program
 	 * Any change made to the original file that are not saved will be overwritten
-	 * @throws IOException
 	 */
 	@Override
-	public void reloadFile() throws Exception {
+	public boolean reloadFile() {
 		this.document = new CSVDocument();
 		
-		readFile();
+		return readFile();
 	}
 
 	/**
@@ -106,7 +107,7 @@ public class CSVFile extends IOElement {
 	 * @throws IOException
 	 */
 	@Override
-	protected void readFile() {
+	protected boolean readFile() {
 		FileInputStream input = null;
 		InputStreamReader fileReader = null;
 		BufferedReader buffer = null;
@@ -123,11 +124,15 @@ public class CSVFile extends IOElement {
 			
 		}catch(IOException e) {
 			LOGGER.error("Unexpected error while loading CSV file [dir: {}, name: {}] with message {}", this.directory.getName(), this.fileName, e.getMessage());
+			
+			return false;
 		}finally {
 			try { if(input != null) input.close(); }catch(IOException e) {}
 			try { if(buffer != null) buffer.close(); }catch(IOException e) {}
 			try { if(fileReader != null) fileReader.close(); }catch(IOException e) {}
 		}
+		
+		return true;
 	}
 	
 	private String formatRow(List<CSVCell> row, String separator) {

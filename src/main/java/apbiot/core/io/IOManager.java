@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Logger;
 
 import apbiot.core.exceptions.NonExistingFileInstanceException;
 import apbiot.core.helper.DirectoryHelper;
-import apbiot.core.io.json.JSONConfiguration;
+import apbiot.core.io.json.JSONProperties;
 import apbiot.core.io.objects.Directory;
 import apbiot.core.io.objects.IOArguments;
 import apbiot.core.io.objects.IOElement;
@@ -32,14 +32,14 @@ public class IOManager {
 	private Set<Directory> directories = new HashSet<>();
 	
 	@Nullable
-	private final Class<? extends JSONConfiguration> programConfigurationClass;
+	private final Class<? extends JSONProperties> programConfigurationClass;
 	@Nullable
-	private JSONConfiguration programConfiguration;
+	private JSONProperties programConfiguration;
 	@Nullable
 	private Directory programConfigurationDirectory;
 	
-	private IOManager(Set<Directory> directories, Directory configurationDirectory, Class<? extends JSONConfiguration> configuration) {
-		LOGGER.info("Starting Input Output Communications...");
+	private IOManager(Set<Directory> directories, Directory configurationDirectory, Class<? extends JSONProperties> configuration) {
+		LOGGER.info("Starting Input Output management...");
 		
 		this.programConfigurationClass = configuration;
 		this.directories = directories;
@@ -56,9 +56,9 @@ public class IOManager {
 	 * @param configuration the class representing the configuration
 	 * @return the instance of IOManager
 	 * @see DirectoriesManager
-	 * @see JSONConfiguration
+	 * @see JSONProperty
 	 */
-	public static IOManager createInstance(Set<Directory> directories, Directory configurationDirectory, Class<? extends JSONConfiguration> configuration) {
+	public static IOManager createInstance(Set<Directory> directories, Directory configurationDirectory, Class<? extends JSONProperties> configuration) {
 		if(instance == null) {
 			synchronized (IOManager.class) {
 				if(instance == null) instance = new IOManager(directories, configurationDirectory, configuration);
@@ -98,7 +98,7 @@ public class IOManager {
 	private void generateConfiguration() {
 		LOGGER.info("Loading program's configuration...");
 		
-		final JSONConfiguration temp = createFileObject(this.programConfigurationDirectory, CONFIGURATION_FILE_NAME, this.programConfigurationClass, null);
+		final JSONProperties temp = createFileObject(this.programConfigurationDirectory, CONFIGURATION_FILE_NAME, this.programConfigurationClass, null);
 		
 		if(temp != null) {
 			this.programConfiguration = temp;
@@ -112,7 +112,7 @@ public class IOManager {
 	 * @return true if it's present
 	 */
 	private boolean isDirectoryAlreadyCreated(Directory directory) {
-		return this.directories.contains(directory);
+		return this.directories.contains(directory) || programConfigurationDirectory.equals(directory);
 	}
 	
 	/**
@@ -156,28 +156,56 @@ public class IOManager {
 	 * Reload all files from the disk saved in this IOManager instance
 	 * @throws Exception
 	 */
-	public void reloadAllFiles() throws Exception {
+	public void reloadFiles() throws Exception {
 		LOGGER.info("Reloading "+files.size()+" files...");
 		
 		for(IOElement element : files.values()) {
 			element.reloadFile();
 		}
 		
-		LOGGER.info("Successfully reloaded "+files.size()+" files");
+		LOGGER.info("Successfully reloaded "+files.size()+" files!");
 	}
 	
 	/**
-	 * Save all saved files in this IOManager instance
+	 * Reload all unique files from the disk saved in this IOManager instance
 	 * @throws Exception
 	 */
-	public void saveAllFiles() throws Exception {
+	public void reloadUniqueFiles() throws Exception {
+		LOGGER.info("Reloading "+uniqueFiles.size()+" files...");
+		
+		for(IOElement element : uniqueFiles.values()) {
+			element.reloadFile();
+		}
+		
+		LOGGER.info("Successfully reloaded "+uniqueFiles.size()+" files!");
+	}
+	
+	/**
+	 * Save all files in this IOManager instance
+	 * @throws Exception
+	 */
+	public void saveFiles() throws Exception {
 		LOGGER.info("Saving "+files.size()+" files...");
 		
 		for(IOElement element : files.values()) {
 			element.saveFile();
 		}
 		
-		LOGGER.info("Successfully saved "+files.size()+" files");
+		LOGGER.info("Successfully saved "+files.size()+" files!");
+	}
+	
+	/**
+	 * Save all unique files in this IOManager instance
+	 * @throws Exception
+	 */
+	public void saveUniqueFiles() throws Exception {
+		LOGGER.info("Saving "+uniqueFiles.size()+" files...");
+		
+		for(IOElement element : uniqueFiles.values()) {
+			element.saveFile();
+		}
+		
+		LOGGER.info("Successfully saved "+uniqueFiles.size()+" files!");
 	}
 	
 	/**
@@ -248,8 +276,7 @@ public class IOManager {
 	
 	/**
 	 * Add a new file to the manager<br>
-	 * The file will be registered in the manager with its id<br>
-	 * <strong>ID :</strong> name of the file on the disk
+	 * The file will be registered in the manager with its id (AKA the name of the file on the disk without extension)<br>
 	 * @param <E> a file instance who extends IOElement
 	 * @param fileDirectoryID the name id of the directory where the file is saved or will be saved. The directory must be already loaded
 	 * @param fileName the file name (It name and its extension)
@@ -263,8 +290,7 @@ public class IOManager {
 	
 	/**
 	 * Add a new file to the manager<br>
-	 * The file will be registered in the manager with its id<br>
-	 * <strong>ID :</strong> name of the file on the disk
+	 * The file will be registered in the manager with its id (AKA the name of the file on the disk without extension)<br>
 	 * @param <E> a file instance who extends IOElement
 	 * @param fileDirectory the directory where the file is saved or will be saved. The directory must be already loaded
 	 * @param fileName the file name (It name and its extension)
@@ -274,9 +300,9 @@ public class IOManager {
 	 * @see Directory
 	 */
 	public synchronized <E extends IOElement> IOManager addFile(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
-		LOGGER.info("Loading "+element.getSimpleName()+"...");
+		LOGGER.info("Loading "+element.getSimpleName()+" [file: "+fileName+"]...");
 
-		final String[] splitName = fileName.split(".");
+		final String[] splitName = fileName.split("\\.");
 		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
 		
 		E object = createFileObject(fileDirectory, fileName, element, arguments);
@@ -316,9 +342,9 @@ public class IOManager {
 	 * @return this instance of IOManager
 	 */
 	public synchronized <E extends IOElement> IOManager addUniqueFileAnyways(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
-		LOGGER.info("Loading "+element.getSimpleName()+"...");
+		LOGGER.info("Loading "+element.getSimpleName()+" [file: "+fileName+"]...");
 		
-		final String[] splitName = fileName.split(".");
+		final String[] splitName = fileName.split("\\.");
 		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
 		
 		E object = createFileObject(fileDirectory, fileName, element, arguments);
@@ -333,7 +359,7 @@ public class IOManager {
 	
 	/**
 	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file<br>
-	 * The file will be registered in the manager with its id<br>
+	 * The file will be registered in the manager with its id (AKA the name of the file on the disk without extension)<br>
 	 * @param <E> A file instance who extends IOElement
 	 * @param fileDirectoryID The id of the directory where the file is saved or will be saved. The directory must be already loaded
 	 * @param fileName The file name (It name and its extension)
@@ -347,7 +373,7 @@ public class IOManager {
 	
 	/**
 	 * Add a new file to the manager. This method will add a file even if a mapping already existed for the file<br>
-	 * The file will be registered in the manager with its id<br>
+	 * The file will be registered in the manager with its id (AKA the name of the file on the disk without extension)<br>
 	 * @param <E> A file instance who extends IOElement
 	 * @param fileDirectory The directory where the file is saved or will be saved. The directory must be already loaded
 	 * @param fileName The file name (It name and its extension)
@@ -358,7 +384,7 @@ public class IOManager {
 	public synchronized <E extends IOElement> IOManager addFileAnyways(Directory fileDirectory, String fileName, Class<E> element, Object... arguments) {
 		LOGGER.info("Loading "+element.getSimpleName()+"...");
 		
-		final String[] splitName = fileName.split(".");
+		final String[] splitName = fileName.split("\\.");
 		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
 		
 		E object = createFileObject(fileDirectory, fileName, element, arguments);
@@ -467,9 +493,35 @@ public class IOManager {
 	/**
 	 * Return true if a configuration file is present and loaded in the IOManager class
 	 * @return a boolean telling if it present or not
-	 * @see JSONConfiguration
+	 * @see JSONProperty
 	 */
 	public boolean isConfigurationPresent() {
 		return this.programConfiguration != null;
+	}
+	
+	/**
+	 * Return the total of files saved in this instance of {@link IOManager}
+	 * @return the number of files
+	 */
+	public int getFilesNumber() {
+		return this.files.size();
+	}
+	
+	/**
+	 * Return the total of unique files saved in this instance of {@link IOManager}
+	 * @return the number of unique files
+	 */
+	public int getUniqueFilesNumber() {
+		return this.uniqueFiles.size();
+	}
+	
+	/**
+	 * Return the total of every files saved in this instance of {@link IOManager}
+	 * @return the number of unique files
+	 * @see IOManager#getFilesNumber()
+	 * @see IOManager#getUniqueFilesNumber()
+	 */
+	public int getTotalFilesNumber() {
+		return getFilesNumber()+getUniqueFilesNumber();
 	}
 }

@@ -4,11 +4,9 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,11 +27,13 @@ public class ResourceManager {
 	
 	private static ResourceManager instance;
 	
-	private Set<Directory> directories = new HashSet<>();
+	private final Set<Directory> directories;
 	private final Map<Class<? extends AbstractBuffer>, AbstractBuffer> buffers = new HashMap<>();
 	private final EventDispatcher ioEventDispatcher = new EventDispatcher();
 	
-	private ResourceManager() { }
+	private ResourceManager(Set<Directory> directories) { 
+		this.directories = directories;
+	}
 	
 	/**
 	 * Create a new instance of {@link ResourceManager} as a singleton<br>
@@ -45,7 +45,7 @@ public class ResourceManager {
 	public static ResourceManager createInstance(Set<Directory> directories) {
 		if(instance == null) {
 			synchronized (ResourceManager.class) {
-				if(instance == null) instance = new ResourceManager();
+				if(instance == null) instance = new ResourceManager(directories);
 			}
 		}
 		
@@ -71,27 +71,24 @@ public class ResourceManager {
 	/**
 	 * Get a resource from the disk and use it as a {@link Resource} in the program<br>
 	 * The resource can only be obtained from directory that have been loaded by {@link DirectoryManager}
-	 * @param resourcePath The path where the resource is stored
+	 * @param resourceDir The directory where the resource is stored
 	 * @param resource The name of the resource (the file name)
 	 * @param isErasable Tells the program that the resource could be deleted from memory if the it runs out of space
 	 * @return The newly created resource class
 	 * @throws IOException
 	 */
-	public Resource getResource(Path resourcePath, String resource, boolean isErasable) throws IOException {
-		final Directory dir = new Directory(resourcePath);
-		final String[] splitName = resource.split(".");
+	public Resource getResource(Directory resourceDir, String resource, boolean isErasable) throws IOException {
+		final String[] splitName = resource.split("\\.");
 		
-		if(!isDirectoryExisting(dir)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start!");
+		if(!isDirectoryExisting(resourceDir)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start!");
 		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
-		
-		String resourceId = splitName[0];
-
+	
 		byte[] fileResult = null;
 		FileInputStream inputStream = null;
 		BufferedInputStream buffer = null;
 		
 		try {
-			inputStream = new FileInputStream(resourcePath.resolve(resource).toFile());
+			inputStream = new FileInputStream(resourceDir.getPath().resolve(resource).toFile());
 			//buffer = new BufferedInputStream(inputStream);
 			
 			fileResult = inputStream.readAllBytes();
@@ -103,8 +100,21 @@ public class ResourceManager {
 			if(inputStream != null) inputStream.close();
 		}
 		
-		return new Resource(dir, resourceId, splitName[1], fileResult, isErasable);
+		return new Resource(resourceDir, splitName[0], splitName[1], fileResult, isErasable);
 		
+	}
+	
+	/**
+	 * Get a resource from the disk and use it as a {@link Resource} in the program<br>
+	 * The resource can only be obtained from directory that have been loaded by {@link DirectoryManager}
+	 * @param resourcePath The path where the resource is stored
+	 * @param resource The name of the resource (the file name)
+	 * @param isErasable Tells the program that the resource could be deleted from memory if the it runs out of space
+	 * @return The newly created resource class
+	 * @throws IOException
+	 */
+	public Resource getResource(Path resourcePath, String resource, boolean isErasable) throws IOException {
+		return this.getResource(new Directory(resourcePath), resource, isErasable);
 	}
 	
 	/**
@@ -119,6 +129,20 @@ public class ResourceManager {
 	 */
 	public Resource getResource(Path resourcePath, String resource) throws IOException {
 		return getResource(resourcePath, resource, true);
+	}
+	
+	/**
+	 * Get a resource from the disk and use it as a {@link Resource} in the program<br>
+	 * The resource can only be obtained from directory that have been loaded by {@link DirectoryManager}<br>
+	 * By default this method will set the flag <i>isErasable</i> to true
+	 * @param resourceDir The directory where the resource is stored
+	 * @param resource The name of the resource (the file name)
+	 * @return The newly created resource class
+	 * @throws IOException
+	 * @see {@link ResourceManager#getResource(Directory, String, isErasable)}
+	 */
+	public Resource getResource(Directory resourceDir, String resource) throws IOException {
+		return getResource(resourceDir, resource, true);
 	}
 	
 	/**
@@ -167,7 +191,28 @@ public class ResourceManager {
 		if(!isDirectoryExisting(rsc.getDirectory())) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
 		final boolean response = Files.deleteIfExists(rsc.getDirectory().getPath().resolve(rsc.getFileName()));
 		
-		ioEventDispatcher.dispatchEvent(new EventResourceDeleted(rsc.getName()));
+		ioEventDispatcher.dispatchEvent(new EventResourceDeleted(rsc.getID()));
+		
+		return response;
+	}
+	
+	/**
+	 * Delete a resource present on the disk<br>
+	 * The resource can only be deleted from directory that have been loaded by {@link DirectoryManager}<br>
+	 * @param resourceDir The directory where the resource is stored
+	 * @param resource The name of the resource (the file name)
+	 * @return if the resource have been correctly deleted
+	 * @throws IOException
+	 */
+	public boolean deleteResource(Directory resourceDir, String resource) throws IOException {
+		final String[] splitName = resource.split("\\.");
+		
+		if(!isDirectoryExisting(resourceDir)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
+		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
+		
+		final boolean response = Files.deleteIfExists(resourceDir.getPath().resolve(resource));
+		
+		ioEventDispatcher.dispatchEvent(new EventResourceDeleted(splitName[0]));
 		
 		return response;
 	}
@@ -181,27 +226,18 @@ public class ResourceManager {
 	 * @throws IOException
 	 */
 	public boolean deleteResource(Path resourcePath, String resource) throws IOException {
-		final String[] splitName = resource.split(".");
-		
-		if(!isDirectoryExisting(resourcePath)) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
-		if(splitName.length < 2) throw new IllegalArgumentException("Invalid resource name. Must be composed of a name and a extension!");
-		
-		final boolean response = Files.deleteIfExists(resourcePath.resolve(resource));
-		
-		ioEventDispatcher.dispatchEvent(new EventResourceDeleted(splitName[0]));
-		
-		return response;
+		return this.deleteResource(new Directory(resourcePath), resource);
 	}
 	
 	private <E extends AbstractBuffer> E createFileObject(Class<E> cls) {
 		E object = null;
 		try {
-			Constructor<E> constructor = cls.getConstructor(Set.class);
-			
-			object = constructor.newInstance(this.directories);
+			object = cls.getConstructor().newInstance();
+		
 		} catch (Exception e) {
-			LOGGER.warn("Unexpected error happened when creating new buffer [Err:{}]. Skipping buffer {}",e.getMessage(), cls.getSimpleName());
+			LOGGER.warn("Unexpected error happened when creating new buffer [Err: {}]. Skipping buffer {}.",e.getMessage(), cls.getSimpleName());
 		}
+		
 		return object;
 
 	}
@@ -219,10 +255,11 @@ public class ResourceManager {
 		
 		if(object != null) {
 			if(buffers.putIfAbsent(cls, object) != null)
-				LOGGER.info("Couldn't load and stored {} because a mapping already exist for this buffer !", cls.getSimpleName());
+				LOGGER.info("Couldn't load and stored {} because a mapping already exist for this buffer!", cls.getSimpleName());
 			else {
 				ioEventDispatcher.addListener(object);
-				LOGGER.info("Successfully loaded and stored buffer {} !", cls.getSimpleName());
+				object.registerResources();
+				LOGGER.info("Successfully loaded and stored buffer {}!", cls.getSimpleName());
 			}
 		}
 	}

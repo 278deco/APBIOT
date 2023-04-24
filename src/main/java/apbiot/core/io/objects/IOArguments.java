@@ -21,8 +21,12 @@ public class IOArguments {
 		return directory;
 	}
 	
-	public Object[] getOtherArguments() {
+	public Object[] getAdditionalArguments() {
 		return otherArguments;
+	}
+	
+	public boolean additionalArgumentPresent() {
+		return otherArguments == null || otherArguments.length == 0;
 	}
 	
 }

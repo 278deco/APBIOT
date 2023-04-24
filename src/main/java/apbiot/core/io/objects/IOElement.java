@@ -15,9 +15,9 @@ public abstract class IOElement {
 		this.fileName = this.classArguments.getName();
 	}
 	
-	public abstract void saveFile() throws Exception;
-	public abstract void reloadFile() throws Exception;
-	protected abstract void readFile() throws Exception;
+	public abstract boolean saveFile();
+	public abstract boolean reloadFile();
+	protected abstract boolean readFile();
 	
 	public abstract FileType getFileType();
 	

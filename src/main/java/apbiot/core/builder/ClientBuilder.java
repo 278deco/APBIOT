@@ -2,6 +2,7 @@ package apbiot.core.builder;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,6 @@ import apbiot.core.commandator.Commandator;
 import apbiot.core.event.events.discord.EventCommandError;
 import apbiot.core.event.events.discord.EventCommandReceived;
 import apbiot.core.event.events.discord.EventInstanceConnected;
-import apbiot.core.event.events.discord.EventInstanceReady;
 import apbiot.core.exceptions.UnbuiltBotException;
 import apbiot.core.handler.AbstractCommandHandler;
 import apbiot.core.helper.ArgumentHelper;
@@ -87,18 +87,6 @@ public class ClientBuilder {
 	
 	/**
 	 * Initialize the commandMaps and make the bot ready to interact
-	 * @param botPrefix the prefix of the bot
-	 * @see apbiot.core.handler.ECommandHandler
-	 */
-	public void finishBuild(String botPrefix) {
-		MainInitializer.getEventDispatcher().dispatchEvent(new EventInstanceReady(true, botPrefix));
-		
-		this.botPrefix = botPrefix;
-		this.ownerID = gateway.getApplicationInfo().block().getOwnerId();
-	}
-	
-	/**
-	 * Initialize the commandMaps and make the bot ready to interact
 	 * @param nativeCommandsMap - the native command map
 	 * @param slashCommandsMap - the slash command map
 	 * @see apbiot.core.handler.ECommandHandler
@@ -106,6 +94,22 @@ public class ClientBuilder {
 	public void updatedCommandReferences(AbstractCommandHandler cmdHandler) {
 		this.NATIVE_COMMANDS = cmdHandler.NATIVE_COMMANDS;
 		this.SLASH_COMMANDS = cmdHandler.SLASH_COMMANDS;
+	}
+	
+	/**
+	 * Get the registered native command map loaded by the client and available to be used
+	 * @return an unmodifiable map representing the commands
+	 */
+	public Map<List<String>, NativeCommandInstance> getNativeCommandMap() {
+		return Collections.unmodifiableMap(NATIVE_COMMANDS);
+	}
+	
+	/**
+	 * Get the registered slash command map loaded by the client and available to be used
+	 * @return an unmodifiable map representing the commands
+	 */
+	public Map<List<String>, SlashCommandInstance> getSlashCommandMap() {
+		return Collections.unmodifiableMap(SLASH_COMMANDS);
 	}
 	
 	private void createComponentListener() {
@@ -428,11 +432,11 @@ public class ClientBuilder {
 		if(helpMessage != "") {
 			
 			new TimedMessage(channel.createMessage(
-					"ℹ "+user.getMention()+", Vous vouliez surement dire **"+botPrefix+""+helpMessage+"**.").block())
+					"ℹ️ "+user.getMention()+", Vous vouliez surement dire **"+botPrefix+""+helpMessage+"**.").block())
 			.setDelayedDelete(Duration.ofSeconds(5), true);
 		}else {
 			new TimedMessage(channel.createMessage(
-					"ℹ "+user.getMention()+", Aucune commande connue ne porte ce nom.").block())
+					"ℹ️ "+user.getMention()+", Aucune commande connue ne porte ce nom.").block())
 			.setDelayedDelete(Duration.ofSeconds(5), true);
 		}
 	}
@@ -471,10 +475,11 @@ public class ClientBuilder {
 	 * @see discord4j.core.DiscordClient#login()
 	 * @throws UnbuiltBotException
 	 */
-	public synchronized void build(String token, ClientPresence defaultStatus, IntentSet intent) throws UnbuiltBotException {
+	public synchronized void build(String token, ClientPresence defaultStatus, IntentSet intent, String prefix) throws UnbuiltBotException {
 		if(NATIVE_COMMANDS == null) throw new UnbuiltBotException("You cannot launch a bot without building it.");
 		
 		final DiscordClient client = DiscordClientBuilder.create(token).build();
+		this.botPrefix = prefix;
 		
 		clientThread = new Thread(new Runnable() {
 
@@ -490,15 +495,14 @@ public class ClientBuilder {
 				
 				createComponentListener();
 				
-				MainInitializer.getEventDispatcher().dispatchEvent(new EventInstanceConnected());
+				ownerID = gateway.getApplicationInfo().block().getOwnerId();
+				MainInitializer.getEventDispatcher().dispatchEvent(new EventInstanceConnected(true, botPrefix));
 				
 				g.onDisconnect().block();
 			}
 			
 		});
 		clientThread.start();
-		
-		
 	}
 	
 	/**

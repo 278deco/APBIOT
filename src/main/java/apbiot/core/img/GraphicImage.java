@@ -100,12 +100,12 @@ public class GraphicImage {
 	
 	public void saveImage() throws IOException {
 		if(!this.isDisposed) throw new BlockingOperationException("Can't save an image without call disposal method");
-		constructedImg.saveImage();
+//		constructedImg.saveImage();
 	}
 	
 	public void saveImage(Path path) throws IOException {
 		if(!this.isDisposed) throw new BlockingOperationException("Can't save an image without call disposal method");
-		constructedImg.saveImage(path);
+//		constructedImg.saveImage(path);
 	}
 
 }

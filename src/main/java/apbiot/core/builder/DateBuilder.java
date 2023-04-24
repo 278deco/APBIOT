@@ -12,6 +12,7 @@ public class DateBuilder {
 	
 	/**
 	 * Create a new instance of DateBuilder
+	 * @param timeZone The time zone which will be used by the date
 	 */
 	public DateBuilder(ZoneId timeZone) {
 		this.date = ZonedDateTime.now(timeZone);
@@ -19,7 +20,7 @@ public class DateBuilder {
 	
 	/**
 	 * Create a new instance of DateBuilder
-	 * @param date - a defined LocalDate
+	 * @param date A defined LocalDate
 	 * @see java.time.ZonedDateTime
 	 */
 	public DateBuilder(ZonedDateTime date) {
@@ -28,8 +29,8 @@ public class DateBuilder {
 	
 	/**
 	 * Create a new instance of DateBuilder
-	 * @param dateString - a date contained into a String
-	 * @param dateFormat - the date format contained in the String
+	 * @param dateString A date contained into a String
+	 * @param dateFormat The date format contained in the String
 	 * @see java.time.format.DateTimeFormatter
 	 */
 	public DateBuilder(String dateString, DateTimeFormatter dateFormat) {
@@ -37,34 +38,55 @@ public class DateBuilder {
 	}
 	
 	/**
-	 * Get the date formatted
-	 * @param language - the language used to format the date (position of the month, year and day)
-	 * @param separator - the character between the date
+	 * Get the date formatted with pattern dd^MM^yyyy where ^ is the separator parameter if {@code lg == Locale.FRENCH}<br>
+	 * Get the date formatted with pattern yyyy^MM^dd where ^ is the separator parameter else
+	 * @param lg The language used to format the date (position of the month, year and day)
+	 * @param separator The character between the date
 	 * @return the formatted date
+	 * @deprecated since 4.0
 	 */
 	public String getFormattedDate(Locale lg, char separator) {
 		return lg == Locale.FRENCH ? date.format(DateTimeFormatter.ofPattern("dd"+separator+"MM"+separator+"yyyy")) : date.format(DateTimeFormatter.ofPattern("yyyy"+separator+"MM"+separator+"dd"));
 	}
 	
 	/**
-	 * Get the date formatted
+	 * Format the date contained in this instance of {@link DateBuilder} using the given {@link DateTimeFormatter}
+	 * @param formatter The given formatter
+	 * @return the newly formatted date
+	 */
+	public String getFormattedDate(DateTimeFormatter formatter) {
+		return this.date.format(formatter);
+	}
+	
+	/**
+	 * Get the date formatted with pattern yyyy-MM-dd
 	 * @return the formatted date
 	 */
 	public String getFormattedDate() {
-		return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		return getFormattedDate('-', false);
 	}
 	
 	/**
-	 * Get the date formatted
-	 * @param separator - the character between the date
+	 * Get the date formatted with pattern yyyy-MM-dd if {@code reverseYearDay == false}<br>
+	 * Get the date formatted with pattern dd-MM-yyyy else
 	 * @return the formatted date
 	 */
-	public String getFormattedDate(char separator) {
-		return date.format(DateTimeFormatter.ofPattern("yyyy"+separator+"MM"+separator+"dd"));
+	public String getFormattedDate(boolean reverseYearDay) {
+		return getFormattedDate('-', reverseYearDay);
 	}
 	
 	/**
-	 * Get the date formatted without the year
+	 * Get the date formatted with pattern yyyy^MM^dd where ^ is the separator parameter if {@code reverseYearDay == false}<br>
+	 * Get the date formatted with pattern dd^MM^yyyy where ^ is the separator parameter else
+	 * @param separator The character between the date
+	 * @return the formatted date
+	 */
+	public String getFormattedDate(char separator, boolean reverseYearDay) {
+		return reverseYearDay ? date.format(DateTimeFormatter.ofPattern("dd"+separator+"MM"+separator+"yyyy")) : date.format(DateTimeFormatter.ofPattern("yyyy"+separator+"MM"+separator+"dd"));
+	}
+	
+	/**
+	 * Get the date formatted without the year with pattern MM-dd
 	 * @return the formatted date
 	 */
 	public String getFormattedDateWithoutYear() {
@@ -72,7 +94,7 @@ public class DateBuilder {
 	}
 	
 	/**
-	 * Get the time formatted
+	 * Get the time formatted with pattern HH:mm:ss
 	 * @return the formatted time
 	 */
 	public String getFormattedTime() {
@@ -82,15 +104,17 @@ public class DateBuilder {
 	/**
 	 * Get the date formatted with the time formatted
 	 * @return the formatted date and time
+	 * @see #getFormattedDate()
+	 * @see #getFormattedTime()
 	 */
 	public String getFormattedDateTime() {
 		return getFormattedDate()+" "+getFormattedTime();
 	}
 	
 	/**
-	 * Get the date formatted to be human readable
+	 * Get the date formatted to be human readable<br>
 	 * Display the month with his name
-	 * @param language - the language used to format
+	 * @param language The language used to format
 	 * @return the formatted date
 	 */
 	public String getHumanDateFormat(Locale language) {
@@ -138,7 +162,7 @@ public class DateBuilder {
 	}
 	
 	/**
-	 * Get the second 
+	 * Get the second
 	 * @return the second
 	 */
 	public String getSecond() {
@@ -147,7 +171,7 @@ public class DateBuilder {
 	
 	/**
 	 * Compare the year with the date's year of this instance
-	 * @param month - the number of the year to be compared
+	 * @param month The number of the year to be compared
 	 * @return if the year are equals
 	 */
 	public boolean compareYear(int year) {
@@ -156,7 +180,7 @@ public class DateBuilder {
 	
 	/**
 	 * Compare the month with the date's month of this instance
-	 * @param month - the number of the month to be compared
+	 * @param month The number of the month to be compared
 	 * @return if the months are equals
 	 */
 	public boolean compareMonth(int month) {
@@ -165,7 +189,7 @@ public class DateBuilder {
 	
 	/**
 	 * Compare the day with the date's day of this instance
-	 * @param day - the day to be compared
+	 * @param day The day to be compared
 	 * @return if the days are equals
 	 */
 	public boolean compareDay(int day) {
@@ -174,7 +198,7 @@ public class DateBuilder {
 	
 	/**
 	 * Compare the hour with the time's hour of this instance
-	 * @param hour - the hour to be compared
+	 * @param hour The hour to be compared
 	 * @return if the hours are equals
 	 */
 	public boolean compareHour(int hour) {
@@ -183,7 +207,7 @@ public class DateBuilder {
 	
 	/**
 	 * Compare the minute with the time's minute of this instance
-	 * @param minute - the minute to be compared
+	 * @param minute The minute to be compared
 	 * @return if the minutes are equals
 	 */
 	public boolean compareMinute(int minute) {
@@ -216,7 +240,7 @@ public class DateBuilder {
 	
 	/**
 	 * Compare a date with the date of this instance
-	 * @param builder - the date to be compared
+	 * @param builder The date to be compared
 	 * @return if the dates are equals
 	 */
 	public boolean isDateEqual(DateBuilder builder) {
@@ -228,9 +252,9 @@ public class DateBuilder {
 	}
 	
 	/**
-	 * Compare a date with the date of this instance
+	 * Compare a date with the date of this instance<br>
 	 * This function will only compare the month and the day, not caring about year
-	 * @param builder - the date to be compared
+	 * @param builder The date to be compared
 	 * @return if the dates are equals
 	 */
 	public boolean isDateEqualIgnoringYear(DateBuilder builder) {
@@ -239,7 +263,7 @@ public class DateBuilder {
 	
 	/**
 	 * Compare if a date is before the date of this instance
-	 * @param builder - the date to be compared
+	 * @param builder The date to be compared
 	 * @return if the date is before this date
 	 */
 	public boolean isDateBefore(DateBuilder builder) {
@@ -248,7 +272,7 @@ public class DateBuilder {
 	
 	/**
 	 * Compare if a date is after the date of this instance
-	 * @param builder - the date to be compared
+	 * @param builder The date to be compared
 	 * @return if the date is after this date
 	 */
 	public boolean isDateAfter(DateBuilder builder) {
@@ -265,8 +289,8 @@ public class DateBuilder {
 	
 	/**
 	 * Get the interval between this date and an other date
-	 * @param builder - the end date
-	 * @param unit - the result unit
+	 * @param builder The end date
+	 * @param unit The result unit
 	 * @return a interval between the two dates
 	 */
 	public Long getPeriodBetweenDate(DateBuilder builder, ChronoUnit unit) {
