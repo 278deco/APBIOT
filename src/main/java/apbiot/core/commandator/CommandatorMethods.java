@@ -69,7 +69,7 @@ public abstract class CommandatorMethods {
 		List<Tuple<Integer, String>> rList = new ArrayList<>();
 		
 		for (String cmd : commandsList) {
-			rList.add(new Tuple<Integer, String>(numberOfLetterInWords(userCmd, cmd), cmd));
+			rList.add(Tuple.of(numberOfLetterInWords(userCmd, cmd), cmd));
 		}
 		
 		rList.sort((t1, t2) -> { return t2.getValueA() - t1.getValueA(); });
@@ -80,7 +80,7 @@ public abstract class CommandatorMethods {
 		List<Tuple<Integer, String>> rList = new ArrayList<>();
 		
 		for (String cmd : commandsList) {
-			rList.add(new Tuple<Integer, String>(numberOfLetterSamePlace(cmd, userCmd), cmd));
+			rList.add(Tuple.of(numberOfLetterSamePlace(cmd, userCmd), cmd));
 		}
 		
 		rList.sort((t1, t2) -> { return t2.getValueA() - t1.getValueA(); });

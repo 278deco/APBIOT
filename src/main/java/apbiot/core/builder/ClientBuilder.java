@@ -330,11 +330,11 @@ public class ClientBuilder {
 	 */
 	private Tuple<String, Boolean> getCommandFromUserInput(String[] userMessage) {
 		if(userMessage.length > 1 && userMessage[0].equals(botPrefix)) {
-			return  new Tuple<String, Boolean>(userMessage[1],true);
+			return Tuple.of(userMessage[1], true);
 		}else if(userMessage[0].contains(botPrefix) && userMessage.length >= 1) {
-			return new Tuple<String, Boolean>(userMessage[0].substring(1),false);
+			return Tuple.of(userMessage[0].substring(1), false);
 		}
-		return new Tuple<String, Boolean>("",false);
+		return Tuple.of("",false);
 	}
 	
 	/**

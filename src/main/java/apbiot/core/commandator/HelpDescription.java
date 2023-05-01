@@ -55,7 +55,7 @@ public class HelpDescription {
 			}
 		}
 		
-		return new Tuple<List<String>,List<String>>(required,optionnal);
+		return Tuple.of(required, optionnal);
 	}
 	
 	public String getDescription() {

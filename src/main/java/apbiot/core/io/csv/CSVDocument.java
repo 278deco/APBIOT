@@ -70,7 +70,7 @@ public class CSVDocument {
 	public List<Tuple<Integer, CSVCell>> getColumnWithIndex(int column) {
 		final List<Tuple<Integer, CSVCell>> result = new ArrayList<>();
 		
-		for(int i = 0; i < this.fileContent.size(); i++) result.add(new Tuple<>(i, this.fileContent.get(i).get(column)));
+		for(int i = 0; i < this.fileContent.size(); i++) result.add(Tuple.of(i, this.fileContent.get(i).get(column)));
 		
 		return result;
 	}
