@@ -1,11 +1,10 @@
-package apbiot.core.io.json;
+package apbiot.core.io.json.types;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,6 +13,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import apbiot.core.exceptions.JSONAssertionException;
+import apbiot.core.io.json.JSONContent;
 import apbiot.core.io.objects.IOArguments;
 import apbiot.core.io.objects.IOElement;
 import apbiot.core.objects.enums.FileType;
@@ -23,7 +23,7 @@ public abstract class JSONObjectFile extends IOElement {
 	protected static final Logger LOGGER = LogManager.getLogger(JSONObjectFile.class);
 	private static final ObjectMapper FILES_MAPPER = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
 	
-	private volatile Map<String, Object> dataMap;
+	private volatile JSONContent<String, Object> dataMap;
 
 	/**
 	 * Create a new JSON file instance
@@ -65,32 +65,35 @@ public abstract class JSONObjectFile extends IOElement {
 	 * @return true
 	 */
 	@Override
-	public boolean saveFile() {
+	public boolean saveFile(boolean forceSave) throws IOException {
 		preSave();
-		
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				FileWriter fw = null;
-				try {
-					fw = new FileWriter(directory.getPath().resolve(fileName).toFile());
-					fw.write(FILES_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(dataMap));
-					
-					fw.flush();
-					
-					readFile();
-					
-				} catch (IOException e) {
-					LOGGER.error("Unexpected error while saving JSON file [dir: {}, name: {}] with error {} and message {}", directory.getName(), fileName, e.getClass().getName(), e.getMessage());
-				}finally {
-					try { if(fw != null) fw.close(); }catch(IOException e) {}
-				}
+		if(this.dataMap.isContentModified() || forceSave) {
+			new Thread(new Runnable() {
 				
-			}
-		},"File-Save-Thread").start();
+				@Override
+				public void run() {
+					FileWriter fw = null;
+					try {
+						fw = new FileWriter(directory.getPath().resolve(fileName).toFile());
+						fw.write(FILES_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(dataMap));
+						
+						fw.flush();
+						
+						readFile();
+						
+					} catch (IOException e) {
+						LOGGER.error("Unexpected error while saving JSON file [dir: {}, name: {}] with error {} and message {}", directory.getName(), fileName, e.getClass().getName(), e.getMessage());
+					}finally {
+						try { if(fw != null) fw.close(); }catch(IOException e) {}
+					}
+					
+				}
+			},"File-Save-Thread").start();
+			
+			return true;
+		}
 		
-		return true;
+		return false;
 	}
 	
 	/**
@@ -109,8 +112,8 @@ public abstract class JSONObjectFile extends IOElement {
 	 * Get the data stored in the JSON file
 	 * @return a HashMap of the content
 	 */
-	protected HashMap<String, Object> getData() {
-		return (HashMap<String, Object>) this.dataMap;
+	protected JSONContent<String, Object> getData() {
+		return this.dataMap;
 	}
 
 	/**
@@ -131,13 +134,13 @@ public abstract class JSONObjectFile extends IOElement {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	protected boolean readFile(){
+	protected boolean readFile() {
 		try {
-			this.dataMap = FILES_MAPPER.readValue(this.directory.getPath().resolve(fileName).toFile(), HashMap.class);
+			this.dataMap = FILES_MAPPER.readValue(this.directory.getPath().resolve(fileName).toFile(), JSONContent.class);
 			
 			return true;
 		}catch(IOException e) {
-			this.dataMap = new HashMap<>();
+			this.dataMap = new JSONContent<>();
 			
 			return false;
 		}

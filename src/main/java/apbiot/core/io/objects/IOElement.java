@@ -1,5 +1,7 @@
 package apbiot.core.io.objects;
 
+import java.io.IOException;
+
 import apbiot.core.objects.enums.FileType;
 
 public abstract class IOElement {
@@ -15,7 +17,7 @@ public abstract class IOElement {
 		this.fileName = this.classArguments.getName();
 	}
 	
-	public abstract boolean saveFile();
+	public abstract boolean saveFile(boolean forceSave) throws IOException;
 	public abstract boolean reloadFile();
 	protected abstract boolean readFile();
 	

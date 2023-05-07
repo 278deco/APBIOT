@@ -58,7 +58,7 @@ public class CSVFile extends IOElement {
 	 * @throws IOException
 	 */
 	@Override
-	public boolean saveFile() {
+	public boolean saveFile(boolean forceSave) {
 		new Thread(new Runnable() {
 			
 			@Override
@@ -185,7 +185,7 @@ public class CSVFile extends IOElement {
 	 */
 	public void setNewDocument(CSVDocument document, boolean save) throws Exception {
 		this.document = document;
-		if(save) saveFile();
+		if(save) saveFile(true);
 	}
 	
 	/**

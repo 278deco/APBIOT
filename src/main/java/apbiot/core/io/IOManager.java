@@ -1,5 +1,6 @@
 package apbiot.core.io;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -14,7 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 import apbiot.core.exceptions.NonExistingFileInstanceException;
 import apbiot.core.helper.DirectoryHelper;
-import apbiot.core.io.json.JSONProperties;
+import apbiot.core.io.json.types.JSONProperties;
 import apbiot.core.io.objects.Directory;
 import apbiot.core.io.objects.IOArguments;
 import apbiot.core.io.objects.IOElement;
@@ -186,12 +187,37 @@ public class IOManager {
 	 */
 	public void saveFiles() throws Exception {
 		LOGGER.info("Saving "+files.size()+" files...");
+		int error = 0;
 		
 		for(IOElement element : files.values()) {
-			element.saveFile();
+			try {
+				element.saveFile(false);
+			}catch(IOException e) {
+				error+=1;
+			}
 		}
 		
-		LOGGER.info("Successfully saved "+files.size()+" files!");
+		LOGGER.info("Successfully saved "+files.size()+" files! [errors occured:{}]", error);
+	}
+	
+	/**
+	 * Save all files in this IOManager instance
+	 * @param forceSave Force the file to save itself even if no modification were made to its content
+	 * @throws Exception
+	 */
+	public void saveFiles(boolean forceSave) throws Exception {
+		LOGGER.info("Saving "+files.size()+" files...");
+		int error = 0;
+		
+		for(IOElement element : files.values()) {
+			try {
+				element.saveFile(forceSave);
+			}catch(IOException e) {
+				error+=1;
+			}
+		}
+		
+		LOGGER.info("Successfully saved "+files.size()+" files! [errors occured:{}]", error);
 	}
 	
 	/**
@@ -200,12 +226,37 @@ public class IOManager {
 	 */
 	public void saveUniqueFiles() throws Exception {
 		LOGGER.info("Saving "+uniqueFiles.size()+" files...");
+		int error = 0;
 		
 		for(IOElement element : uniqueFiles.values()) {
-			element.saveFile();
+			try {
+				element.saveFile(false);
+			}catch(IOException e) {
+				error+=1;
+			}
 		}
 		
-		LOGGER.info("Successfully saved "+uniqueFiles.size()+" files!");
+		LOGGER.info("Successfully saved "+files.size()+" files! [errors occured:{}]", error);
+	}
+	
+	/**
+	 * Save all unique files in this IOManager instance
+	 * @param forceSave Force the file to save itself even if no modification were made to its content
+	 * @throws Exception
+	 */
+	public void saveUniqueFiles(boolean forceSave) throws Exception {
+		LOGGER.info("Saving "+uniqueFiles.size()+" files...");
+		int error = 0;
+		
+		for(IOElement element : uniqueFiles.values()) {
+			try {
+				element.saveFile(forceSave);
+			}catch(IOException e) {
+				error+=1;
+			}
+		}
+		
+		LOGGER.info("Successfully saved "+files.size()+" files! [errors occured:{}]", error);
 	}
 	
 	/**
@@ -229,7 +280,21 @@ public class IOManager {
 		if(programConfiguration == null) throw new IllegalAccessError("No program's configuration was found");
 		LOGGER.info("Saving program's configuration...");
 		
-		this.programConfiguration.saveFile();
+		this.programConfiguration.saveFile(false);
+		
+		LOGGER.info("Successfully saved program's configuration");
+	}
+	
+	/**
+	 * Save the program configuration if it exists else throw an IllegalAccessError
+	 * @param forceSave Force the file to save itself even if no modification were made to its content
+	 * @throws Exception
+	 */
+	public void saveConfiguration(boolean forceSave) throws Exception {
+		if(programConfiguration == null) throw new IllegalAccessError("No program's configuration was found");
+		LOGGER.info("Saving program's configuration...");
+		
+		this.programConfiguration.saveFile(forceSave);
 		
 		LOGGER.info("Successfully saved program's configuration");
 	}
@@ -408,7 +473,7 @@ public class IOManager {
 	 * @throws Exception
 	 */
 	public synchronized <E extends IOElement> IOManager safeRemoveUniqueFile(Class<E> element) throws Exception {
-		uniqueFiles.get(element).saveFile();
+		uniqueFiles.get(element).saveFile(true);
 		
 		uniqueFiles.remove(element);
 		return this;
@@ -439,7 +504,7 @@ public class IOManager {
 	 * @throws Exception
 	 */
 	public synchronized <E extends IOElement> IOManager safeRemoveFile(String fileID) throws Exception {
-		files.get(fileID).saveFile();
+		files.get(fileID).saveFile(true);
 		
 		files.remove(fileID);
 		return this;

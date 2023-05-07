@@ -1,4 +1,4 @@
-package apbiot.core.io.json;
+package apbiot.core.io.json.types;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -65,7 +65,7 @@ public abstract class JSONArrayFile extends IOElement {
 	 * @return true
 	 */
 	@Override
-	public boolean saveFile() {
+	public boolean saveFile(boolean forceSave) {
 		preSave();
 		
 		new Thread(new Runnable() {

@@ -1,11 +1,10 @@
-package apbiot.core.io.json;
+package apbiot.core.io.json.types;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.function.BiPredicate;
 
 import org.apache.logging.log4j.LogManager;
@@ -14,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import apbiot.core.io.json.JSONContent;
 import apbiot.core.io.objects.IOArguments;
 import apbiot.core.io.objects.IOElement;
 
@@ -22,7 +22,7 @@ public abstract class JSONProperties extends IOElement {
 	protected static final Logger LOGGER = LogManager.getLogger(JSONProperties.class);
 	private static final ObjectMapper CONFIGURATION_MAPPER = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
 	
-	private volatile Map<String, Object> data;
+	private volatile JSONContent<String, Object> data;
 	
 	public JSONProperties(IOArguments args) {
 		super(args);
@@ -106,6 +106,20 @@ public abstract class JSONProperties extends IOElement {
 	}
 	
 	/**
+	 * Get the value of a property contained in the configuration file<br>
+	 * If the property isn't a list of object, will throw a {@link ClassCastException}<br>
+	 * @param <E> The type of objects stored by this property
+	 * @param propKey The name of the property
+	 * @param castClass The objects' class stored by this property
+	 * @return the value of the property as a list
+	 * @throws ClassCastException
+	 */
+	@SuppressWarnings("unchecked")
+	protected <E> List<E> getListProperty(String propKey, Class<E> castClass) throws ClassCastException {
+		return ((List<E>)this.data.get(propKey));
+	}
+	
+	/**
 	 * Check if a property exist with this key
 	 * @param propKey The name of the property
 	 * @return if it exist or not
@@ -175,6 +189,18 @@ public abstract class JSONProperties extends IOElement {
 	}
 	
 	/**
+	 * Create a new list property in the configuration<br>
+	 * Will override any existing property with this name
+	 * @param propKey The name of the property
+	 * @param value The value of the property
+	 * @see JSONProperties#setPropertyIfAbsent(String, List<?>)
+	 * @see JSONProperties#setPropertyIfDifferent(String, List<?>, BiPredicate)
+	 */
+	protected void setProperty(String propKey, List<?> value) {
+		this.data.put(propKey, value);
+	}
+	
+	/**
 	 * Create a new boolean property in the configuration<br>
 	 * Won't be added if another property exist with this name
 	 * @param propKey The name of the property
@@ -231,6 +257,18 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfDifferent(String, Float, BiPredicate)
 	 */
 	protected void setPropertyIfAbsent(String propKey, Float value) {
+		this.data.putIfAbsent(propKey, value);
+	}
+	
+	/**
+	 * Create a new list property in the configuration<br>
+	 * Won't be added if another property exist with this name
+	 * @param propKey The name of the property
+	 * @param value The value of the property
+	 * @see JSONProperties#setProperty(String, List<?>)
+	 * @see JSONProperties#setPropertyIfDifferent(String, List<?>, BiPredicate)
+	 */
+	protected void setPropertyIfAbsent(String propKey, List<?> value) {
 		this.data.putIfAbsent(propKey, value);
 	}
 	
@@ -330,29 +368,32 @@ public abstract class JSONProperties extends IOElement {
 	 * @return true
 	 */
 	@Override
-	public boolean saveFile() {
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				try {
-					FileWriter fw = new FileWriter(directory.getPath().resolve(fileName).toFile());
-					
-					fw.write(CONFIGURATION_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(data));
-					
-					fw.flush();
-					fw.close();
-					
-					readFile();
-					
-				} catch (IOException e) {
-					LOGGER.error("Unexpected error while saving JSON Configuration [dir: {}, name: {}] with error {} and message {}", directory.getName(), fileName, e.getClass().getName(), e.getMessage());
-				}
+	public boolean saveFile(boolean forceSave) throws IOException {
+		if(this.data.isContentModified() || forceSave) {
+			new Thread(new Runnable() {
 				
-			}
-		},"File-Save-Thread").start();
-		
-		return true;
+				@Override
+				public void run() {
+					try {
+						FileWriter fw = new FileWriter(directory.getPath().resolve(fileName).toFile());
+						
+						fw.write(CONFIGURATION_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(data));
+						
+						fw.flush();
+						fw.close();
+						
+						readFile();
+						
+					} catch (IOException e) {
+						LOGGER.error("Unexpected error while saving JSON Configuration [dir: {}, name: {}] with error {} and message {}", directory.getName(), fileName, e.getClass().getName(), e.getMessage());
+					}
+					
+				}
+			},"File-Save-Thread").start();
+			
+			return true;
+		}
+		return false;
 	}
 	
 	/**
@@ -375,11 +416,11 @@ public abstract class JSONProperties extends IOElement {
 	@Override
 	protected boolean readFile() {
 		try {
-			this.data = CONFIGURATION_MAPPER.readValue(directory.getPath().resolve(fileName).toFile(), HashMap.class);
+			this.data = CONFIGURATION_MAPPER.readValue(directory.getPath().resolve(fileName).toFile(), JSONContent.class);
 			
 			return true;
 		}catch(IOException e) {
-			this.data = new HashMap<>();
+			this.data = new JSONContent<>();
 			
 			return false;
 		}

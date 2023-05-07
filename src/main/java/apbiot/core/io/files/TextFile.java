@@ -99,7 +99,7 @@ public class TextFile extends IOElement {
 	 * @return true
 	 */
 	@Override
-	public boolean saveFile() {
+	public boolean saveFile(boolean forceSave) {
 		new Thread(new Runnable() {
 			
 			@Override

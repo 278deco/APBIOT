@@ -1,12 +1,10 @@
 buildscript {
 	
     repositories {
-        maven {
-     	 url "https://plugins.gradle.org/m2/"
-    	}
+        gradlePluginPortal()
     }
     dependencies {
-        classpath 'gradle.plugin.com.github.johnrengelman:shadow:7.1.2'
+        classpath 'com.github.johnrengelman:shadow:8.1.1'
     }
 }
 
@@ -15,25 +13,24 @@ apply plugin: 'java'
 apply plugin: 'java-library'
 apply plugin: 'eclipse'
 
-sourceCompatibility = JavaVersion.VERSION_18
-
-compileJava.options.encoding = 'UTF-8'
+subprojects {
+	apply plugin: 'java'
+}
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
+compileJava.options.encoding = 'UTF-8'
 
-jar {
-    manifest {
-        attributes 'Multi-Release': 'true'
-    }
-}
+sourceCompatibility = JavaVersion.VERSION_18
 
 shadowJar {
 	from sourceSets.main.allSource
 	manifest {
         attributes 'Multi-Release': 'true'
     }
+    
+    archiveClassifier.set('')
 }
 
 repositories {
