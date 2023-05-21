@@ -417,6 +417,7 @@ public abstract class JSONProperties extends IOElement {
 	protected boolean readFile() {
 		try {
 			this.data = CONFIGURATION_MAPPER.readValue(directory.getPath().resolve(fileName).toFile(), JSONContent.class);
+			if(this.data == null) throw new NullPointerException();
 			
 			return true;
 		}catch(IOException e) {

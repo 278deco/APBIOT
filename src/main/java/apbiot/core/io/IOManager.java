@@ -236,7 +236,7 @@ public class IOManager {
 			}
 		}
 		
-		LOGGER.info("Successfully saved "+files.size()+" files! [errors occured:{}]", error);
+		LOGGER.info("Successfully saved "+uniqueFiles.size()+" files! [errors occured:{}]", error);
 	}
 	
 	/**

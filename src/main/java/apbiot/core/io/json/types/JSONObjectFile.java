@@ -137,6 +137,7 @@ public abstract class JSONObjectFile extends IOElement {
 	protected boolean readFile() {
 		try {
 			this.dataMap = FILES_MAPPER.readValue(this.directory.getPath().resolve(fileName).toFile(), JSONContent.class);
+			if(this.dataMap == null) throw new NullPointerException();
 			
 			return true;
 		}catch(IOException e) {

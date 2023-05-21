@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -120,11 +121,12 @@ public abstract class JSONArrayFile extends IOElement {
 	@Override
 	protected boolean readFile() {
 		try {
-			this.dataList = FILES_MAPPER.readValue(this.directory.getPath().resolve(fileName).toFile(), ArrayList.class);
+			this.dataList = Collections.synchronizedList(FILES_MAPPER.readValue(this.directory.getPath().resolve(fileName).toFile(), ArrayList.class));
+			if(this.dataList == null) throw new NullPointerException();
 			
 			return true;
 		}catch(Exception e) {
-			this.dataList = new ArrayList<>();
+			this.dataList = Collections.synchronizedList(new ArrayList<>());
 			
 			return false;
 		}
