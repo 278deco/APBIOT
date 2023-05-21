@@ -496,7 +496,7 @@ public class ClientBuilder {
 				createComponentListener();
 				
 				ownerID = gateway.getApplicationInfo().block().getOwnerId();
-				MainInitializer.getEventDispatcher().dispatchEvent(new EventInstanceConnected(true, botPrefix));
+				MainInitializer.getEventDispatcher().dispatchEvent(new EventInstanceConnected());
 				
 				g.onDisconnect().block();
 			}
@@ -582,6 +582,14 @@ public class ClientBuilder {
 			return null;
 		}
 		return commandator;
+	}
+	
+	/**
+	 * Tells if the program is using {@link Commandator} subprogram
+	 * @return if the program is using Commandator
+	 */
+	public boolean isUsingCommandator() {
+		return commandator != null;
 	}
 	
 	/**

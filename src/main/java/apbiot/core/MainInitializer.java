@@ -17,6 +17,7 @@ import apbiot.core.builder.ConsoleLogger;
 import apbiot.core.builder.HandlerManager;
 import apbiot.core.event.EventDispatcher;
 import apbiot.core.event.EventListener;
+import apbiot.core.event.events.EventProgramFullyLoaded;
 import apbiot.core.event.events.discord.EventInstanceConnected;
 import apbiot.core.exceptions.UnbuiltBotException;
 import apbiot.core.handler.AbstractCommandHandler;
@@ -24,7 +25,7 @@ import apbiot.core.handler.AbstractSystemCommandHandler;
 import apbiot.core.io.DirectoriesManager;
 import apbiot.core.io.IOManager;
 import apbiot.core.io.ResourceManager;
-import apbiot.core.io.json.JSONProperties;
+import apbiot.core.io.json.types.JSONProperties;
 import apbiot.core.objects.interfaces.IEvent;
 import apbiot.core.objects.interfaces.IHandler;
 import apbiot.core.objects.interfaces.IRunnableMethod;
@@ -189,6 +190,8 @@ public abstract class MainInitializer {
 	
 	//eventDispatcher.dispatchEvent(new EventProgramStopping(fileClosingNumber));
 	protected abstract void onShutdown();
+	
+	protected abstract void onFullyLoaded();
 	 
 	/**
 	 * Used to shutdown the program
@@ -234,6 +237,9 @@ public abstract class MainInitializer {
 					LOGGER.fatal("Unexpected error during client build with message {}. Shutting down...",err.getMessage());
 					new ShutdownProgram();
 				}
+				
+				eventDispatcher.dispatchEvent(new EventProgramFullyLoaded(ClientInstance.getInstance().getClientBuilder().isUsingCommandator(), ClientInstance.getInstance().getClientBuilder().getBotPrefix()));
+				onFullyLoaded(); //Call this method when all elements of the client have been fully loaded
 			}
 		}
 		
