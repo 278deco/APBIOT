@@ -1,5 +1,6 @@
 package apbiot.core.builder;
 
+import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -35,6 +36,10 @@ public class DateBuilder {
 	 */
 	public DateBuilder(String dateString, DateTimeFormatter dateFormat) {
 		this.date = ZonedDateTime.parse(dateString, dateFormat);
+	}
+	
+	public EditableTimeBuilder toEditable() {
+		return new EditableTimeBuilder(getDate());
 	}
 	
 	/**
@@ -262,38 +267,57 @@ public class DateBuilder {
 	}
 	
 	/**
-	 * Compare if a date is before the date of this instance
-	 * @param builder The date to be compared
-	 * @return if the date is before this date
+	 * Compare if the date contained in this instance of {@link DateBuilder} is before the given date
+	 * @param dateInstance The date to be compared
+	 * @return If this date's instance is before the given date
 	 */
-	public boolean isDateBefore(DateBuilder builder) {
-		return builder.getDate().isBefore(getDate());
+	public boolean isDateBefore(DateBuilder dateInstance) {
+		return this.getDate().isBefore(getDate());
 	}
 	
 	/**
-	 * Compare if a date is after the date of this instance
-	 * @param builder The date to be compared
-	 * @return if the date is after this date
+	 * Tell if the date contained in this instance of {@link DateBuilder} is before the current date
+	 * @return If this date is before current date
 	 */
-	public boolean isDateAfter(DateBuilder builder) {
-		return builder.getDate().isAfter(getDate());
+	public boolean isDateBeforeCurrentDate() {
+		return getDate().isBefore(ZonedDateTime.now(getDate().getZone()));
 	}
 	
 	/**
-	 * Tell if the date is after the current time
-	 * @return if the date is after
+	 * Compare if the date contained in this instance of {@link DateBuilder} is after the given date
+	 * @param dateInstance The date to be compared
+	 * @return If this date's instance is after the given date
 	 */
-	public boolean isDateAfterNow() {
+	public boolean isDateAfter(DateBuilder dateInstance) {
+		return this.getDate().isAfter(dateInstance.getDate());
+	}
+	
+	/**
+	 * Tell if the date contained in this instance of {@link DateBuilder} is after the current date
+	 * @return If this date is after current date
+	 */
+	public boolean isDateAfterCurrentDate() {
 		return getDate().isAfter(ZonedDateTime.now(getDate().getZone()));
 	}
 	
 	/**
-	 * Get the interval between this date and an other date
+	 * Get the interval between the date contained in {@link DateBuilder} instance and the given date<br>
+	 * The comparison takes place with a specific {@link ChronoUnit} and the result will be the interval between dates' given unit
 	 * @param builder The end date
-	 * @param unit The result unit
+	 * @param unit The unit used in the comparison
 	 * @return a interval between the two dates
 	 */
-	public Long getPeriodBetweenDate(DateBuilder builder, ChronoUnit unit) {
+	public Long getIntervalBetweenDates(DateBuilder builder, ChronoUnit unit) {
 		return unit.between(getDate(), builder.getDate());
+	}
+	
+	/**
+	 * Compare the duration between the date contained in {@link DateBuilder} instance and the given date using {@link Duration} class
+	 * @param compared The date which will be compared to this instance's one
+	 * @return The duration between the two dates
+	 * @throws ArithmeticException
+	 */
+	public Duration getDurationBetweenDates(DateBuilder compared) throws ArithmeticException {
+		return Duration.between(getDate(), compared.getDate());
 	}
 }
