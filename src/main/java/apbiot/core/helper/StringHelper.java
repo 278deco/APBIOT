@@ -278,13 +278,14 @@ public class StringHelper {
 	}
 	
 	/**
-	 * Change the first letter of a string to be uppercase and make the rest of the string lowercase
+	 * Change the first letter of a string to be uppercase
 	 * @param text The text to be formatted
+	 * @param allLowerCase Make the rest of the string lowercase
 	 * @return The formatted string
 	 */
-	public static String capitalize(String text) {
+	public static String capitalize(String text, boolean allLowerCase) {
 		if(text == null || text == "") return "";
-		return text.substring(0,1).toUpperCase() + text.substring(1).toLowerCase();
+		return text.substring(0,1).toUpperCase() + (allLowerCase ? text.substring(1).toLowerCase() : text.substring(1));
 	}
 	
 	/**
