@@ -109,8 +109,8 @@ public abstract class JSONArrayFile extends IOElement {
 	 * Get the data stored in the JSON file
 	 * @return a HashMap of the content
 	 */
-	protected ArrayList<Object> getData() {
-		return (ArrayList<Object>) this.dataList;
+	protected List<Object> getData() {
+		return (List<Object>) this.dataList;
 	}
 
 	/**

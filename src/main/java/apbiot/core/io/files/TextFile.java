@@ -183,8 +183,8 @@ public class TextFile extends IOElement {
 	 * Get a random line of file's content
 	 * @return a random line of the file
 	 */
-	public String getRandomLine() {
-		return getContentSize() > 0 ? getLine(new Random().nextInt(getContentSize())) : "";
+	public String getRandomLine(Random randomGenerator) {
+		return getContentSize() > 0 ? getLine(randomGenerator.nextInt(getContentSize())) : "";
 	}
 
 	@Override
