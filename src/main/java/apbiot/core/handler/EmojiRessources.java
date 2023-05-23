@@ -1,7 +1,5 @@
 package apbiot.core.handler;
 
-import com.vdurmont.emoji.EmojiManager;
-
 import apbiot.core.objects.interfaces.IHandler;
 import discord4j.core.GatewayDiscordClient;
 
@@ -24,13 +22,14 @@ public class EmojiRessources implements IHandler {
 	}
 
 	@Override
+	@Deprecated
 	public void register(GatewayDiscordClient gateway) {
-		WARNING = EmojiManager.getByUnicode("⚠").getUnicode();
+		/*WARNING = EmojiManager.getByUnicode("⚠").getUnicode();
 		INFO = EmojiManager.getByUnicode("ℹ").getUnicode();
 		DENY = EmojiManager.getByUnicode("⛔").getUnicode();
 		CHECKMARK = EmojiManager.getByUnicode("✅").getUnicode();
 		OK = EmojiManager.getByUnicode("🆗").getUnicode();
-		
+		*/
 	}
 
 	@Override

@@ -19,6 +19,7 @@ import apbiot.core.objects.Argument;
 import apbiot.core.objects.enums.ArgumentLevel;
 import apbiot.core.objects.enums.ArgumentType;
 import apbiot.core.objects.enums.CommandCategory;
+import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
@@ -76,7 +77,7 @@ public class CommandatorCommandPrimary extends NativeCommandInstance {
 	
 	private void process(MessageChannel chan, Guild guild, List<String> cmdArgs, User user) {
 		if(user == null) {
-			new TimedMessage(chan.createMessage("⚠ Une erreur est survenue, merci de réessayer dans quelques secondes...").block())
+			new TimedMessage(chan.createMessage(Emojis.WARNING+" Une erreur est survenue, merci de réessayer dans quelques secondes...").block())
 			.setDelayedDelete(Duration.ofSeconds(5), true);
 		}else {
 
@@ -89,7 +90,7 @@ public class CommandatorCommandPrimary extends NativeCommandInstance {
 			embedBuilder.addField("Commande indiquée", cmdArgs.get(1), false);
 			embedBuilder.addField("Commande recherchée", cmdArgs.get(2), false);
 			
-			new TimedMessage(chan.createMessage("✅ Votre rapport à bien été envoyé ! *(Tout abus de cette commande sera sanctionné)*").block())
+			new TimedMessage(chan.createMessage(Emojis.WHITE_CHECK_MARK+" Votre rapport à bien été envoyé ! *(Tout abus de cette commande sera sanctionné)*").block())
 			.setDelayedDelete(Duration.ofSeconds(7), true);
 			
 			for(Long id : receivers) {

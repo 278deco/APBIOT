@@ -19,6 +19,7 @@ import apbiot.core.objects.Argument;
 import apbiot.core.objects.enums.ArgumentLevel;
 import apbiot.core.objects.enums.ArgumentType;
 import apbiot.core.objects.enums.CommandCategory;
+import apbiot.core.utils.Emojis;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
 
@@ -61,7 +62,7 @@ public class BugCommandPrimary extends NativeCommandInstance {
 			return;
 		}else if(msg.length() > 500) {
 			new TimedMessage(infos.getChannel().createMessage(
-					"⛔ Votre message dépasse la limite de 500 caractères !").block())
+					Emojis.NO_ENTRY+" Votre message dépasse la limite de 500 caractères !").block())
 			.setDelayedDelete(Duration.ofSeconds(7), true);
 			return;
 		}else {

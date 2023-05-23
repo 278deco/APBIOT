@@ -22,6 +22,7 @@ import apbiot.core.objects.Argument;
 import apbiot.core.objects.enums.ArgumentLevel;
 import apbiot.core.objects.enums.ArgumentType;
 import apbiot.core.objects.enums.CommandCategory;
+import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.command.Interaction.Type;
 import discord4j.core.object.component.ActionRow;
@@ -156,9 +157,9 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 			}
 			
 			if(success) {				
-				infos.getEvent().getInteractionResponse().createFollowupMessageEphemeral("✅ La liste des commandes vous a bien été envoyée !").block();
+				infos.getEvent().getInteractionResponse().createFollowupMessageEphemeral(Emojis.WHITE_CHECK_MARK+" La liste des commandes vous a bien été envoyée !").block();
 			}else {				
-				infos.getEvent().getInteractionResponse().createFollowupMessageEphemeral("⚠ Une erreur s'est produite, réessayer ultérieurement.").block();
+				infos.getEvent().getInteractionResponse().createFollowupMessageEphemeral(Emojis.WARNING+" Une erreur s'est produite, réessayer ultérieurement.").block();
 			}
 			
 		}

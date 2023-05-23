@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import apbiot.core.command.AbstractCommandInstance;
 import apbiot.core.permissions.Permissions;
+import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
@@ -92,7 +93,7 @@ public class PermissionHelper {
 	 * @return error message
 	 */
 	public static String getStringErrorPermission() {
-		return "⛔ Vous n'avez pas les permissions / rôles requis pour exécuter cette commande !";
+		return Emojis.X_CROSS+" Vous n'avez pas les permissions / rôles requis pour exécuter cette commande !";
 	}
 	
 	/**

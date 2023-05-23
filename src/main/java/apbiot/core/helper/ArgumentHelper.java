@@ -7,6 +7,7 @@ import java.util.List;
 import apbiot.core.objects.Argument;
 import apbiot.core.objects.enums.ArgumentLevel;
 import apbiot.core.objects.enums.Ternary;
+import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Role;
@@ -21,7 +22,7 @@ public class ArgumentHelper {
 	 */
 	public static String getStringHelpSyntaxeArgument(int maxArg, String cmdName, String prefix, boolean isFirstObligatory, boolean isAllOptional) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("⚠ ERREUR Syntaxe : "+prefix+""+cmdName+" ");
+		sb.append(Emojis.WARNING+" ERREUR Syntaxe : "+prefix+""+cmdName+" ");
 		
 		for(int i = 1; i <= maxArg; i++) {
 			
@@ -48,7 +49,7 @@ public class ArgumentHelper {
 	public static String getStringHelpSyntaxe(List<Argument> args, String commandName, String prefix ) {
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append("⚠ ERREUR Syntaxe : "+prefix+""+commandName+" ");
+		sb.append(Emojis.WARNING+" ERREUR Syntaxe : "+prefix+""+commandName+" ");
 		
 		for(Argument arg : args) {
 			

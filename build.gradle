@@ -62,9 +62,6 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.discord4j/discord4j-core
 	api group: 'com.discord4j', name: 'discord4j-core', version: '3.2.4'
 	
-    // https://mvnrepository.com/artifact/com.vdurmont/emoji-java
-	api group: 'com.vdurmont', name: 'emoji-java', version: '5.1.1'
-	
 	// https://mvnrepository.com/artifact/org.reflections/reflections
 	implementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
 	

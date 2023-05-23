@@ -32,6 +32,7 @@ import apbiot.core.helper.StringHelper;
 import apbiot.core.objects.Tuple;
 import apbiot.core.objects.enums.CommandType;
 import apbiot.core.objects.interfaces.IGatewayInformations;
+import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
@@ -131,10 +132,10 @@ public class ClientBuilder {
 					}).start();
 					
 				}else {
-					event.reply("⛔ An error has occured, please contact the administrator.").block();
+					event.reply(Emojis.EXCLAMATION+" An error has occured, please contact the administrator.").block();
 				}
 			}else {
-				event.reply("⛔ An error has occured, please contact the administrator.").block();
+				event.reply(Emojis.EXCLAMATION+" An error has occured, please contact the administrator.").block();
 			}
 		});
 	}
@@ -150,7 +151,7 @@ public class ClientBuilder {
 			if((event.getMessage().getAuthor().get().getId().compareTo(gateway.getApplicationInfo().block().getId()) == 0) || content.equals("")) return;
 			
 			if(NATIVE_COMMANDS.isEmpty()) {
-				event.getMessage().getChannel().block().createMessage("⛔ Le bot est encore en chargement... Veuillez réessayer ultérieurement.").block();
+				event.getMessage().getChannel().block().createMessage(Emojis.TOOLS+" Le bot est encore en chargement... Veuillez réessayer ultérieurement.").block();
 				return;
 			}
 			
@@ -174,7 +175,7 @@ public class ClientBuilder {
 							handleNewCommandWithoutPermission(cmd, generateNewCommandInformations(event, userCommand), CommandType.NATIVE);
 							
 						}else {
-							new TimedMessage(channel.createMessage("⛔ Vous ne pouvez pas éxécuter cette commande ici !").block())
+							new TimedMessage(channel.createMessage(Emojis.NO_ENTRY+" Vous ne pouvez pas éxécuter cette commande ici !").block())
 							.setDelayedDelete(Duration.ofSeconds(5), true);
 						}
 					}else {
@@ -198,7 +199,7 @@ public class ClientBuilder {
 		gateway.on(ApplicationCommandInteractionEvent.class).subscribe(event -> {
 			
 			if(SLASH_COMMANDS.isEmpty()) {
-				event.reply("⛔ Le bot est encore en chargement... Veuillez réessayer ultérieurement.").block();
+				event.reply(Emojis.TOOLS+" Le bot est encore en chargement... Veuillez réessayer ultérieurement.").block();
 				return;
 			}
 			
@@ -219,7 +220,7 @@ public class ClientBuilder {
 							handleNewCommandWithoutPermission(cmd, generateNewCommandInformations(event), CommandType.SLASH);
 							
 						}else {
-							event.reply("⛔ Vous ne pouvez pas éxécuter cette commande ici !").withEphemeral(true).block();
+							event.reply(Emojis.NO_ENTRY+" Vous ne pouvez pas éxécuter cette commande ici !").withEphemeral(true).block();
 						}
 					}else {
 						handleNewCommand(cmd, generateNewCommandInformations(event), CommandType.SLASH);
@@ -398,8 +399,8 @@ public class ClientBuilder {
 	 */
 	private void handlePermissionError(AbstractCommandInstance cmd, Event event, CommandType type) {
 		String msg = cmd.getPermissions().getSpecifiedPermissionError() != null ? 
-				"⛔ ERREUR : "+cmd.getPermissions().getSpecifiedPermissionError() : 
-				"⛔ ERREUR : Vous n'avez pas la permission d'éxecuter cette commande.";
+				Emojis.X_CROSS+" **ERREUR :** "+cmd.getPermissions().getSpecifiedPermissionError() : 
+				Emojis.X_CROSS+" **ERREUR :** Vous n'avez pas la permission d'éxecuter cette commande.";
 		
 		if(type == CommandType.SLASH) {
 			((ApplicationCommandInteractionEvent)event).reply(msg).withEphemeral(true).block();
