@@ -13,12 +13,16 @@ import javax.annotation.Nullable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import apbiot.core.event.EventListener;
+import apbiot.core.event.events.discord.EventInstanceConnected;
 import apbiot.core.exceptions.NonExistingFileInstanceException;
 import apbiot.core.helper.DirectoryHelper;
 import apbiot.core.io.json.types.JSONProperties;
+import apbiot.core.io.objects.AfterClientInit;
 import apbiot.core.io.objects.Directory;
 import apbiot.core.io.objects.IOArguments;
 import apbiot.core.io.objects.IOElement;
+import apbiot.core.objects.interfaces.IEvent;
 
 public class IOManager {
 	
@@ -27,6 +31,7 @@ public class IOManager {
 	private static final Logger LOGGER = LogManager.getLogger(IOManager.class);
 	
 	private static IOManager instance;
+	private IOManagerEventListener instanceEventListener;
 	
 	private final Map<Class<? extends IOElement>, IOElement> uniqueFiles = new HashMap<>();
 	private final Map<String, IOElement> files = new HashMap<>();
@@ -91,6 +96,16 @@ public class IOManager {
 	 */
 	public static IOManager getInstance() {
 		return instance;
+	}
+	
+	public IOManagerEventListener getEventListener() {
+		if(instanceEventListener == null) {
+			synchronized (IOManagerEventListener.class) {
+				if(instanceEventListener == null) instanceEventListener = new IOManagerEventListener();
+			}
+		}
+		
+		return instanceEventListener;
 	}
 	
 	/**
@@ -589,4 +604,27 @@ public class IOManager {
 	public int getTotalFilesNumber() {
 		return getFilesNumber()+getUniqueFilesNumber();
 	}
+	
+	
+	/**
+	 * Subclass of {@link IOManager} dedicated to listen about the different event of the program
+	 * @author 278deco
+	 *
+	 */
+	public class IOManagerEventListener implements EventListener {
+
+		@Override
+		public void newEventReceived(IEvent e) {
+			if(e instanceof EventInstanceConnected) {
+				for(IOElement element : uniqueFiles.values()) {
+					if(element instanceof AfterClientInit) {
+						((AfterClientInit)element).afterClientInit();
+					}
+				}
+			}
+		}
+		
+	}
 }
+
+

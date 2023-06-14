@@ -95,6 +95,7 @@ public abstract class MainInitializer {
 		eventDispatcher = new EventDispatcher();
 		eventDispatcher.addListener(ConsoleLogger.getInstance().new ConsoleLoggerListener());
 		eventDispatcher.addListener(new ClientConnectionListener());
+		eventDispatcher.addListener(IOManager.getInstance().getEventListener());
 
 		LOGGER.info("Initializing sequence finished. Ready to build the program and launch the client.");
 	}
