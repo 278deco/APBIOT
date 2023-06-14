@@ -1,6 +1,5 @@
 package apbiot.core.command.primary;
 
-import java.time.Duration;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,22 +7,19 @@ import java.util.List;
 
 import apbiot.core.builder.ColorBuilder;
 import apbiot.core.builder.DateBuilder;
-import apbiot.core.builder.TimedMessage;
-import apbiot.core.command.NativeCommandInstance;
+import apbiot.core.command.SlashCommandInstance;
 import apbiot.core.command.informations.CommandGatewayComponentInformations;
-import apbiot.core.command.informations.CommandGatewayNativeInformations;
-import apbiot.core.commandator.HelpDescription;
-import apbiot.core.helper.ArgumentHelper;
-import apbiot.core.helper.PermissionHelper;
-import apbiot.core.objects.Argument;
-import apbiot.core.objects.enums.ArgumentLevel;
-import apbiot.core.objects.enums.ArgumentType;
+import apbiot.core.command.informations.CommandGatewaySlashInformations;
 import apbiot.core.objects.enums.CommandCategory;
 import apbiot.core.utils.Emojis;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
+import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
+import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandOptionData;
 
-public class BugCommandPrimary extends NativeCommandInstance {
+public class BugCommandPrimary extends SlashCommandInstance {
 	
 	private EmbedCreateSpec bugEmbed;
 	private final String botUsername, botAvatarUrl;
@@ -34,6 +30,20 @@ public class BugCommandPrimary extends NativeCommandInstance {
 		this.botUsername = botAccount.getUsername();
 		this.botAvatarUrl = botAccount.getAvatarUrl();
 	}
+	
+	@Override
+	public List<ApplicationCommandOptionData> getCommandArguments(ArrayList<ApplicationCommandOptionData> args) {
+		args.add(ApplicationCommandOptionData.builder()
+				.name("bug")
+				.description("Le bug que vous souhaitez signaler")
+				.type(ApplicationCommandOption.Type.STRING.getValue())
+				.maxLength(500)
+				.required(true)
+				.build());
+		return args;
+	}
+
+	
 	
 	@Override
 	public void buildCommand() {
@@ -50,37 +60,34 @@ public class BugCommandPrimary extends NativeCommandInstance {
 	}
 	
 	@Override
-	public void execute(CommandGatewayNativeInformations infos) {
-		String msg = infos.getMessageContent();
+	public void execute(CommandGatewaySlashInformations infos) {
+		infos.getEvent().deferReply().withEphemeral(true).block();
 		
-		if(PermissionHelper.isServerEnvironnment(infos.getChannel().getType())) infos.getEvent().getMessage().delete().block();
-		
-		if (infos.getArguments().size() == 0) {
-			new TimedMessage(infos.getChannel().createMessage(
-					ArgumentHelper.getStringHelpSyntaxe(getRequiredArguments(), getMainName(), infos.getUsedPrefix())).block())
-			.setDelayedDelete(Duration.ofSeconds(5), true);
-			return;
-		}else if(msg.length() > 500) {
-			new TimedMessage(infos.getChannel().createMessage(
-					Emojis.NO_ENTRY+" Votre message dépasse la limite de 500 caractères !").block())
-			.setDelayedDelete(Duration.ofSeconds(7), true);
-			return;
-		}else {
+		if (infos.getCommandResult().getOption("bug").isPresent()) {
+			final String strBug = infos.getCommandResult().getOption("bug")
+					.flatMap(ApplicationCommandInteractionOption::getValue)
+					.map(ApplicationCommandInteractionOptionValue::asString).get();
 			
-			final EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
-			embedBuilder.from(bugEmbed);
-
-			embedBuilder.addField("Question / bug", msg, true);
-			embedBuilder.addField("Heure", new DateBuilder(ZoneId.of("Europe/Paris")).getFormattedTime(), true);
-			embedBuilder.addField("Auteur", infos.getExecutor().getUsername()+ "\n ID : ``"+infos.getExecutor().getId().asString()+"``", false);
-			
-			
-			new TimedMessage(infos.getChannel().createMessage(
-					"🆗 Votre message à bien été envoyé ! *(Tout abus de cette commande sera sanctionné)*").block())
-			.setDelayedDelete(Duration.ofSeconds(7), true);
-			
-			infos.getEvent().getClient().getApplicationInfo().block().getOwner().block().getPrivateChannel().block().createMessage(embedBuilder.build()).block();
-			
+			if(strBug.length() > 500) {
+				infos.getEvent().createFollowup("La taille de votre rapport de bug ne doit pas dépasser 500 caractères !").withEphemeral(true).block();
+				
+			}else {
+				final EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
+				embedBuilder.from(bugEmbed);
+	
+				embedBuilder.addField("Question / bug", strBug, true);
+				embedBuilder.addField("Heure", new DateBuilder(ZoneId.of("Europe/Paris")).getFormattedTime(), true);
+				embedBuilder.addField("Auteur", infos.getExecutor().getUsername()+ "\n ID : ``"+infos.getExecutor().getId().asString()+"``", false);
+				
+				boolean success = true;
+				try {
+					infos.getEvent().getClient().getApplicationInfo().block().getOwner().block().getPrivateChannel().block().createMessage(embedBuilder.build()).block();					
+				}catch(Exception e) { success = false; }
+				
+				if(success) infos.getEvent().createFollowup(Emojis.WHITE_CHECK_MARK+" Votre message à bien été envoyé ! *(Tout abus de cette commande sera sanctionné)*").withEphemeral(true).block();
+				else infos.getEvent().createFollowup(Emojis.TOOLS+" Une erreur est survenue, merci de réessayer ultérieurement !").withEphemeral(true).block();
+				
+			}
 		}
 	}
 	
@@ -96,16 +103,4 @@ public class BugCommandPrimary extends NativeCommandInstance {
 	public boolean isServerOnly() {
 		return false;
 	}
-
-	@Override
-	protected HelpDescription setHelpDescription() {
-		return new HelpDescription(this);
-	}
-
-	@Override
-	protected List<Argument> setArguments(ArrayList<Argument> args) {
-		args.add(new Argument("message", "Le message que vous souhaitez envoyer", ArgumentLevel.REQUIRED, ArgumentType.TEXT));
-		return args;
-	}
-
 }
