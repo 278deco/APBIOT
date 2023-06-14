@@ -82,7 +82,7 @@ public class Tuple<A, B> {
 	}
 	
 	public boolean isValueBEmpty() {
-		return valueA == null;
+		return valueB == null;
 	}
 	
 	public boolean isTupleEmpty() {

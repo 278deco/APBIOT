@@ -284,7 +284,7 @@ public class StringHelper {
 	 * @return The formatted string
 	 */
 	public static String capitalize(String text, boolean allLowerCase) {
-		if(text == null || text == "") return "";
+		if(text == null || text == "" || text.isEmpty() || text.isBlank()) return "";
 		return text.substring(0,1).toUpperCase() + (allLowerCase ? text.substring(1).toLowerCase() : text.substring(1));
 	}
 	

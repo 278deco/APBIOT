@@ -10,6 +10,7 @@ public class Emojis {
 	public static final String WHITE_CHECK_MARK = "✅";
 	public static final String WARNING = "⚠️";
 	public static final String NO_ENTRY = "⛔";
+	public static final String NO_ENTRY_SIGN = "🚫";
 	public static final String X_CROSS = "❌";
 	public static final String GEM = "💎";
 	public static final String LOCK = "🔒";
