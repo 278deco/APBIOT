@@ -2,7 +2,18 @@
 <Configuration status="WARN">
 
     <Appenders>
-            
+        <RollingFile name="fileout" fileName="logs/latest.log" filePattern="logs/%d{dd.MM.yyyy}-%i.log.gz">
+            <PatternLayout>
+                <Pattern>[%d{dd.MM.yyyy}][%d{HH:mm:ss}] [%t/%level]: %msg%n</Pattern>
+            </PatternLayout>
+            <Policies>
+            	<SizeBasedTriggeringPolicy size="50 MB"/>
+            	<OnStartupTriggeringPolicy/>
+            	<TimeBasedTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+
         <Console name="stdout" target="SYSTEM_OUT">
             <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level]: %msg%n" />
         </Console>
@@ -13,6 +24,7 @@
         
         <Root level="info">
             <AppenderRef ref="stdout" />
+            <AppenderRef ref="fileout" level="info"/>
         </Root>
         
     </Loggers>
