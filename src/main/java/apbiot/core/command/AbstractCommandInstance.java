@@ -11,9 +11,8 @@ import apbiot.core.command.informations.CommandGatewayNativeInformations;
 import apbiot.core.command.informations.CommandGatewaySlashInformations;
 import apbiot.core.helper.CommandHelper;
 import apbiot.core.objects.interfaces.ICommandCategory;
-import apbiot.core.permissions.Permissions;
+import apbiot.core.permissions.CommandPermission;
 import apbiot.core.time.CommandCooldown;
-import discord4j.rest.util.Permission;
 
 public abstract class AbstractCommandInstance {
 	
@@ -93,7 +92,7 @@ public abstract class AbstractCommandInstance {
 	 */
 	public boolean isInHelpListed() {
 		if(this.permissions != null) {
-			return this.permissions.isDeveloperCommand ? false : true;
+			return this.permissions.isDeveloperCommand() ? false : true;
 		}else {
 			return true;
 		}
@@ -179,47 +178,4 @@ public abstract class AbstractCommandInstance {
 		return new CommandCooldown().setWithoutCooldown();
 	}
 	
-	public class CommandPermission {
-		private final List<Permissions> PERMISSIONS = new ArrayList<>();
-		private boolean reversedPermissions;
-		//If true, all users with this/these permission(s) WON'T be able to use the command
-		//If false, all users with this/these permission(s) WILL be able to use the command
-		
-		private boolean isDeveloperCommand;
-		
-		public List<Permissions> getPermissionsList() {
-			return PERMISSIONS;
-		}
-		
-		public void setReversedPermissions(boolean value) {
-			this.reversedPermissions = value;
-		}
-		
-		public boolean isReversedPermissions() {
-			return reversedPermissions;
-		}
-		
-		public boolean isADeveloperCommand() {
-			return this.isDeveloperCommand;
-		}
-		public void addPermission(Permissions... perms) {
-			for(Permissions p : perms) {
-				PERMISSIONS.add(p);
-			}
-		}
-		
-		public void addPermission(Permission... perms) {
-			for(Permission p : perms) {
-				PERMISSIONS.add(new Permissions(p));
-			}
-		}
-		
-		public void setDeveloperCommand(boolean value) {
-			this.isDeveloperCommand = value;
-		}
-		
-		public String getSpecifiedPermissionError() {
-			return "";
-		}
-	}
 }

@@ -9,6 +9,7 @@ import apbiot.core.command.informations.CommandGatewayComponentInformations;
 import apbiot.core.command.informations.CommandGatewaySlashInformations;
 import apbiot.core.objects.enums.CommandCategory;
 import apbiot.core.objects.interfaces.IRunnableMethod;
+import apbiot.core.permissions.CommandPermission;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 
 public class ShutdownCommandPrimary extends SlashCommandInstance {
@@ -40,9 +41,7 @@ public class ShutdownCommandPrimary extends SlashCommandInstance {
 	
 	@Override
 	protected CommandPermission setPermissions() {
-		CommandPermission perm = new CommandPermission();
-		perm.setDeveloperCommand(true);
-		return perm;
+		return CommandPermission.builder().setDevelopperCommand(true).build();
 	}
 
 	@Override

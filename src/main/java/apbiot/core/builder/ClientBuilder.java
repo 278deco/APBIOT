@@ -398,8 +398,8 @@ public class ClientBuilder {
 	 * @param chan - the channel where the command has been executed
 	 */
 	private void handlePermissionError(AbstractCommandInstance cmd, Event event, CommandType type) {
-		String msg = cmd.getPermissions().getSpecifiedPermissionError() != null ? 
-				Emojis.X_CROSS+" **ERREUR :** "+cmd.getPermissions().getSpecifiedPermissionError() : 
+		String msg = cmd.getPermissions().getPermissionErrorMessage().isPresent() ? 
+				Emojis.X_CROSS+" **ERREUR :** "+cmd.getPermissions().getPermissionErrorMessage().get() : 
 				Emojis.X_CROSS+" **ERREUR :** Vous n'avez pas la permission d'éxecuter cette commande.";
 		
 		if(type == CommandType.SLASH) {
@@ -449,7 +449,7 @@ public class ClientBuilder {
 	 * @return if he have the permission
 	 */
 	private boolean userHaveThePermission(AbstractCommandInstance cmd, User m, Guild g) {
-		return PermissionHelper.compareCommandPermissions(g.getMemberById(m.getId()).block(), cmd, ownerID);
+		return PermissionHelper.compareCommandPermissions(g.getMemberById(m.getId()).block(), cmd.getPermissions(), ownerID);
 	}
 	
 	/**

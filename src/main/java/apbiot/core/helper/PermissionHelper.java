@@ -3,7 +3,7 @@ package apbiot.core.helper;
 import java.util.List;
 import java.util.Optional;
 
-import apbiot.core.command.AbstractCommandInstance;
+import apbiot.core.permissions.CommandPermission;
 import apbiot.core.permissions.Permissions;
 import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
@@ -56,21 +56,21 @@ public class PermissionHelper {
 	 * @param ownerID - the id of the bot's owner
 	 * @return if the user have all the required permissions or not
 	 */
-	public static boolean compareCommandPermissions(Member user, AbstractCommandInstance cmd, Snowflake ownerID) throws NullPointerException {
-		if(cmd.getPermissions() == null) {
-			return true;
-		}else if(cmd.getPermissions().isADeveloperCommand() && user.getId().compareTo(ownerID) != 0) {
-			return false;
+	public static boolean compareCommandPermissions(Member user, CommandPermission cmdPerm, Snowflake ownerID) throws NullPointerException {
+		if(cmdPerm == null) throw new NullPointerException("Command permission variable cannot be null");
 		
-		}else if(cmd.getPermissions().isADeveloperCommand() && user.getId().compareTo(ownerID) == 0){
-			return true; 
+		if(cmdPerm.areNoPermissionsRequired()) {	
+			return true;
+		}else if(cmdPerm.isDeveloperCommand()) {
+			return user.getId().compareTo(ownerID) == 0;
 		}else {
-			for(Permissions p : cmd.getPermissions().getPermissionsList()) {
-				if (p.isDiscordPermission() && user.getBasePermissions().block().contains(p.getPermission())) return cmd.getPermissions().isReversedPermissions() ? false : true;
-				else if (p.isRolePermission() && user.getRoles().any(role -> role.getName().equals(p.getRole())).block()) return cmd.getPermissions().isReversedPermissions() ? false : true;
+			for(Permissions p : cmdPerm.getPermissions()) {
+				if ((p.isDiscordPermission() && user.getBasePermissions().block().contains(p.getPermission())) ||
+					(p.isRolePermission() && user.getRoles().any(role -> role.getName().equals(p.getRole())).block()))
+					return cmdPerm.areRestrictivePermissions() ? false : true;
 			}
 				
-			return cmd.getPermissions().isReversedPermissions() ? true : false;
+			return cmdPerm.areRestrictivePermissions() ? true : false;
 		}
 	}
 	

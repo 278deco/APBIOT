@@ -1,34 +1,36 @@
 package apbiot.core.permissions;
 
+import java.util.Optional;
+
 import discord4j.rest.util.Permission;
 
 public class Permissions {
 	
-	private String roleName;
-	private Permission perm;
+	private Optional<String> roleName;
+	private Optional<Permission> perm;
 	
 	public Permissions(String roleName) {
-		this.roleName = roleName;
+		this.roleName = Optional.of(roleName);
 	}
 	
 	public Permissions(Permission perm) {
-		this.perm = perm;
+		this.perm = Optional.of(perm);
 	}
 	
 	public boolean isRolePermission() {
-		return roleName != null;
+		return roleName.isPresent();
 	}
 	
 	public boolean isDiscordPermission() {
-		return perm != null;
+		return perm.isPresent();
 	}
 	
 	public String getRole() {
-		return roleName;
+		return isRolePermission() ? roleName.get() : null;
 	}
 	
 	public Permission getPermission() {
-		return perm;
+		return isDiscordPermission() ? perm.get() : null;
 	}
 	
 }

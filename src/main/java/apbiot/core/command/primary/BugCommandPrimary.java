@@ -11,6 +11,7 @@ import apbiot.core.command.SlashCommandInstance;
 import apbiot.core.command.informations.CommandGatewayComponentInformations;
 import apbiot.core.command.informations.CommandGatewaySlashInformations;
 import apbiot.core.objects.enums.CommandCategory;
+import apbiot.core.permissions.CommandPermission;
 import apbiot.core.utils.Emojis;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
@@ -96,7 +97,7 @@ public class BugCommandPrimary extends SlashCommandInstance {
 
 	@Override
 	protected CommandPermission setPermissions() {
-		return null;
+		return CommandPermission.EMPTY;
 	}
 
 	@Override

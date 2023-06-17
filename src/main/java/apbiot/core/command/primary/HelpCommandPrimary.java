@@ -22,6 +22,7 @@ import apbiot.core.objects.Argument;
 import apbiot.core.objects.enums.ArgumentLevel;
 import apbiot.core.objects.enums.ArgumentType;
 import apbiot.core.objects.enums.CommandCategory;
+import apbiot.core.permissions.CommandPermission;
 import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.command.Interaction.Type;
@@ -93,7 +94,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 		
 		for(Map.Entry<List<String>, NativeCommandInstance> entry : ClientInstance.getInstance().getClientBuilder().getNativeCommandMap().entrySet()) {
 			if(entry.getValue().isInHelpListed() && entry.getValue().isSameCommandCategory(choosenCat)) {
-				if(PermissionHelper.compareCommandPermissions(member, this, this.ownerID)) {
+				if(PermissionHelper.compareCommandPermissions(member, this.getPermissions(), this.ownerID)) {
 					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getMainName()+" ➭", entry.getValue().getDescription(), false));
 				}
 			}
@@ -101,7 +102,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 		
 		for(Map.Entry<List<String>, SlashCommandInstance> entry : ClientInstance.getInstance().getClientBuilder().getSlashCommandMap().entrySet()) {
 			if(entry.getValue().isInHelpListed() && entry.getValue().isSameCommandCategory(choosenCat)) {
-				if(PermissionHelper.compareCommandPermissions(member, this, this.ownerID)) {
+				if(PermissionHelper.compareCommandPermissions(member, this.getPermissions(), this.ownerID)) {
 					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getMainName()+" ➭", "	*Se référer au menu commandes slash* ", false));
 				}
 			}
@@ -184,7 +185,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 
 	@Override
 	protected CommandPermission setPermissions() {
-		return null;
+		return CommandPermission.EMPTY;
 	}
 
 

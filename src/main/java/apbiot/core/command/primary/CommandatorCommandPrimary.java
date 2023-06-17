@@ -19,6 +19,7 @@ import apbiot.core.objects.Argument;
 import apbiot.core.objects.enums.ArgumentLevel;
 import apbiot.core.objects.enums.ArgumentType;
 import apbiot.core.objects.enums.CommandCategory;
+import apbiot.core.permissions.CommandPermission;
 import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
@@ -118,7 +119,7 @@ public class CommandatorCommandPrimary extends NativeCommandInstance {
 
 	@Override
 	protected CommandPermission setPermissions() {
-		return null;
+		return CommandPermission.EMPTY;
 	}
 
 	@Override
