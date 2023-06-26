@@ -60,7 +60,7 @@ dependencies {
 	implementation group: 'se.michaelthelin.spotify', name: 'spotify-web-api-java', version: '6.5.4'
 
 	// https://mvnrepository.com/artifact/com.discord4j/discord4j-core
-	api group: 'com.discord4j', name: 'discord4j-core', version: '3.2.4'
+	api group: 'com.discord4j', name: 'discord4j-core', version: '3.2.5'
 	
 	// https://mvnrepository.com/artifact/org.reflections/reflections
 	implementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
