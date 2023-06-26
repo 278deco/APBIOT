@@ -52,7 +52,7 @@ public class BugCommandPrimary extends SlashCommandInstance {
 		
 		final EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
 		
-		builder.author(this.botUsername, null, this.botAvatarUrl);
+		builder.author(this.botUsername, "https://www.youtube.com/watch?v=dQw4w9WgXcQ"/*Funny temporary fix TODO REMOVE*/, this.botAvatarUrl);
 		builder.title("Signalement de bug / Question");
 		builder.color(ColorBuilder.randomColor().get());
 		builder.footer(this.botUsername+" (278deco) "+new DateBuilder(ZoneId.of("Europe/Paris")).getYear()+" © | Tout droits réservés", null);
