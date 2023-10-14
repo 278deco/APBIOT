@@ -12,12 +12,13 @@ import org.apache.logging.log4j.Logger;
 
 import apbiot.core.MainInitializer;
 import apbiot.core.command.AbstractCommandInstance;
+import apbiot.core.command.ApplicationCommandInstance;
 import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.SlashCommandInstance;
 import apbiot.core.command.UserCommandCooldown;
-import apbiot.core.command.informations.CommandGatewayComponentInformations;
-import apbiot.core.command.informations.CommandGatewayNativeInformations;
-import apbiot.core.command.informations.CommandGatewaySlashInformations;
+import apbiot.core.command.informations.GatewayApplicationCommandPacket;
+import apbiot.core.command.informations.GatewayComponentCommandPacket;
+import apbiot.core.command.informations.GatewayNativeCommandPacket;
 import apbiot.core.commandator.Commandator;
 import apbiot.core.event.events.discord.EventCommandError;
 import apbiot.core.event.events.discord.EventCommandReceived;
@@ -30,7 +31,7 @@ import apbiot.core.helper.CooldownHelper;
 import apbiot.core.helper.PermissionHelper;
 import apbiot.core.helper.StringHelper;
 import apbiot.core.objects.Tuple;
-import apbiot.core.objects.enums.CommandType;
+import apbiot.core.objects.enums.ApplicationCommandType;
 import apbiot.core.objects.interfaces.IGatewayInformations;
 import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
@@ -39,9 +40,11 @@ import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
 import discord4j.core.event.domain.interaction.ApplicationCommandInteractionEvent;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.event.domain.interaction.ComponentInteractionEvent;
+import discord4j.core.event.domain.interaction.MessageInteractionEvent;
+import discord4j.core.event.domain.interaction.UserInteractionEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.presence.ClientPresence;
@@ -69,6 +72,8 @@ public class ClientBuilder {
 	//Compilated Command Map and Slash Command Map
 	private Map<List<String>, NativeCommandInstance> NATIVE_COMMANDS;
 	private Map<List<String>, SlashCommandInstance> SLASH_COMMANDS;
+	//Compilated User and Message Commands
+	private Map<String, ApplicationCommandInstance> APPLICATION_COMMANDS;
 	
 	private List<UserCommandCooldown> commandCooldown;
 	private Commandator commandator;
@@ -82,6 +87,7 @@ public class ClientBuilder {
 		
 		this.NATIVE_COMMANDS = new HashMap<>();
 		this.SLASH_COMMANDS = new HashMap<>();
+		this.APPLICATION_COMMANDS = new HashMap<>();
 		
 		return this;
 	}
@@ -95,6 +101,7 @@ public class ClientBuilder {
 	public void updatedCommandReferences(AbstractCommandHandler cmdHandler) {
 		this.NATIVE_COMMANDS = cmdHandler.NATIVE_COMMANDS;
 		this.SLASH_COMMANDS = cmdHandler.SLASH_COMMANDS;
+		this.APPLICATION_COMMANDS = cmdHandler.APPLICATION_COMMANDS;
 	}
 	
 	/**
@@ -145,94 +152,101 @@ public class ClientBuilder {
 	 */
 	private void createNativeCommandListener() {
 		gateway.on(MessageCreateEvent.class).subscribe(event -> {
-			String content = event.getMessage().getContent();
+			final String content = event.getMessage().getContent();
 			
-			if(!content.startsWith(botPrefix)) return;
-			if((event.getMessage().getAuthor().get().getId().compareTo(gateway.getApplicationInfo().block().getId()) == 0) || content.equals("")) return;
+			if(content.isBlank() || content.isEmpty() || !content.startsWith(botPrefix)) return;
+			if((event.getMessage().getAuthor().get().getId().compareTo(gateway.getApplicationInfo().block().getId()) == 0)) return;
 			
 			if(NATIVE_COMMANDS.isEmpty()) {
 				event.getMessage().getChannel().block().createMessage(Emojis.TOOLS+" Le bot est encore en chargement... Veuillez réessayer ultérieurement.").block();
 				return;
 			}
+			final MessageChannel channel = event.getMessage().getChannel().block();		
 			
-			Tuple<String, Boolean> userCommand = getCommandFromUserInput(content.split(" "));
-			
-			AbstractCommandInstance cmd = searchCommandResult(userCommand.getValueA(), CommandType.NATIVE);
-			
-			MessageChannel channel = event.getMessage().getChannel().block();
-			
-			if(cmd != null) {
+			final Tuple<String, Boolean> userCommand = CommandHelper.getCommandFromUserInput(content.split(" "), this.botPrefix);
+			final AbstractCommandInstance cmd = searchCommandResult(userCommand.getValueA(), ApplicationCommandType.NATIVE);
+
+			if(userCommand.isTupleEmpty() || cmd == null) {
+				handleUnknownCommand(userCommand.getValueA(), event.getMember().get(), channel);
+			}else {
+
 				MainInitializer.getEventDispatcher().dispatchEvent(new EventCommandReceived(StringHelper.getRawCharacterString(
 								event.getMessage().getAuthor().get().getUsername()), 
 								userCommand.getValueA(),
-								channel.getType(), CommandType.NATIVE));
+								channel.getType(), ApplicationCommandType.NATIVE));
 				
 				if(CooldownHelper.canExecuteCommand(commandCooldown, event.getMessage().getAuthor().get(), channel)) {
 					this.commandCooldown = CooldownHelper.wipeNullInstance(commandCooldown);
 					
 					if(!PermissionHelper.isServerEnvironnment(channel.getType())) {
 						if(cmd.getPermissions() == null && !cmd.isServerOnly()) {
-							handleNewCommandWithoutPermission(cmd, generateNewCommandInformations(event, userCommand), CommandType.NATIVE);
+							handleNewCommandWithoutPermission(cmd, generateNewNativeCommandPacket(event, userCommand), ApplicationCommandType.NATIVE);
 							
 						}else {
 							new TimedMessage(channel.createMessage(Emojis.NO_ENTRY+" Vous ne pouvez pas éxécuter cette commande ici !").block())
 							.setDelayedDelete(Duration.ofSeconds(5), true);
 						}
 					}else {
-						handleNewCommand(cmd, generateNewCommandInformations(event, userCommand), CommandType.NATIVE);
-					}
-					
+						handleNewCommand(cmd, generateNewNativeCommandPacket(event, userCommand), ApplicationCommandType.NATIVE);
+					}	
 				}
 				
-				
-			}else {
-				handleUnknownCommand(userCommand.getValueA(), event.getMember().get(), channel);
 			}
-
 		});
 	}
 	
 	/**
-	 * Manage to get all the slash commands received from servers and handle they
+	 * Manage to get all the SLASH, USER and MESSAGE commands received from servers and handle them
+	 * The two types of command are handled separately
 	 */
-	public void createSlashCommandListener() {
-		gateway.on(ApplicationCommandInteractionEvent.class).subscribe(event -> {
-			
-			if(SLASH_COMMANDS.isEmpty()) {
-				event.reply(Emojis.TOOLS+" Le bot est encore en chargement... Veuillez réessayer ultérieurement.").block();
-				return;
-			}
-			
-			AbstractCommandInstance cmd = searchCommandResult(event.getCommandName(), CommandType.SLASH);
-			MessageChannel channel = event.getInteraction().getChannel().block();
-			
-			if(cmd != null) {
-				MainInitializer.getEventDispatcher().dispatchEvent(new EventCommandReceived(StringHelper.getRawCharacterString(
-						event.getInteraction().getUser().getUsername()), 
-						cmd.getMainName(),
-						channel.getType(), CommandType.SLASH));
-				
-				if(CooldownHelper.canExecuteCommand(commandCooldown, event.getInteraction().getUser(), channel)) {
-					this.commandCooldown = CooldownHelper.wipeNullInstance(commandCooldown);
-					
-					if(!PermissionHelper.isServerEnvironnment(channel.getType())) {
-						if(cmd.getPermissions() == null && !cmd.isServerOnly()) {
-							handleNewCommandWithoutPermission(cmd, generateNewCommandInformations(event), CommandType.SLASH);
-							
-						}else {
-							event.reply(Emojis.NO_ENTRY+" Vous ne pouvez pas éxécuter cette commande ici !").withEphemeral(true).block();
-						}
-					}else {
-						handleNewCommand(cmd, generateNewCommandInformations(event), CommandType.SLASH);
-					}
-				
-				}
-				
-			}else {
-				handleUnknownCommand(event.getCommandName(), event.getInteraction().getUser(), channel);
-			}
-			
+	private void createApplicationCommandListener() {
+		gateway.on(ChatInputInteractionEvent.class).subscribe(event -> {
+			setupApplicationCommandListener(event, ApplicationCommandType.CHAT_INPUT);
 		});
+	
+		gateway.on(UserInteractionEvent.class).subscribe(event -> {
+			setupApplicationCommandListener(event, ApplicationCommandType.USER);
+		});
+		
+		gateway.on(MessageInteractionEvent.class).subscribe(event -> {
+			setupApplicationCommandListener(event, ApplicationCommandType.MESSAGE);
+		});
+		
+	}
+	
+	private void setupApplicationCommandListener(ApplicationCommandInteractionEvent event, ApplicationCommandType type) {
+		if(APPLICATION_COMMANDS.isEmpty()) {
+			event.reply(Emojis.TOOLS+" Le bot est encore en chargement... Veuillez réessayer ultérieurement.").block();
+			return;
+		}
+		
+		final AbstractCommandInstance cmd = searchCommandResult(event.getCommandName(), type);
+		final MessageChannel channel = event.getInteraction().getChannel().block();
+		
+		if(cmd != null) {
+			MainInitializer.getEventDispatcher().dispatchEvent(new EventCommandReceived(StringHelper.getRawCharacterString(
+					event.getInteraction().getUser().getUsername()), 
+					cmd.getMainName(),
+					channel.getType(), type));
+			
+			if(CooldownHelper.canExecuteCommand(commandCooldown, event.getInteraction().getUser(), channel)) {
+				this.commandCooldown = CooldownHelper.wipeNullInstance(commandCooldown);
+				
+				if(!PermissionHelper.isServerEnvironnment(channel.getType())) {
+					if(cmd.getPermissions() == null && !cmd.isServerOnly()) {
+						handleNewCommandWithoutPermission(cmd, generateNewApplicationCommandPacket(event, type), type);
+						
+					}else {
+						event.reply(Emojis.NO_ENTRY+" Vous ne pouvez pas éxécuter cette commande ici !").withEphemeral(true).block();
+					}
+				}else {
+					handleNewCommand(cmd, generateNewApplicationCommandPacket(event, type), type);
+				}
+			}
+			
+		}else {
+			handleUnknownCommand(event.getCommandName(), event.getInteraction().getUser(), channel);
+		}
 	}
 	
 	/**
@@ -242,11 +256,11 @@ public class ClientBuilder {
 	 */
 	private AbstractCommandInstance searchCommandId(String providedCmdId) {
 		for(NativeCommandInstance command : NATIVE_COMMANDS.values()) {
-			if(providedCmdId.startsWith(command.getID())) return command;
+			if(providedCmdId.startsWith(command.getID().toString())) return command;
 		}
 		
 		for(SlashCommandInstance command : SLASH_COMMANDS.values()) {
-			if(providedCmdId.startsWith(command.getID())) return command;
+			if(providedCmdId.startsWith(command.getID().toString())) return command;
 		}
 		
 		return null;
@@ -258,22 +272,35 @@ public class ClientBuilder {
 	 * @param onlySlashCommand - if the method has been called by the slash command event
 	 * @return the command instance if it exist
 	 */
-	private AbstractCommandInstance searchCommandResult(String providedCmdName, CommandType type) {
-		if(type == CommandType.NATIVE) {
-			for(Map.Entry<List<String>, NativeCommandInstance> entry : NATIVE_COMMANDS.entrySet()) {
-				for(String commandName : entry.getKey()) {
-					
-					if(commandName.equalsIgnoreCase(providedCmdName)) {
+	private AbstractCommandInstance searchCommandResult(String providedCmdName, ApplicationCommandType type) {
+		if(providedCmdName == null) return null;
+		
+		switch(type) {
+			case NATIVE -> {
+				for(Map.Entry<List<String>, NativeCommandInstance> entry : NATIVE_COMMANDS.entrySet()) {
+					for(String commandName : entry.getKey()) {
+						
+						if(commandName.equalsIgnoreCase(providedCmdName)) {
+							return entry.getValue();
+						}
+					}
+				}
+			}
+			case CHAT_INPUT -> {
+				for(Map.Entry<List<String>, SlashCommandInstance> entry : SLASH_COMMANDS.entrySet()) {
+					if(entry.getKey().get(0).equalsIgnoreCase(providedCmdName)) {
 						return entry.getValue();
 					}
 				}
 			}
-		}else {
-			for(Map.Entry<List<String>, SlashCommandInstance> entry : SLASH_COMMANDS.entrySet()) {
-				if(entry.getKey().get(0).equalsIgnoreCase(providedCmdName)) {
-					return entry.getValue();
+			case MESSAGE, USER -> {
+				for(Map.Entry<String, ApplicationCommandInstance> entry : APPLICATION_COMMANDS.entrySet()) {
+					if(entry.getKey().equalsIgnoreCase(providedCmdName)) {
+						return entry.getValue();
+					}
 				}
 			}
+			default -> throw new IllegalArgumentException("Unexpected value: " + type);
 		}
 		
 		return null;
@@ -286,8 +313,8 @@ public class ClientBuilder {
 	 * @see apbiot.core.command.informations.informations.CommandGatewayComponentInteraction
 	 * @return new CommandGatewayComponentInteraction
 	 */
-	private CommandGatewayComponentInformations generateNewComponentInformations(ComponentInteractionEvent event, String componentId) {
-		return new CommandGatewayComponentInformations(
+	private GatewayComponentCommandPacket generateNewComponentInformations(ComponentInteractionEvent event, String componentId) {
+		return new GatewayComponentCommandPacket(
 				event, 
 				componentId,
 				event.getInteraction().getUser(),
@@ -300,9 +327,10 @@ public class ClientBuilder {
 	 * @see apbiot.core.command.informations.informations.CommandGatewaySlashInformations
 	 * @return new CommandGatewaySlashInformations
 	 */
-	private CommandGatewaySlashInformations generateNewCommandInformations(ApplicationCommandInteractionEvent event) {
-		return new CommandGatewaySlashInformations(
+	private GatewayApplicationCommandPacket generateNewApplicationCommandPacket(ApplicationCommandInteractionEvent event, ApplicationCommandType type) {
+		return new GatewayApplicationCommandPacket(
 				event, 
+				type,
 				event.getInteraction().getUser(),
 				event.getInteraction().getChannel().block());
 	}
@@ -311,11 +339,11 @@ public class ClientBuilder {
 	 * Generate a new CommandGatewayInformations for a specified command
 	 * @param event - the MessageCreateEvent from discord
 	 * @param userCommand - a tuple containing informations about the layout of the user's command
-	 * @see apbiot.core.command.CommandGatewayNativeInformations
+	 * @see apbiot.core.command.GatewayNativeCommandPacket
 	 * @return new CommandGatewayInformations
 	 */
-	private CommandGatewayNativeInformations generateNewCommandInformations(MessageCreateEvent event, Tuple<String, Boolean> userCommand) {
-		return new CommandGatewayNativeInformations(
+	private GatewayNativeCommandPacket generateNewNativeCommandPacket(MessageCreateEvent event, Tuple<String, Boolean> userCommand) {
+		return new GatewayNativeCommandPacket(
 				event, 
 				event.getMessage().getAuthor().get(), 
 				event.getMessage().getChannel().block(), 
@@ -325,35 +353,25 @@ public class ClientBuilder {
 	}
 	
 	/**
-	 * Get the command send by the user and the argument(s)
-	 * @param userMessage - the message sent by the user
-	 * @return a tuple containing the command and if the command was separate from the prefix
-	 */
-	private Tuple<String, Boolean> getCommandFromUserInput(String[] userMessage) {
-		if(userMessage.length > 1 && userMessage[0].equals(botPrefix)) {
-			return Tuple.of(userMessage[1], true);
-		}else if(userMessage[0].contains(botPrefix) && userMessage.length >= 1) {
-			return Tuple.of(userMessage[0].substring(1), false);
-		}
-		return Tuple.of("",false);
-	}
-	
-	/**
 	 * Handle every command computed by the bot and create a new thread for it to work
 	 * work only for the command with permissions (guild command)
 	 * @param cmd - the command itself
 	 * @param info - the CommandGatewayInformations generated for the command
 	 */
-	private void handleNewCommand(AbstractCommandInstance cmd, IGatewayInformations info, CommandType type) {
-		if(userHaveThePermission(cmd, info.getExecutor(),info.getGuild())) {
+	private void handleNewCommand(AbstractCommandInstance cmd, IGatewayInformations info, ApplicationCommandType cmdType) throws NullPointerException {
+		if(PermissionHelper.doesUserHavePermissions(info.getGuild().getMemberById(info.getExecutor().getId()).onErrorComplete().block(), cmd.getPermissions(), ownerID)) {
 			new Thread(new Runnable() {
 
 				@Override
 				public void run() {
-					if(type == CommandType.SLASH) {
-						cmd.execute((CommandGatewaySlashInformations)info);
-					}else if(type == CommandType.NATIVE) {
-						cmd.execute((CommandGatewayNativeInformations)info);
+					switch(cmdType) {
+						case CHAT_INPUT, USER, MESSAGE -> {
+							cmd.execute((GatewayApplicationCommandPacket)info);
+						}
+						case NATIVE -> {
+							cmd.execute((GatewayNativeCommandPacket)info);
+						}
+						default -> throw new IllegalArgumentException("Unexpected value: " + cmdType);
 					}
 				}
 			}).start();
@@ -363,7 +381,7 @@ public class ClientBuilder {
 				if(cmdCooldown != null) commandCooldown.add(cmdCooldown);
 			}
 		}else {
-			handlePermissionError(cmd, info.getEvent(), type);
+			handlePermissionError(cmd, info.getEvent(), cmdType);
 		}
 	}
 	
@@ -373,15 +391,19 @@ public class ClientBuilder {
 	 * @param cmd - the command itself
 	 * @param info - the CommandGatewayInformations generated for the command
 	 */
-	private void handleNewCommandWithoutPermission(AbstractCommandInstance cmd, IGatewayInformations info, CommandType type) {
+	private void handleNewCommandWithoutPermission(AbstractCommandInstance cmd, IGatewayInformations info, ApplicationCommandType cmdType) {
 		new Thread(new Runnable() {
 
 			@Override
 			public void run() {
-				if(type == CommandType.SLASH) {
-					cmd.execute((CommandGatewaySlashInformations)info);
-				}else if(type == CommandType.NATIVE) {
-					cmd.execute((CommandGatewayNativeInformations)info);
+				switch(cmdType) {
+					case CHAT_INPUT, USER, MESSAGE -> {
+						cmd.execute((GatewayApplicationCommandPacket)info);
+					}
+					case NATIVE -> {
+						cmd.execute((GatewayNativeCommandPacket)info);
+					}
+					default -> throw new IllegalArgumentException("Unexpected value: " + cmdType);
 				}
 			}
 		}).start();
@@ -397,12 +419,12 @@ public class ClientBuilder {
 	 * @param cmd - the command instance
 	 * @param chan - the channel where the command has been executed
 	 */
-	private void handlePermissionError(AbstractCommandInstance cmd, Event event, CommandType type) {
+	private void handlePermissionError(AbstractCommandInstance cmd, Event event, ApplicationCommandType type) {
 		String msg = cmd.getPermissions().getPermissionErrorMessage().isPresent() ? 
 				Emojis.X_CROSS+" **ERREUR :** "+cmd.getPermissions().getPermissionErrorMessage().get() : 
 				Emojis.X_CROSS+" **ERREUR :** Vous n'avez pas la permission d'éxecuter cette commande.";
 		
-		if(type == CommandType.SLASH) {
+		if(type == ApplicationCommandType.CHAT_INPUT) {
 			((ApplicationCommandInteractionEvent)event).reply(msg).withEphemeral(true).block();
 		}
 		else {	
@@ -443,21 +465,11 @@ public class ClientBuilder {
 	}
 	
 	/**
-	 * Check if the a member can execute a command
-	 * @param cmdPerm - the permission(s) required for the command
-	 * @param m - the member who have execute the command
-	 * @return if he have the permission
-	 */
-	private boolean userHaveThePermission(AbstractCommandInstance cmd, User m, Guild g) {
-		return PermissionHelper.compareCommandPermissions(g.getMemberById(m.getId()).block(), cmd.getPermissions(), ownerID);
-	}
-	
-	/**
 	 * Change the presence of the bot
 	 * @param presence - the presence to apply
 	 * @return an instance of ClientBuilder
 	 */
-	public ClientBuilder setGameText(ClientPresence status) {
+	public ClientBuilder setPresenceText(ClientPresence status) {
 		if (gateway == null) {
 			LOGGER.error(new NullPointerException("CLIENT - Client instance isn't defined"));
 			return this;
@@ -489,10 +501,10 @@ public class ClientBuilder {
 				
 				GatewayDiscordClient g = GatewayBootstrap.create(client).setEnabledIntents(intent).setDisabledIntents(IntentSet.none()).login().block();
 				gateway = g;
-				setGameText(defaultStatus);
+				setPresenceText(defaultStatus);
 				
 				createNativeCommandListener();
-				createSlashCommandListener();
+				createApplicationCommandListener();
 				
 				createComponentListener();
 				
@@ -526,7 +538,7 @@ public class ClientBuilder {
 	
 	/**
 	 * Edit the bot's prefix
-	 * @param prefix - the prefix used by the bot
+	 * @param prefix The prefix used by the bot
 	 * @return an instance of ClientBuilder
 	 */
 	public ClientBuilder editBotPrefix(String prefix) {

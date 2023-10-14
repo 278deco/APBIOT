@@ -50,14 +50,14 @@ public class PermissionHelper {
 
 	/**
 	 * Used to tell if the user can execute a command or not
-	 * @param user - the specified user
-	 * @param cmd - The command instance
+	 * @param user The specified user
+	 * @param cmd The command instance
 	 * @see apbiot.core.permissions.Permissions
-	 * @param ownerID - the id of the bot's owner
+	 * @param ownerID The id of the bot's owner
 	 * @return if the user have all the required permissions or not
 	 */
-	public static boolean compareCommandPermissions(Member user, CommandPermission cmdPerm, Snowflake ownerID) throws NullPointerException {
-		if(cmdPerm == null) throw new NullPointerException("Command permission variable cannot be null");
+	public static boolean doesUserHavePermissions(Member user, CommandPermission cmdPerm, Snowflake ownerID) throws NullPointerException {
+		if(user == null || cmdPerm == null) throw new NullPointerException("Command permission variable cannot be null");
 		
 		if(cmdPerm.areNoPermissionsRequired()) {	
 			return true;

@@ -3,7 +3,7 @@ package apbiot.core.command;
 import java.util.ArrayList;
 import java.util.List;
 
-import apbiot.core.command.informations.CommandGatewayNativeInformations;
+import apbiot.core.command.informations.GatewayNativeCommandPacket;
 import apbiot.core.objects.interfaces.ICommandCategory;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
@@ -35,7 +35,7 @@ public abstract class SlashCommandInstance extends AbstractCommandInstance {
 	}
 	
 	@Override
-	public void execute(CommandGatewayNativeInformations infos) { }
+	public void execute(GatewayNativeCommandPacket infos) { }
 	
 	/**
 	 * Define the arguments of the command

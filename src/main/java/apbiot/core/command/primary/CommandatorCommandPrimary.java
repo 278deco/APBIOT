@@ -10,8 +10,8 @@ import apbiot.core.builder.ColorBuilder;
 import apbiot.core.builder.DateBuilder;
 import apbiot.core.builder.TimedMessage;
 import apbiot.core.command.NativeCommandInstance;
-import apbiot.core.command.informations.CommandGatewayComponentInformations;
-import apbiot.core.command.informations.CommandGatewayNativeInformations;
+import apbiot.core.command.informations.GatewayComponentCommandPacket;
+import apbiot.core.command.informations.GatewayNativeCommandPacket;
 import apbiot.core.commandator.HelpDescription;
 import apbiot.core.helper.ArgumentHelper;
 import apbiot.core.helper.PermissionHelper;
@@ -57,7 +57,7 @@ public class CommandatorCommandPrimary extends NativeCommandInstance {
 	}
 	
 	@Override
-	public void execute(CommandGatewayNativeInformations infos) {
+	public void execute(GatewayNativeCommandPacket infos) {
 		if(PermissionHelper.isServerEnvironnment(infos.getChannel().getType())) infos.getEvent().getMessage().delete().block();
 		
 		if(infos.getArguments().size() == 0) {
@@ -102,7 +102,7 @@ public class CommandatorCommandPrimary extends NativeCommandInstance {
 	}
 	
 	@Override
-	public void executeComponent(CommandGatewayComponentInformations infos) { }
+	public void executeComponent(GatewayComponentCommandPacket infos) { }
 	
 	@Override
 	public HelpDescription setHelpDescription() {

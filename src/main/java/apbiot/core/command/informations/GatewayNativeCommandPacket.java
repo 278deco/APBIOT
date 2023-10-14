@@ -1,6 +1,7 @@
 package apbiot.core.command.informations;
 
 import java.util.List;
+import java.util.Optional;
 
 import apbiot.core.helper.StringHelper;
 import apbiot.core.objects.interfaces.IGatewayInformations;
@@ -10,7 +11,7 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 
-public class CommandGatewayNativeInformations implements IGatewayInformations {
+public class GatewayNativeCommandPacket implements IGatewayInformations {
 	
 	private final MessageCreateEvent event;
 	
@@ -30,7 +31,7 @@ public class CommandGatewayNativeInformations implements IGatewayInformations {
 	 * @param commandName - the commandName
 	 * @param usedPrefix - the prefix used by the bot
 	 */
-	public CommandGatewayNativeInformations(MessageCreateEvent commandEvent, User executor, MessageChannel channel, List<String> arguments, String commandName, String usedPrefix) {
+	public GatewayNativeCommandPacket(MessageCreateEvent commandEvent, User executor, MessageChannel channel, List<String> arguments, String commandName, String usedPrefix) {
 		this.event = commandEvent;
 		this.user = executor;
 		this.channel = channel;
@@ -76,8 +77,8 @@ public class CommandGatewayNativeInformations implements IGatewayInformations {
 	}
 	
 	@Override
-	public Message getMessage() {
-		return getEvent().getMessage();
+	public Optional<Message> getMessage() {
+		return Optional.of(getEvent().getMessage());
 	}
 	
 	

@@ -13,8 +13,8 @@ import apbiot.core.builder.DateBuilder;
 import apbiot.core.builder.TimedMessage;
 import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.SlashCommandInstance;
-import apbiot.core.command.informations.CommandGatewayComponentInformations;
-import apbiot.core.command.informations.CommandGatewayNativeInformations;
+import apbiot.core.command.informations.GatewayComponentCommandPacket;
+import apbiot.core.command.informations.GatewayNativeCommandPacket;
 import apbiot.core.commandator.HelpDescription;
 import apbiot.core.helper.CommandHelper;
 import apbiot.core.helper.PermissionHelper;
@@ -76,7 +76,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 	}
 	
 	@Override
-	public void execute(CommandGatewayNativeInformations infos) {
+	public void execute(GatewayNativeCommandPacket infos) {
 		infos.getEvent().getMessage().delete().block();
 		
 		new TimedMessage(
@@ -94,7 +94,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 		
 		for(Map.Entry<List<String>, NativeCommandInstance> entry : ClientInstance.getInstance().getClientBuilder().getNativeCommandMap().entrySet()) {
 			if(entry.getValue().isInHelpListed() && entry.getValue().isSameCommandCategory(choosenCat)) {
-				if(PermissionHelper.compareCommandPermissions(member, this.getPermissions(), this.ownerID)) {
+				if(PermissionHelper.doesUserHavePermissions(member, this.getPermissions(), this.ownerID)) {
 					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getMainName()+" ➭", entry.getValue().getDescription(), false));
 				}
 			}
@@ -102,7 +102,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 		
 		for(Map.Entry<List<String>, SlashCommandInstance> entry : ClientInstance.getInstance().getClientBuilder().getSlashCommandMap().entrySet()) {
 			if(entry.getValue().isInHelpListed() && entry.getValue().isSameCommandCategory(choosenCat)) {
-				if(PermissionHelper.compareCommandPermissions(member, this.getPermissions(), this.ownerID)) {
+				if(PermissionHelper.doesUserHavePermissions(member, this.getPermissions(), this.ownerID)) {
 					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getMainName()+" ➭", "	*Se référer au menu commandes slash* ", false));
 				}
 			}
@@ -139,7 +139,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 	}
 	
 	@Override
-	public void executeComponent(CommandGatewayComponentInformations infos) { 
+	public void executeComponent(GatewayComponentCommandPacket infos) { 
 		if(infos.getEvent().getInteraction().getType() == Type.MESSAGE_COMPONENT) {
 			infos.getEvent().deferReply().withEphemeral(true).block();
 			

@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import apbiot.core.command.SlashCommandInstance;
-import apbiot.core.command.informations.CommandGatewayComponentInformations;
-import apbiot.core.command.informations.CommandGatewaySlashInformations;
+import apbiot.core.command.informations.GatewayApplicationCommandPacket;
+import apbiot.core.command.informations.GatewayComponentCommandPacket;
 import apbiot.core.objects.enums.CommandCategory;
 import apbiot.core.objects.interfaces.IRunnableMethod;
 import apbiot.core.permissions.CommandPermission;
@@ -23,7 +23,7 @@ public class ShutdownCommandPrimary extends SlashCommandInstance {
 	}
 	
 	@Override
-	public void execute(CommandGatewaySlashInformations infos) {
+	public void execute(GatewayApplicationCommandPacket infos) {
 		
 		infos.getEvent().deferReply().block();
 		infos.getEvent().getInteractionResponse().createFollowupMessage("👋 Extinction du bot ! Au revoir.").block();
@@ -32,7 +32,7 @@ public class ShutdownCommandPrimary extends SlashCommandInstance {
 	}
 	
 	@Override
-	public void executeComponent(CommandGatewayComponentInformations infos) { }
+	public void executeComponent(GatewayComponentCommandPacket infos) { }
 	
 	@Override
 	public List<ApplicationCommandOptionData> getCommandArguments(ArrayList<ApplicationCommandOptionData> args) {

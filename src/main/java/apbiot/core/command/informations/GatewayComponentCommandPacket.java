@@ -1,5 +1,7 @@
 package apbiot.core.command.informations;
 
+import java.util.Optional;
+
 import apbiot.core.objects.interfaces.IGatewayInformations;
 import discord4j.core.event.domain.interaction.ComponentInteractionEvent;
 import discord4j.core.object.entity.Guild;
@@ -7,7 +9,7 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 
-public class CommandGatewayComponentInformations implements IGatewayInformations {
+public class GatewayComponentCommandPacket implements IGatewayInformations {
 
 	private final ComponentInteractionEvent event;
 	
@@ -21,7 +23,7 @@ public class CommandGatewayComponentInformations implements IGatewayInformations
 	 * @param componentId - the id of the component
 	 * @param channel - the channel where the command has been executed
 	 */
-	public CommandGatewayComponentInformations(ComponentInteractionEvent interactionEvent, String componentId, User executor, MessageChannel channel) {
+	public GatewayComponentCommandPacket(ComponentInteractionEvent interactionEvent, String componentId, User executor, MessageChannel channel) {
 		this.event = interactionEvent;
 		this.componentId = componentId;
 		this.channel = channel;
@@ -52,8 +54,8 @@ public class CommandGatewayComponentInformations implements IGatewayInformations
 	}
 
 	@Override
-	public Message getMessage() {
-		return getEvent().getMessage().isPresent() ? getEvent().getMessage().get() : null;
+	public Optional<Message> getMessage() {
+		return getEvent().getMessage();
 	}
 		
 }

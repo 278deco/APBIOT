@@ -2,14 +2,14 @@ package apbiot.core.command;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import apbiot.core.command.informations.CommandGatewayComponentInformations;
-import apbiot.core.command.informations.CommandGatewayNativeInformations;
-import apbiot.core.command.informations.CommandGatewaySlashInformations;
-import apbiot.core.helper.CommandHelper;
+import apbiot.core.command.informations.GatewayApplicationCommandPacket;
+import apbiot.core.command.informations.GatewayComponentCommandPacket;
+import apbiot.core.command.informations.GatewayNativeCommandPacket;
 import apbiot.core.objects.interfaces.ICommandCategory;
 import apbiot.core.permissions.CommandPermission;
 import apbiot.core.time.CommandCooldown;
@@ -23,7 +23,7 @@ public abstract class AbstractCommandInstance {
 	private ICommandCategory category;
 	private CommandPermission permissions;
 	
-	private final String commandId;
+	private final UUID commandId;
 	
 	protected boolean built;
 	
@@ -37,7 +37,7 @@ public abstract class AbstractCommandInstance {
 		this.commandNames = cmdName;
 		this.description = (description == null || description == "" ? "No description available" : description);
 		this.category = category;
-		this.commandId = CommandHelper.generateRandomID();
+		this.commandId = UUID.randomUUID();
 		
 		this.permissions = setPermissions();
 		
@@ -54,7 +54,7 @@ public abstract class AbstractCommandInstance {
 		this.commandNames = cmdName;
 		this.description = (description == null || description == "" ? "No description available" : description);
 		this.category = category;
-		this.commandId = staticID;
+		this.commandId = UUID.fromString(staticID);
 		
 		this.permissions = setPermissions();
 	}
@@ -77,14 +77,14 @@ public abstract class AbstractCommandInstance {
 	 * Execute the code contained in the command instance
 	 * @param info - the informations given by the bot
 	 */
-	public abstract void execute(CommandGatewayNativeInformations infos);
-	public abstract void execute(CommandGatewaySlashInformations infos);
+	public abstract void execute(GatewayNativeCommandPacket infos);
+	public abstract void execute(GatewayApplicationCommandPacket infos);
 	
 	/**
 	 * Execute the code if the command is handling discord components
 	 * @param infos - the informations given by the bot
 	 */
-	public abstract void executeComponent(CommandGatewayComponentInformations infos);
+	public abstract void executeComponent(GatewayComponentCommandPacket infos);
 	
 	/**
 	 * Define if a command should be or not in the help list
@@ -150,7 +150,7 @@ public abstract class AbstractCommandInstance {
 	 * Get the unique command id
 	 * @return the command's id
 	 */
-	public String getID() {
+	public UUID getID() {
 		return this.commandId;
 	}
 	

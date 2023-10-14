@@ -3,7 +3,7 @@ package apbiot.core.command;
 import java.util.ArrayList;
 import java.util.List;
 
-import apbiot.core.command.informations.CommandGatewaySlashInformations;
+import apbiot.core.command.informations.GatewayApplicationCommandPacket;
 import apbiot.core.commandator.HelpDescription;
 import apbiot.core.objects.Argument;
 import apbiot.core.objects.interfaces.ICommandCategory;
@@ -28,7 +28,7 @@ public abstract class NativeCommandInstance extends AbstractCommandInstance {
 	}
 	
 	@Override
-	public void execute(CommandGatewaySlashInformations gatewayInformation) { }
+	public void execute(GatewayApplicationCommandPacket gatewayInformation) { }
 	
 	@Override
 	public void buildCommand() { built = true; }

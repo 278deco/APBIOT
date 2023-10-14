@@ -1,5 +1,7 @@
 package apbiot.core.objects.interfaces;
 
+import java.util.Optional;
+
 import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
@@ -12,5 +14,5 @@ public interface IGatewayInformations {
 	User getExecutor();
 	Guild getGuild();
 	MessageChannel getChannel();
-	Message getMessage();
+	Optional<Message> getMessage();
 }

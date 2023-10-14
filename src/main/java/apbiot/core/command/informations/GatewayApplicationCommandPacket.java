@@ -1,5 +1,8 @@
 package apbiot.core.command.informations;
 
+import java.util.Optional;
+
+import apbiot.core.objects.enums.ApplicationCommandType;
 import apbiot.core.objects.interfaces.IGatewayInformations;
 import discord4j.core.event.domain.interaction.ApplicationCommandInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteraction;
@@ -8,21 +11,23 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 
-public class CommandGatewaySlashInformations implements IGatewayInformations {
+public class GatewayApplicationCommandPacket implements IGatewayInformations {
 	
 	private final ApplicationCommandInteractionEvent event;
+	private final ApplicationCommandType type;
 	
 	private final MessageChannel channel;
 	private final User executor;
 	
 	/**
-	 * Create a new instance of CommandGatewayComponentInteraction
+	 * Create a new instance of CommandGatewayApplication
 	 * @param commandEvent - the ComponentInteractEvent fired by discord
 	 * @param componentId - the id of the component
 	 * @param channel - the channel where the command has been executed
 	 */
-	public CommandGatewaySlashInformations(ApplicationCommandInteractionEvent interactionEvent, User executor, MessageChannel channel) {
+	public GatewayApplicationCommandPacket(ApplicationCommandInteractionEvent interactionEvent, ApplicationCommandType type, User executor, MessageChannel channel) {
 		this.event = interactionEvent;
+		this.type = type;
 		this.channel = channel;
 		this.executor = executor;
 	}
@@ -31,12 +36,21 @@ public class CommandGatewaySlashInformations implements IGatewayInformations {
 		return this.event;
 	}
 	
+	public <E extends ApplicationCommandInteractionEvent> E getEventAs(Class<E> casterEvent) {
+		if(casterEvent.equals(this.type.getEventClass())) return casterEvent.cast(this.event);
+		else throw new IllegalArgumentException(casterEvent.getName()+" isn't a valid event caster class");
+	}
+	
+	public ApplicationCommandType getType() {
+		return this.type;
+	}
+	
 	public boolean isCommandResultPresent() {
 		return getEvent().getInteraction().getCommandInteraction().isPresent();
 	}
 	
-	public ApplicationCommandInteraction getCommandResult() {
-		return isCommandResultPresent() ? getEvent().getInteraction().getCommandInteraction().get() : null;
+	public Optional<ApplicationCommandInteraction> getCommandResult() {
+		return getEvent().getInteraction().getCommandInteraction();
 	}
 	
 	public User getExecutor() {
@@ -54,8 +68,8 @@ public class CommandGatewaySlashInformations implements IGatewayInformations {
 	}
 	
 	@Override
-	public Message getMessage() {
-		return getEvent().getInteraction().getMessage().isPresent() ? getEvent().getInteraction().getMessage().get() : null;
+	public Optional<Message> getMessage() {
+		return getEvent().getInteraction().getMessage();
 	}
 	
 }
