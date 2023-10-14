@@ -106,5 +106,4 @@ public class Tuple<A, B> {
 		return "( "+ valueA + ", " + valueB +" )";
 	}
 	
-	
 }
