@@ -98,8 +98,6 @@ public abstract class AbstractCommandHandler implements IHandler {
 			commands.add(value.createApplicationCommand(value.getCommandArguments(new ArrayList<>())));
 		});
 
-		System.out.println(commands);
-		
 		if(commands.size() > 0) {
 			if(toGlobal) {
 				gateway.getRestClient().getApplicationService().bulkOverwriteGlobalApplicationCommand(
