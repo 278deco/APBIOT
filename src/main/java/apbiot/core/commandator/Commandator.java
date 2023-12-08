@@ -1,8 +1,6 @@
 package apbiot.core.commandator;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -14,61 +12,29 @@ import java.util.Set;
  */
 public class Commandator {
 	
-	private List<String> commandsList = new ArrayList<String>();
+	private Set<String> commandsList = new HashSet<String>();
 	
 	/**
 	 * Create a new instance of Commandator
 	 * @param commands - the list of commands
 	 */
-	public Commandator(List<String> commands) {
+	public Commandator(Set<String> commands) {
 		this.commandsList.addAll(commands);
 	}
 	
 	/**
 	 * Create a new instance of Commandator
-	 * @param nativeCommands - the list of commands
-	 * * @param slashCommands - the list of commands
+	 * @param nativeCommands The set of commands
+	 * @param slashCommands The set of commands
 	 */
-	public Commandator(List<String> nativeCommands, List<String> slashCommands) {
-		this.commandsList.addAll(nativeCommands);
-		this.commandsList.addAll(slashCommands);
-	}
-	
-	/**
-	 * Create a new instance of Commandator
-	 * @param commands - the set of commands
-	 */
-	public Commandator(Set<List<String>> commands) {
-		List<String> cmds = new ArrayList<>();
-		for(List<String> lst : commands) {
-			cmds.addAll(lst);
-		}
+	public Commandator(Set<Set<String>> nativeCommands, Set<Set<String>> slashCommands) {
+		nativeCommands.forEach(cmdName -> {
+			this.commandsList.addAll(cmdName);
+		});
 		
-		this.commandsList = cmds;
-	}
-	
-	/**
-	 * Create a new instance of Commandator
-	 * @param commands - the set of commands
-	 */
-	public Commandator(Set<List<String>> nativeCommands, Set<List<String>> slashCommands) {
-		for(List<String> lst : nativeCommands) {
-			this.commandsList.addAll(lst);
-		}
-		
-		for(List<String> lst : slashCommands) {
-			this.commandsList.addAll(lst);
-		}
-	}
-	
-	/**
-	 * Create a new instance of Commandator
-	 * @param commands - the map of commands
-	 */
-	public Commandator(Map<List<String>, AbstractMethodError> commands) {
-		for(List<String> lst : commands.keySet()) {
-			commandsList.add(lst.get(0));
-		}
+		slashCommands.forEach(cmdName -> {
+			this.commandsList.addAll(cmdName);
+		});
 	}
 	
 	/**

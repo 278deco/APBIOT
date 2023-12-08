@@ -1,6 +1,7 @@
 package apbiot.core.commandator;
 
 import java.util.List;
+import java.util.Set;
 
 import apbiot.core.objects.Tuple;
 
@@ -14,7 +15,7 @@ public class CommandatorRequest extends CommandatorMethods implements Runnable {
 	private volatile String requestedCommand;
 	private volatile String userCommand;
 	
-	public CommandatorRequest(List<String> cmdList, String userCommand) {
+	public CommandatorRequest(Set<String> cmdList, String userCommand) {
 		this.commandsList = cmdList;
 		this.userCommand = userCommand;
 	}

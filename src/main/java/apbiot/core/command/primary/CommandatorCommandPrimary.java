@@ -3,7 +3,6 @@
 import java.time.Duration;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import apbiot.core.builder.ColorBuilder;
@@ -34,7 +33,7 @@ public class CommandatorCommandPrimary extends NativeCommandInstance {
 	private final String botUsername, botAvatarUrl;
 	
 	public CommandatorCommandPrimary(long[] receivers, User botAccount) {
-		super(Arrays.asList("commandator"), "Envoie un message au développeur pour améliorer Commandator", CommandCategory.UTILITY);
+		super("commandator"	, "Envoie un message au développeur pour améliorer Commandator", CommandCategory.UTILITY);
 		
 		this.receivers = receivers;
 		
@@ -62,7 +61,7 @@ public class CommandatorCommandPrimary extends NativeCommandInstance {
 		
 		if(infos.getArguments().size() == 0) {
 			new TimedMessage(infos.getChannel().createMessage(
-					ArgumentHelper.getStringHelpSyntaxe(getRequiredArguments(), getMainName(), infos.getUsedPrefix())).block()
+					ArgumentHelper.getStringHelpSyntaxe(getRequiredArguments(), getDisplayName(), infos.getUsedPrefix())).block()
 			).setDelayedDelete(Duration.ofSeconds(7), true);
 		}else {
 			
@@ -70,7 +69,7 @@ public class CommandatorCommandPrimary extends NativeCommandInstance {
 				process(infos.getChannel(), infos.getEvent().getGuild().block(), infos.getArguments(), infos.getExecutor());
 			}else {
 				new TimedMessage(infos.getChannel().createMessage(
-						ArgumentHelper.getStringHelpSyntaxe(getRequiredArguments(), getMainName(), infos.getUsedPrefix())).block()
+						ArgumentHelper.getStringHelpSyntaxe(getRequiredArguments(), getDisplayName(), infos.getUsedPrefix())).block()
 				).setDelayedDelete(Duration.ofSeconds(7), true);
 			}
 		}
