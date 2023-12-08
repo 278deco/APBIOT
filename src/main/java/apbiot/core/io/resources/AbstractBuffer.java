@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import apbiot.core.event.EventListener;
-import apbiot.core.event.events.io.EventResourceDeleted;
-import apbiot.core.objects.interfaces.IEvent;
+import apbiot.core.pems.EventListener;
+import apbiot.core.pems.ProgramEvent;
+import apbiot.core.pems.ProgramEvent.EventPriority;
 
 public abstract class AbstractBuffer implements EventListener {
 	
@@ -149,9 +149,6 @@ public abstract class AbstractBuffer implements EventListener {
 	}
 	
 	@Override
-	public void newEventReceived(IEvent e) {
-		if(e instanceof EventResourceDeleted) {
-			this.remove(((EventResourceDeleted)e).getResourceId());
-		}
+	public void onEventReceived(ProgramEvent e, EventPriority priority) {	
 	}
 }
