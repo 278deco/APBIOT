@@ -15,7 +15,7 @@
         </RollingFile>
 
         <Console name="stdout" target="SYSTEM_OUT">
-            <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level]: %msg%n" />
+            <PatternLayout disableAnsi="false" pattern="%highlight{[%d{HH:mm:ss}] [%t/%level]: %msg%n}{FATAL=red, ERROR=bright_red, WARN=yellow, INFO=default, DEBUG=bright_green, TRACE=bright_cyan}" />
         </Console>
         
     </Appenders>
