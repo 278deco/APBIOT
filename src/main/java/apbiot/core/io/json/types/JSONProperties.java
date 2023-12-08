@@ -1,37 +1,32 @@
 package apbiot.core.io.json.types;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.function.BiPredicate;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import marshmalliow.core.json.JSONFile;
+import marshmalliow.core.objects.Directory;
 
-import apbiot.core.io.json.JSONContent;
-import apbiot.core.io.objects.IOArguments;
-import apbiot.core.io.objects.IOElement;
-
-public abstract class JSONProperties extends IOElement {
+/**
+ * Fork of JSONFile class used specifically to store properties
+ * @author 278deco
+ * @version 1.0.0
+ */
+public abstract class JSONProperties extends JSONFile {
 	
 	protected static final Logger LOGGER = LogManager.getLogger(JSONProperties.class);
-	private static final ObjectMapper CONFIGURATION_MAPPER = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
 	
-	private volatile JSONContent<String, Object> data;
-	
-	public JSONProperties(IOArguments args) {
-		super(args);
+	public JSONProperties(Directory dir, String name) {
+		super(dir, name);
 		
 		try {
-			final Path temp = directory.getPath().resolve(this.fileName);
-			
-			if(!Files.exists(temp))
-				Files.createFile(temp);
+
+			if(!Files.exists(getFullPath()))
+				Files.createFile(getFullPath());
 			
 			readFile();
 			
@@ -56,7 +51,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @throws ClassCastException
 	 */
 	protected boolean getBooleanProperty(String propKey) throws ClassCastException {
-		return (boolean)this.data.get(propKey);
+		return (boolean)this.getContentAsObject().get(propKey);
 	}
 	
 	/**
@@ -67,7 +62,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @throws ClassCastException
 	 */
 	protected String getStringProperty(String propKey) throws ClassCastException {
-		return (String)this.data.get(propKey);
+		return (String)this.getContentAsObject().get(propKey);
 	}
 	
 	/**
@@ -78,7 +73,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @throws ClassCastException
 	 */
 	protected Long getLongProperty(String propKey) throws ClassCastException {
-		return (Long)this.data.get(propKey);
+		return (Long)this.getContentAsObject().get(propKey);
 	}
 	
 	/**
@@ -91,7 +86,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @throws ClassCastException
 	 */
 	protected Integer getIntegerProperty(String propKey) throws ClassCastException {
-		return ((Long)this.data.get(propKey)).intValue();
+		return ((Long)this.getContentAsObject().get(propKey)).intValue();
 	}
 	
 	/**
@@ -102,7 +97,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @throws ClassCastException
 	 */
 	protected Float getFloatProperty(String propKey) throws ClassCastException {
-		return ((Float)this.data.get(propKey));
+		return ((Float)this.getContentAsObject().get(propKey));
 	}
 	
 	/**
@@ -116,7 +111,7 @@ public abstract class JSONProperties extends IOElement {
 	 */
 	@SuppressWarnings("unchecked")
 	protected <E> List<E> getListProperty(String propKey, Class<E> castClass) throws ClassCastException {
-		return ((List<E>)this.data.get(propKey));
+		return ((List<E>)this.getContentAsObject().get(propKey));
 	}
 	
 	/**
@@ -125,7 +120,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @return if it exist or not
 	 */
 	protected boolean isExistingProperty(String propKey) {
-		return this.data.containsKey(propKey);
+		return this.getContentAsObject().containsKey(propKey);
 	}
 	
 	/**
@@ -137,7 +132,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfDifferent(String, boolean, BiPredicate)
 	 */
 	protected void setProperty(String propKey, boolean value) {
-		this.data.put(propKey, value);
+		this.getContentAsObject().put(propKey, value);
 	}
 	
 	/**
@@ -149,7 +144,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfDifferent(String, String, BiPredicate)
 	 */
 	protected void setProperty(String propKey, String value) {
-		this.data.put(propKey, value);
+		this.getContentAsObject().put(propKey, value);
 	}
 	
 	/**
@@ -161,7 +156,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfDifferent(String, Long, BiPredicate)
 	 */
 	protected void setProperty(String propKey, Long value) {
-		this.data.put(propKey, value);
+		this.getContentAsObject().put(propKey, value);
 	}
 	
 	/**
@@ -173,7 +168,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfDifferent(String, Integer, BiPredicate)
 	 */
 	protected void setProperty(String propKey, Integer value) {
-		this.data.put(propKey, value);
+		this.getContentAsObject().put(propKey, value);
 	}
 	
 	/**
@@ -185,7 +180,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfDifferent(String, Float, BiPredicate)
 	 */
 	protected void setProperty(String propKey, Float value) {
-		this.data.put(propKey, value);
+		this.getContentAsObject().put(propKey, value);
 	}
 	
 	/**
@@ -197,7 +192,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfDifferent(String, List<?>, BiPredicate)
 	 */
 	protected void setProperty(String propKey, List<?> value) {
-		this.data.put(propKey, value);
+		this.getContentAsObject().put(propKey, value);
 	}
 	
 	/**
@@ -209,7 +204,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfDifferent(String, boolean, BiPredicate)
 	 */
 	protected void setPropertyIfAbsent(String propKey, boolean value) {
-		this.data.putIfAbsent(propKey, value);
+		this.getContentAsObject().putIfAbsent(propKey, value);
 	}
 	
 	/**
@@ -221,7 +216,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfDifferent(String, String, BiPredicate)
 	 */
 	protected void setPropertyIfAbsent(String propKey, String value) {
-		this.data.putIfAbsent(propKey, value);
+		this.getContentAsObject().putIfAbsent(propKey, value);
 	}
 	
 	/**
@@ -233,7 +228,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfDifferent(String, Long, BiPredicate)
 	 */
 	protected void setPropertyIfAbsent(String propKey, Long value) {
-		this.data.putIfAbsent(propKey, value);
+		this.getContentAsObject().putIfAbsent(propKey, value);
 	}
 	
 	/**
@@ -245,7 +240,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfDifferent(String, Integer, BiPredicate)
 	 */
 	protected void setPropertyIfAbsent(String propKey, Integer value) {
-		this.data.putIfAbsent(propKey, value);
+		this.getContentAsObject().putIfAbsent(propKey, value);
 	}
 	
 	/**
@@ -257,7 +252,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfDifferent(String, Float, BiPredicate)
 	 */
 	protected void setPropertyIfAbsent(String propKey, Float value) {
-		this.data.putIfAbsent(propKey, value);
+		this.getContentAsObject().putIfAbsent(propKey, value);
 	}
 	
 	/**
@@ -269,7 +264,7 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfDifferent(String, List<?>, BiPredicate)
 	 */
 	protected void setPropertyIfAbsent(String propKey, List<?> value) {
-		this.data.putIfAbsent(propKey, value);
+		this.getContentAsObject().putIfAbsent(propKey, value);
 	}
 	
 	/**
@@ -284,9 +279,9 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfAbsent(String, boolean)
 	 */
 	protected void setPropertyIfDifferent(String propKey, boolean value, BiPredicate<Boolean, Boolean> predicate) {
-		if(!this.data.containsKey(propKey)) this.data.put(propKey, value);
+		if(!this.getContentAsObject().containsKey(propKey)) this.getContentAsObject().put(propKey, value);
 		try {
-			if(predicate.test(value, this.getBooleanProperty(propKey))) this.data.put(propKey, value);
+			if(predicate.test(value, this.getBooleanProperty(propKey))) this.getContentAsObject().put(propKey, value);
 		}catch(ClassCastException e) { }
 	}
 	
@@ -302,9 +297,9 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfAbsent(String, String)
 	 */
 	protected void setPropertyIfDifferent(String propKey, String value, BiPredicate<String, String> predicate) {
-		if(!this.data.containsKey(propKey)) this.data.put(propKey, value);
+		if(!this.getContentAsObject().containsKey(propKey)) this.getContentAsObject().put(propKey, value);
 		try {
-			if(predicate.test(value, this.getStringProperty(propKey))) this.data.put(propKey, value);
+			if(predicate.test(value, this.getStringProperty(propKey))) this.getContentAsObject().put(propKey, value);
 		}catch(ClassCastException e) { }
 	}
 	
@@ -320,9 +315,9 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfAbsent(String, Long)
 	 */
 	protected void setPropertyIfDifferent(String propKey, Long value, BiPredicate<Long, Long> predicate) {
-		if(!this.data.containsKey(propKey)) this.data.put(propKey, value);
+		if(!this.getContentAsObject().containsKey(propKey)) this.getContentAsObject().put(propKey, value);
 		try {
-			if(predicate.test(value, this.getLongProperty(propKey))) this.data.put(propKey, value);
+			if(predicate.test(value, this.getLongProperty(propKey))) this.getContentAsObject().put(propKey, value);
 		}catch(ClassCastException e) { }
 	}
 	
@@ -338,9 +333,9 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfAbsent(String, Integer)
 	 */
 	protected void setPropertyIfDifferent(String propKey, Integer value, BiPredicate<Integer, Integer> predicate) {
-		if(!this.data.containsKey(propKey)) this.data.put(propKey, value);
+		if(!this.getContentAsObject().containsKey(propKey)) this.getContentAsObject().put(propKey, value);
 		try {
-			if(predicate.test(value, this.getIntegerProperty(propKey))) this.data.put(propKey, value);
+			if(predicate.test(value, this.getIntegerProperty(propKey))) this.getContentAsObject().put(propKey, value);
 		}catch(ClassCastException e) { }
 	}
 	
@@ -356,75 +351,10 @@ public abstract class JSONProperties extends IOElement {
 	 * @see JSONProperties#setPropertyIfAbsent(String, Float)
 	 */
 	protected void setPropertyIfDifferent(String propKey, Float value, BiPredicate<Float, Float> predicate) {
-		if(!this.data.containsKey(propKey)) this.data.put(propKey, value);
+		if(!this.getContentAsObject().containsKey(propKey)) this.getContentAsObject().put(propKey, value);
 		try {
-			if(predicate.test(value, this.getFloatProperty(propKey))) this.data.put(propKey, value);
+			if(predicate.test(value, this.getFloatProperty(propKey))) this.getContentAsObject().put(propKey, value);
 		}catch(ClassCastException e) { }
-	}
-	
-	/**
-	 * Save the file and write the content on the disk<br>
-	 * This method will always return true as the file is saved in his own thread
-	 * @return true
-	 */
-	@Override
-	public boolean saveFile(boolean forceSave) throws IOException {
-		if(this.data.isContentModified() || forceSave) {
-			new Thread(new Runnable() {
-				
-				@Override
-				public void run() {
-					try {
-						FileWriter fw = new FileWriter(directory.getPath().resolve(fileName).toFile());
-						
-						fw.write(CONFIGURATION_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(data));
-						
-						fw.flush();
-						fw.close();
-						
-						readFile();
-						
-					} catch (IOException e) {
-						LOGGER.error("Unexpected error while saving JSON Configuration [dir: {}, name: {}] with error {} and message {}", directory.getName(), fileName, e.getClass().getName(), e.getMessage());
-					}
-					
-				}
-			},"File-Save-Thread").start();
-			
-			return true;
-		}
-		return false;
-	}
-	
-	/**
-	 * Reload the file instance running in the program<br>
-	 * Any change made to the original file that are not saved will be overwritten
-	 * @return true if the file has been correctly reloaded
-	 */
-	@Override
-	public boolean reloadFile() {
-		data.clear();
-		
-		return readFile();
-	}
-	
-	/**
-	 * Read JSON file's content
-	 * @return true if the file has been read successfully
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	protected boolean readFile() {
-		try {
-			this.data = CONFIGURATION_MAPPER.readValue(directory.getPath().resolve(fileName).toFile(), JSONContent.class);
-			if(this.data == null) throw new NullPointerException();
-			
-			return true;
-		}catch(IOException e) {
-			this.data = new JSONContent<>();
-			
-			return false;
-		}
 	}
 	
 }

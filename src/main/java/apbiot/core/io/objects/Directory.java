@@ -5,6 +5,12 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * 
+ * @author 278deco
+ * @deprecated 5.0
+ * @see marshmalliow.core.objects.Directory
+ */
 public class Directory {
 	
 	private String name;

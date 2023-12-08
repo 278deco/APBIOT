@@ -13,19 +13,24 @@ import javax.annotation.Nullable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import apbiot.core.event.EventListener;
-import apbiot.core.event.events.discord.EventInstanceConnected;
 import apbiot.core.exceptions.NonExistingFileInstanceException;
 import apbiot.core.helper.DirectoryHelper;
 import apbiot.core.io.json.types.JSONProperties;
-import apbiot.core.io.objects.AfterClientInit;
-import apbiot.core.io.objects.Directory;
 import apbiot.core.io.objects.IOArguments;
 import apbiot.core.io.objects.IOElement;
-import apbiot.core.objects.interfaces.IEvent;
+import apbiot.core.pems.EventListener;
+import apbiot.core.pems.ProgramEvent;
+import apbiot.core.pems.ProgramEvent.EventPriority;
+import marshmalliow.core.objects.Directory;
 
+/**
+ * Handled all Input/Output exchanges
+ * @author 278deco
+ * @deprecated since 5.0.0
+ */
 public class IOManager {
 	
+	@SuppressWarnings("unused")
 	private static final String CONFIGURATION_FILE_NAME = "config.json";
 	
 	private static final Logger LOGGER = LogManager.getLogger(IOManager.class);
@@ -111,10 +116,11 @@ public class IOManager {
 	/**
 	 * Generate the program configuration file to be saved in this instance
 	 */
+	@SuppressWarnings("unused")
 	private void generateConfiguration() {
 		LOGGER.info("Loading program's configuration...");
 		
-		final JSONProperties temp = createFileObject(this.programConfigurationDirectory, CONFIGURATION_FILE_NAME, this.programConfigurationClass, null);
+		final JSONProperties temp = null;/*createFileObject(this.programConfigurationDirectory, CONFIGURATION_FILE_NAME, this.programConfigurationClass, null);*/
 		
 		if(temp != null) {
 			this.programConfiguration = temp;
@@ -282,7 +288,7 @@ public class IOManager {
 		if(programConfiguration == null) throw new IllegalAccessError("No program's configuration was found");
 		LOGGER.info("Reloading program's configuration...");
 		
-		this.programConfiguration.reloadFile();
+		/*this.programConfiguration.reloadFile();*/
 		
 		LOGGER.info("Successfully reloaded program's configuration");
 	}
@@ -609,21 +615,14 @@ public class IOManager {
 	/**
 	 * Subclass of {@link IOManager} dedicated to listen about the different event of the program
 	 * @author 278deco
-	 *
+	 * @deprecated since 5.0
 	 */
 	public class IOManagerEventListener implements EventListener {
 
 		@Override
-		public void newEventReceived(IEvent e) {
-			if(e instanceof EventInstanceConnected) {
-				for(IOElement element : uniqueFiles.values()) {
-					if(element instanceof AfterClientInit) {
-						((AfterClientInit)element).afterClientInit();
-					}
-				}
-			}
+		public void onEventReceived(ProgramEvent e, EventPriority priority) {
+			
 		}
-		
 	}
 }
 

@@ -9,8 +9,12 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import apbiot.core.io.objects.Directory;
+import marshmalliow.core.objects.Directory;
 
+/**
+ * @author 278deco
+ * @deprecated since 5.0.0
+ */
 public class DirectoriesManager {
 	
 	private static final Logger LOGGER = LogManager.getLogger(DirectoriesManager.class);

@@ -6,6 +6,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+/**
+ * 
+ * @author 278deco
+ * @deprecated 5.0
+ * @param <K>
+ * @param <V>
+ */
 public class JSONContent<K, V> extends ConcurrentHashMap<K, V> {
 
 	private static final long serialVersionUID = 4595856122081667102L;

@@ -3,7 +3,15 @@ package apbiot.core.io.objects;
 import java.io.IOException;
 
 import apbiot.core.objects.enums.FileType;
+import marshmalliow.core.objects.IOClass;
+import marshmalliow.core.objects.Directory;
 
+/**
+ * 
+ * @author 278deco
+ * @deprecated 5.0
+ * @see IOClass
+ */
 public abstract class IOElement {
 	
 	protected IOArguments classArguments;

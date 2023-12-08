@@ -1,5 +1,12 @@
 package apbiot.core.io.objects;
 
+import marshmalliow.core.objects.Directory;
+
+/**
+ * 
+ * @author 278deco
+ * @deprecated 5.0
+ */
 public class IOArguments {
 	
 	private Directory directory;

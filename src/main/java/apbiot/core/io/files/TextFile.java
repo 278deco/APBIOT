@@ -23,9 +23,11 @@ import apbiot.core.objects.enums.FileType;
 
 /**
  * Manage text file easily (like .txt file) with reading, writing methods
+ * @deprecated 5.0
  * @version 1.0
  * @since 3.0
  * @author 278deco
+ * @see marshmalliow.core.file.TextFile
  */
 public class TextFile extends IOElement {
 

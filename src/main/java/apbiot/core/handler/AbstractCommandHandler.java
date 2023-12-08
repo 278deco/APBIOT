@@ -4,25 +4,26 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import apbiot.core.command.AbstractCommandInstance;
 import apbiot.core.command.ApplicationCommandInstance;
 import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.SlashCommandInstance;
-import apbiot.core.objects.interfaces.IHandler;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
 /**
  * CommandHandler class
- * This class handle all the commands created by the bot
+ * This class register all created commands handled by the client.
  * @author 278deco
- * @see apbiot.core.objects.interfaces.IHandler
+ * @version 2.0
+ * @see apbiot.core.handler.Handler
  */
-public abstract class AbstractCommandHandler implements IHandler {
-	public final Map<List<String>, NativeCommandInstance> NATIVE_COMMANDS = new HashMap<>();
-	public final Map<List<String>, SlashCommandInstance> SLASH_COMMANDS = new HashMap<>();
+public abstract class AbstractCommandHandler extends Handler {
+	public final Map<Set<String>, NativeCommandInstance> NATIVE_COMMANDS = new HashMap<>();
+	public final Map<Set<String>, SlashCommandInstance> SLASH_COMMANDS = new HashMap<>();
 	public final Map<String, ApplicationCommandInstance> APPLICATION_COMMANDS = new HashMap<>();
 	
 	/* Example :
@@ -32,13 +33,13 @@ public abstract class AbstractCommandHandler implements IHandler {
 	protected void addNewCommand(AbstractCommandInstance cmd) {
 		if(cmd instanceof NativeCommandInstance) NATIVE_COMMANDS.put(cmd.getNames(), (NativeCommandInstance)cmd);
 		if(cmd instanceof SlashCommandInstance) SLASH_COMMANDS.put(cmd.getNames(), (SlashCommandInstance)cmd);
-		if(cmd instanceof ApplicationCommandInstance) APPLICATION_COMMANDS.put(cmd.getMainName(), (ApplicationCommandInstance)cmd);
+		if(cmd instanceof ApplicationCommandInstance) APPLICATION_COMMANDS.put(cmd.getDisplayName(), (ApplicationCommandInstance)cmd);
 	}
 	
 	/**
 	 * Register and push slash commands to discord API
-	 * @param gateway - the discord gateway
-	 * @param guildID - if present register the slash commands to a specific server, else register them as global
+	 * @param gateway The discord gateway
+	 * @param guildID If present register the slash commands to a specific server, else register them as global
 	 * @deprecated see {@link #registerApplicationCommand(GatewayDiscordClient, long)}
 	 */
 	@Deprecated
