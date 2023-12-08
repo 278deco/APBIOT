@@ -5,10 +5,8 @@ import java.util.Objects;
 
 import apbiot.core.img.ConstructedImage;
 import apbiot.core.img.ConstructedImage.ImageStatus;
-import apbiot.core.io.ResourceManager;
-import apbiot.core.io.objects.Directory;
-import apbiot.core.io.resources.Resource;
 import discord4j.rest.util.Image;
+import marshmalliow.core.objects.Directory;
 
 public class ImageHelper {
 	
@@ -33,13 +31,9 @@ public class ImageHelper {
 	 * @return a tuple containing the image name and the path to the image
 	 * @throws IOException 
 	 */
-	public static Resource getValidDiscordImage(Directory directory, ConstructedImage img) throws IOException {
-		if(!ResourceManager.doesInstanceExist()) throw new IllegalStateException("Cannot call this method if the resourceManager doesn't exist!");
-		final Resource resource = new Resource(Objects.requireNonNull(directory), img.getName(), img.getFormat(), img.getRawImage());
-
-		ResourceManager.getInstance().saveResource(resource);
-
-		return resource;
+	public static void getValidDiscordImage(Directory directory, ConstructedImage img) throws IOException {
+		//TODO
+		return;
 	}
 	
 }

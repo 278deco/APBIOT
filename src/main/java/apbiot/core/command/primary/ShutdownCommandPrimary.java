@@ -1,7 +1,6 @@
 package apbiot.core.command.primary;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import apbiot.core.command.SlashCommandInstance;
@@ -17,7 +16,7 @@ public class ShutdownCommandPrimary extends SlashCommandInstance {
 	private final IRunnableMethod shutdownMethod;
 	
 	public ShutdownCommandPrimary(IRunnableMethod shutdownMethod) {
-		super(Arrays.asList("shutdown"), "Eteint le bot.", CommandCategory.ADMIN);
+		super("shutdown", "Eteint le bot.", CommandCategory.ADMIN);
 		
 		this.shutdownMethod = shutdownMethod;
 	}

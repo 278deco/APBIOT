@@ -2,15 +2,15 @@ package apbiot.core.builder;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import apbiot.core.MainInitializer;
 import apbiot.core.command.AbstractCommandInstance;
 import apbiot.core.command.ApplicationCommandInstance;
 import apbiot.core.command.NativeCommandInstance;
@@ -20,9 +20,6 @@ import apbiot.core.command.informations.GatewayApplicationCommandPacket;
 import apbiot.core.command.informations.GatewayComponentCommandPacket;
 import apbiot.core.command.informations.GatewayNativeCommandPacket;
 import apbiot.core.commandator.Commandator;
-import apbiot.core.event.events.discord.EventCommandError;
-import apbiot.core.event.events.discord.EventCommandReceived;
-import apbiot.core.event.events.discord.EventInstanceConnected;
 import apbiot.core.exceptions.UnbuiltBotException;
 import apbiot.core.handler.AbstractCommandHandler;
 import apbiot.core.helper.ArgumentHelper;
@@ -33,6 +30,8 @@ import apbiot.core.helper.StringHelper;
 import apbiot.core.objects.Tuple;
 import apbiot.core.objects.enums.ApplicationCommandType;
 import apbiot.core.objects.interfaces.IGatewayInformations;
+import apbiot.core.pems.BaseProgramEventEnum;
+import apbiot.core.pems.ProgramEventManager;
 import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
@@ -64,14 +63,13 @@ public class ClientBuilder {
 	private static final Logger LOGGER = LogManager.getLogger(ClientBuilder.class);
 	
 	private static GatewayDiscordClient gateway;
-	private Thread clientThread;
 	
 	private String botPrefix;
 	private Snowflake ownerID;
 
 	//Compilated Command Map and Slash Command Map
-	private Map<List<String>, NativeCommandInstance> NATIVE_COMMANDS;
-	private Map<List<String>, SlashCommandInstance> SLASH_COMMANDS;
+	private Map<Set<String>, NativeCommandInstance> NATIVE_COMMANDS;
+	private Map<Set<String>, SlashCommandInstance> SLASH_COMMANDS;
 	//Compilated User and Message Commands
 	private Map<String, ApplicationCommandInstance> APPLICATION_COMMANDS;
 	
@@ -97,27 +95,24 @@ public class ClientBuilder {
 	 * @param nativeCommandsMap - the native command map
 	 * @param slashCommandsMap - the slash command map
 	 * @see apbiot.core.handler.ECommandHandler
+	 * @deprecated since 5.0
 	 */
 	public void updatedCommandReferences(AbstractCommandHandler cmdHandler) {
-		this.NATIVE_COMMANDS = cmdHandler.NATIVE_COMMANDS;
-		this.SLASH_COMMANDS = cmdHandler.SLASH_COMMANDS;
-		this.APPLICATION_COMMANDS = cmdHandler.APPLICATION_COMMANDS;
+//		this.NATIVE_COMMANDS = cmdHandler.NATIVE_COMMANDS;
+//		this.SLASH_COMMANDS = cmdHandler.SLASH_COMMANDS;
+//		this.APPLICATION_COMMANDS = cmdHandler.APPLICATION_COMMANDS;
 	}
 	
-	/**
-	 * Get the registered native command map loaded by the client and available to be used
-	 * @return an unmodifiable map representing the commands
-	 */
-	public Map<List<String>, NativeCommandInstance> getNativeCommandMap() {
-		return Collections.unmodifiableMap(NATIVE_COMMANDS);
+	public void updateNativeCommandMapping(Optional<Map<Set<String>, NativeCommandInstance>> mapping) {
+		if(mapping.isPresent()) this.NATIVE_COMMANDS = mapping.get();
 	}
 	
-	/**
-	 * Get the registered slash command map loaded by the client and available to be used
-	 * @return an unmodifiable map representing the commands
-	 */
-	public Map<List<String>, SlashCommandInstance> getSlashCommandMap() {
-		return Collections.unmodifiableMap(SLASH_COMMANDS);
+	public void updateSlashCommandMapping(Optional<Map<Set<String>, SlashCommandInstance>> mapping) {
+		if(mapping.isPresent()) this.SLASH_COMMANDS = mapping.get();
+	}
+	
+	public void updateApplicationCommandMapping(Optional<Map<String, ApplicationCommandInstance>> mapping) {
+		if(mapping.isPresent()) this.APPLICATION_COMMANDS = mapping.get();
 	}
 	
 	private void createComponentListener() {
@@ -170,10 +165,11 @@ public class ClientBuilder {
 				handleUnknownCommand(userCommand.getValueA(), event.getMember().get(), channel);
 			}else {
 
-				MainInitializer.getEventDispatcher().dispatchEvent(new EventCommandReceived(StringHelper.getRawCharacterString(
-								event.getMessage().getAuthor().get().getUsername()), 
-								userCommand.getValueA(),
-								channel.getType(), ApplicationCommandType.NATIVE));
+				ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_RECEIVED, new Object[] {
+						StringHelper.getRawCharacterString(event.getMessage().getAuthor().get().getUsername()), 
+						userCommand.getValueA(),
+						channel.getType(), 
+						ApplicationCommandType.NATIVE});
 				
 				if(CooldownHelper.canExecuteCommand(commandCooldown, event.getMessage().getAuthor().get(), channel)) {
 					this.commandCooldown = CooldownHelper.wipeNullInstance(commandCooldown);
@@ -224,10 +220,11 @@ public class ClientBuilder {
 		final MessageChannel channel = event.getInteraction().getChannel().block();
 		
 		if(cmd != null) {
-			MainInitializer.getEventDispatcher().dispatchEvent(new EventCommandReceived(StringHelper.getRawCharacterString(
-					event.getInteraction().getUser().getUsername()), 
-					cmd.getMainName(),
-					channel.getType(), type));
+			ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_RECEIVED, new Object[] {
+					StringHelper.getRawCharacterString(event.getInteraction().getUser().getUsername()), 
+					cmd.getDisplayName(),
+					channel.getType(), 
+					type});
 			
 			if(CooldownHelper.canExecuteCommand(commandCooldown, event.getInteraction().getUser(), channel)) {
 				this.commandCooldown = CooldownHelper.wipeNullInstance(commandCooldown);
@@ -277,7 +274,7 @@ public class ClientBuilder {
 		
 		switch(type) {
 			case NATIVE -> {
-				for(Map.Entry<List<String>, NativeCommandInstance> entry : NATIVE_COMMANDS.entrySet()) {
+				for(var entry : NATIVE_COMMANDS.entrySet()) {
 					for(String commandName : entry.getKey()) {
 						
 						if(commandName.equalsIgnoreCase(providedCmdName)) {
@@ -287,14 +284,14 @@ public class ClientBuilder {
 				}
 			}
 			case CHAT_INPUT -> {
-				for(Map.Entry<List<String>, SlashCommandInstance> entry : SLASH_COMMANDS.entrySet()) {
-					if(entry.getKey().get(0).equalsIgnoreCase(providedCmdName)) {
+				for(var entry : SLASH_COMMANDS.entrySet()) {
+					if(entry.getValue().getDisplayName().equalsIgnoreCase(providedCmdName)) {
 						return entry.getValue();
 					}
 				}
 			}
 			case MESSAGE, USER -> {
-				for(Map.Entry<String, ApplicationCommandInstance> entry : APPLICATION_COMMANDS.entrySet()) {
+				for(var entry : APPLICATION_COMMANDS.entrySet()) {
 					if(entry.getKey().equalsIgnoreCase(providedCmdName)) {
 						return entry.getValue();
 					}
@@ -449,9 +446,12 @@ public class ClientBuilder {
 			LOGGER.error("Unexpected error while catching a command",e);
 		}
 		
-		MainInitializer.getEventDispatcher().dispatchEvent(new EventCommandError(StringHelper.getRawCharacterString(
-				user.getUsername()), commandName, helpMessage, channel.getType()));
-		
+		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMMAND_ERROR, new Object[] {
+				StringHelper.getRawCharacterString(user.getUsername()), 
+				commandName, 
+				helpMessage, 
+				channel.getType()});
+				
 		if(helpMessage != "") {
 			
 			new TimedMessage(channel.createMessage(
@@ -480,42 +480,32 @@ public class ClientBuilder {
 	
 	/**
 	 * Used to build the instance of the bot and connect it to Discord
-	 * @param token - the bot's token
-	 * @param defaultStatus - the default status used by the bot
-	 * @param intent -  the intent used and required by the bot
+	 * @param token The bot's token
+	 * @param defaultStatus The default status used by the bot
+	 * @param intent The intent used and required by the bot
 	 * @see discord4j.gateway.intent.IntentSet
-	 * @see apbiot.core.builder.ClientBuilder#createCommandListener()
-	 * @see discord4j.core.DiscordClient#login()
+	 * @see DiscordClient#login()
 	 * @throws UnbuiltBotException
 	 */
-	public synchronized void build(String token, ClientPresence defaultStatus, IntentSet intent, String prefix) throws UnbuiltBotException {
-		if(NATIVE_COMMANDS == null) throw new UnbuiltBotException("You cannot launch a bot without building it.");
+	public synchronized void launch(String token, IntentSet intent, String prefix, Optional<ClientPresence> defaultStatus) throws UnbuiltBotException {
+		if(NATIVE_COMMANDS == null || SLASH_COMMANDS == null || APPLICATION_COMMANDS == null ) throw new UnbuiltBotException("You cannot launch a bot without building it.");
 		
-		final DiscordClient client = DiscordClientBuilder.create(token).build();
 		this.botPrefix = prefix;
 		
-		clientThread = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				
-				GatewayDiscordClient g = GatewayBootstrap.create(client).setEnabledIntents(intent).setDisabledIntents(IntentSet.none()).login().block();
-				gateway = g;
-				setPresenceText(defaultStatus);
-				
-				createNativeCommandListener();
-				createApplicationCommandListener();
-				
-				createComponentListener();
-				
-				ownerID = gateway.getApplicationInfo().block().getOwnerId();
-				MainInitializer.getEventDispatcher().dispatchEvent(new EventInstanceConnected());
-				
-				g.onDisconnect().block();
-			}
-			
-		});
-		clientThread.start();
+		gateway = GatewayBootstrap.create(DiscordClientBuilder.create(token).build()).setEnabledIntents(intent).setDisabledIntents(IntentSet.none()).login().block();
+	
+		if(defaultStatus.isPresent()) setPresenceText(defaultStatus.get());
+		
+		createNativeCommandListener();
+		createApplicationCommandListener();
+		
+		createComponentListener();
+		
+		ownerID = gateway.getApplicationInfo().block().getOwnerId();
+		
+		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.CLIENT_INSTANCE_CONNECTED, new Object[] {gateway});
+		
+		gateway.onDisconnect().block();
 	}
 	
 	/**

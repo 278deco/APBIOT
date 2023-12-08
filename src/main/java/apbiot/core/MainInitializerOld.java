@@ -1,7 +1,6 @@
 package apbiot.core;
 
 import java.io.IOException;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,23 +15,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import apbiot.core.builder.ConsoleLogger;
 import apbiot.core.builder.HandlerManager;
 import apbiot.core.event.EventDispatcher;
-import apbiot.core.event.EventListener;
-import apbiot.core.event.events.EventProgramFullyLoaded;
-import apbiot.core.event.events.discord.EventInstanceConnected;
 import apbiot.core.exceptions.UnbuiltBotException;
 import apbiot.core.handler.AbstractCommandHandler;
 import apbiot.core.handler.AbstractSystemCommandHandler;
+import apbiot.core.handler.Handler;
 import apbiot.core.io.DirectoriesManager;
 import apbiot.core.io.IOManager;
 import apbiot.core.io.ResourceManager;
 import apbiot.core.io.json.types.JSONProperties;
-import apbiot.core.objects.interfaces.IEvent;
-import apbiot.core.objects.interfaces.IHandler;
 import apbiot.core.objects.interfaces.IRunnableMethod;
+import apbiot.core.pems.EventListener;
+import apbiot.core.pems.ProgramEvent;
+import apbiot.core.pems.ProgramEvent.EventPriority;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.intent.IntentSet;
 
-public abstract class MainInitializer {
+/**
+ * @deprecated
+ * @see ClientProgramInstance
+ */
+public abstract class MainInitializerOld {
 
 	private static String DISCORD_SLASH_PREFIX = "/";
 	
@@ -52,7 +54,7 @@ public abstract class MainInitializer {
 	 * Program's logger
 	 * @see org.apache.logging.log4j.Logger
 	 */
-	protected static final Logger LOGGER = LogManager.getLogger(MainInitializer.class);
+	protected static final Logger LOGGER = LogManager.getLogger(MainInitializerOld.class);
 	
 	/**
 	 * Program's json factory and Object Mapper
@@ -61,7 +63,7 @@ public abstract class MainInitializer {
 	 * THREAD FRIENDLY</p>
 	 * @see com.fasterxml.jackson.core.JsonFactory
 	 * @see com.fasterxml.jackson.databind.ObjectMapper
-	 */
+	 */	
 	public static final JsonFactory JSON_FACTORY = new JsonFactory();
 	public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	
@@ -84,8 +86,8 @@ public abstract class MainInitializer {
 		LOGGER.info("Starting program...");
 		
 		handlerBuilder = HandlerManager.builder();
-		handlerBuilder.addHandler(commandHandler)
-			.addHandler(sysCmdHandler);
+//		handlerBuilder.addHandler(commandHandler)
+//			.addHandler(sysCmdHandler);
 		
 		LOGGER.info("Initializing handlers (phase 1) completed.");
 		
@@ -181,7 +183,7 @@ public abstract class MainInitializer {
 	 * @param handler - the handler to add
 	 * @throws IllegalAccessError
 	 */
-	public void addRequiredHandler(IHandler handler) {
+	public void addRequiredHandler(Handler handler) {
 		if(handlerBuilder == null) {
 			throw new IllegalAccessError("Cannot add an handler neither before the initialization of the program nor after its launching!");
 		}else {
@@ -222,26 +224,26 @@ public abstract class MainInitializer {
 	private class ClientConnectionListener implements EventListener {
 
 		@Override
-		public void newEventReceived(IEvent e) {
-			if(e instanceof EventInstanceConnected) {
-				handlerManager.registerHandlers(ClientInstance.getInstance().getClientBuilder().getGateway());
-				LOGGER.info("Registering handlers (phase 2) completed.");
-				
-				handlerManager.postRegisterHandlers();
-				LOGGER.info("Building handlers (phase 3) completed.");
-				LOGGER.info("All handlers have been completly registered ("+handlerManager.getRequiredHandlerNumber()+")");
-				
-				try {
-					ClientInstance.getInstance().updatedCommandReferences();
-					ConsoleLogger.getInstance().updatedCommandReferences();
-				} catch (IllegalAccessException | NoSuchElementException err) {
-					LOGGER.fatal("Unexpected error during client build with message {}. Shutting down...",err.getMessage());
-					new ShutdownProgram();
-				}
-				
-				eventDispatcher.dispatchEvent(new EventProgramFullyLoaded(ClientInstance.getInstance().getClientBuilder().isUsingCommandator(), ClientInstance.getInstance().getClientBuilder().getBotPrefix()));
-				onFullyLoaded(); //Call this method when all elements of the client have been fully loaded
-			}
+		public void onEventReceived(ProgramEvent e, EventPriority priority) {
+//			if(e instanceof InstanceConnectedEvent) {
+//				handlerManager.registerHandlers(ClientInstance.getInstance().getClientBuilder().getGateway());
+//				LOGGER.info("Registering handlers (phase 2) completed.");
+//				
+//				handlerManager.postRegisterHandlers();
+//				LOGGER.info("Building handlers (phase 3) completed.");
+//				LOGGER.info("All handlers have been completly registered ("+handlerManager.getRequiredHandlerNumber()+")");
+//				
+//				try {
+//					ClientInstance.getInstance().updatedCommandReferences();
+//					ConsoleLogger.getInstance().updatedCommandReferences();
+//				} catch (IllegalAccessException | NoSuchElementException err) {
+//					LOGGER.fatal("Unexpected error during client build with message {}. Shutting down...",err.getMessage());
+//					new ShutdownProgram();
+//				}
+//				
+//				eventDispatcher.dispatchEvent(new EventProgramFullyLoaded(ClientInstance.getInstance().getClientBuilder().isUsingCommandator(), ClientInstance.getInstance().getClientBuilder().getBotPrefix()));
+//				onFullyLoaded(); //Call this method when all elements of the client have been fully loaded
+//			}
 		}
 		
 	}

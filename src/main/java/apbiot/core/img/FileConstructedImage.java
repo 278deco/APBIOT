@@ -7,8 +7,8 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
 
-import apbiot.core.io.objects.Directory;
 import apbiot.core.io.resources.Resource;
+import marshmalliow.core.objects.Directory;
 
 public class FileConstructedImage extends ConstructedImage {
 

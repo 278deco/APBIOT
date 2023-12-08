@@ -2,7 +2,6 @@ package apbiot.core.command.primary;
 
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,7 +39,7 @@ public class BugCommandPrimary extends SlashCommandInstance {
 	private final String botUsername, botAvatarUrl;
 	
 	public BugCommandPrimary(User botAccount) {
-		super(Arrays.asList("bug"), "Permet d'envoyer un message au développeur pour l'informer d'un bug.", CommandCategory.UTILITY);
+		super("bug", "Permet d'envoyer un message au développeur pour l'informer d'un bug.", CommandCategory.UTILITY);
 		
 		this.botUsername = botAccount.getUsername();
 		this.botAvatarUrl = botAccount.getAvatarUrl();

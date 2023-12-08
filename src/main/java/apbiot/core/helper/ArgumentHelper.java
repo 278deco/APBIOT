@@ -135,7 +135,7 @@ public class ArgumentHelper {
 	public static List<String> formatCommandArguments(boolean isPrefixSplitted, String command) {
 		if(command == "") return Arrays.asList("");
 		
-		List<String> result = new ArrayList<>(Arrays.asList(command.split(" ")));
+		List<String> result = new ArrayList<>(Arrays.asList(command.split(" +")));
 		if(isPrefixSplitted) {
 			result.remove(1);
 		}
