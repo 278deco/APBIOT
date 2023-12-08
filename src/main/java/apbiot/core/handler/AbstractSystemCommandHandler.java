@@ -1,20 +1,20 @@
 package apbiot.core.handler;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import apbiot.core.command.SystemCommand;
-import apbiot.core.objects.interfaces.IHandler;
 
 /**
  * SystemCommandHandler class
- * This class handle all the system commands created by the bot
+ * This class register all created commands handled by the console.
  * @author 278deco
- * @see apbiot.core.objects.interfaces.IHandler
+ * @version 2.0.0
+ * @see apbiot.core.handler.Handler
  */
-public abstract class AbstractSystemCommandHandler implements IHandler {
-	public final Map<List<String>, SystemCommand> COMMANDS = new HashMap<>();
+public abstract class AbstractSystemCommandHandler extends Handler {
+	public final Map<Set<String>, SystemCommand> COMMANDS = new HashMap<>();
 	
 	protected void addNewCommand(SystemCommand cmd) {
 		COMMANDS.put(cmd.getNames(), cmd);

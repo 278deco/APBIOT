@@ -4,8 +4,7 @@ import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import apbiot.core.objects.interfaces.IHandler;
-import discord4j.core.GatewayDiscordClient;
+import apbiot.core.handler.Handler;
 
 /**
  * Store every handlers and manage them across all the lifetime of the program <br><br>
@@ -15,11 +14,12 @@ import discord4j.core.GatewayDiscordClient;
  * <li>Then we can call <strong>register</strong></li>
  * </ul>
  * @author 278deco
- *
+ * @version 1.0.0
+ * @deprecated since 5.0.0
  */
 public class HandlerManager {
 	
-	private Set<IHandler> requiredHandlers = new HashSet<>();
+	private Set<Handler> requiredHandlers = new HashSet<>();
 	
 	private HandlerManager(HandlerManager.Builder builder) {
 		this.requiredHandlers = builder.getRequiredHandlers();
@@ -29,22 +29,22 @@ public class HandlerManager {
 	 * Pre-register all the handlers<br>
 	 */
 	public synchronized void preRegisterHandlers() {
-		requiredHandlers.forEach(h -> h.preRegister());
+		return;
 	}
 	
 	/**
 	 * Register all the handlers
 	 * @param gateway - the discord client gateway
 	 */
-	public synchronized void registerHandlers(GatewayDiscordClient gateway) {
-		requiredHandlers.forEach(h -> h.register(gateway));
+	public synchronized void registerHandlers() {
+		return;
 	}
 	
 	/**
 	 * Pre-register all the handlers<br>
 	 */
 	public synchronized void postRegisterHandlers() {
-		requiredHandlers.forEach(h -> h.postRegister());
+		return;
 	}
 
 	/**
@@ -54,8 +54,8 @@ public class HandlerManager {
 	 * @return the handler instance
 	 * @throws NoSuchElementException
 	 */
-	public <E extends IHandler> E getHandler(Class<E> cls) {
-		return cls.cast(this.requiredHandlers.stream().filter(let -> let.getClass().equals(cls)).findFirst().orElseThrow());
+	public <E extends Handler> E getHandler(Class<E> cls) {
+		return null;
 	}
 	
 	/**
@@ -72,15 +72,15 @@ public class HandlerManager {
 	
 	public static class Builder {
 		
-		private Set<IHandler> requiredHandlers = new HashSet<>();
+		private Set<Handler> requiredHandlers = new HashSet<>();
 		private Builder() { }
 		
 		/**
 		 * Add a new handler
 		 * @param handler - the handler to be added
 		 */
-		public Builder addHandler(IHandler... handler) {
-			for(IHandler h : handler) 
+		public Builder addHandler(Handler... handler) {
+			for(Handler h : handler) 
 				requiredHandlers.add(h);
 			
 			return this;
@@ -90,7 +90,7 @@ public class HandlerManager {
 			return new HandlerManager(this);
 		}
 		
-		private Set<IHandler> getRequiredHandlers() {
+		private Set<Handler> getRequiredHandlers() {
 			return requiredHandlers;
 		}
 		
