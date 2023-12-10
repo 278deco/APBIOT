@@ -40,8 +40,8 @@ import marshmalliow.core.security.SaltSize;
 
 public class CredentialsCoreModule extends CoreModule {
 
-	private static final String DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME = ".encredentials";
-	private static final String DEFAULT_CREDENTIALS_FILE_NAME = ".credentials";
+	private static final Path DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME = Path.of(".encredentials");
+	private static final Path DEFAULT_CREDENTIALS_FILE_NAME = Path.of(".credentials");
 	
 	public boolean areCredentialsEncrypted = true;
 	
@@ -56,13 +56,24 @@ public class CredentialsCoreModule extends CoreModule {
 
 	@Override
 	public void executeAssertion() {
-		if(!Files.exists(Path.of(DEFAULT_CREDENTIALS_FILE_NAME)) && !Files.exists(Path.of(DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME))) 
-			throw new NonExistingFileInstanceException("Credentials file is missing in root directory");
+
+		try {
+			boolean assertPresent = false; 
+			if(Files.exists(DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME) && Files.size(DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME) != 0)
+				assertPresent = true;
+			
+			if(Files.exists(DEFAULT_CREDENTIALS_FILE_NAME) && Files.size(DEFAULT_CREDENTIALS_FILE_NAME) != 0)
+				assertPresent = true;
+			
+			if(!assertPresent) throw new IOException();
+		} catch (IOException e) {
+			throw new NonExistingFileInstanceException("Credentials file is missing in root directory or is empty");
+		}
 	}
 
 	@Override
 	public void init() throws CoreModuleLoadingException {
-		this.areCredentialsEncrypted = Files.exists(Path.of(DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME));
+		this.areCredentialsEncrypted = Files.exists(DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME);
 		
 		if(areCredentialsEncrypted) {
 		credentialsSettingsBuilder = FileCredentials.builder()
@@ -98,14 +109,14 @@ public class CredentialsCoreModule extends CoreModule {
 				final FileCredentials credSettings = this.credentialsSettingsBuilder.key(key).build();
 				final Cipher cipher = Cipher.getInstance(credSettings.getType().getEncryption());
 				
-				stream = Files.newInputStream(Path.of(DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME));
+				stream = Files.newInputStream(DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME);
 				reader = SecurityHelper.decryptWithAESGCM(cipher, stream, credSettings, 128);
 				lexer = new JSONLexer(reader);
 				final JSONParser parser = new JSONParser(lexer);
 				
 				content = (JSONObject) parser.parse();
 			}else {
-				reader = Files.newBufferedReader(Path.of(DEFAULT_CREDENTIALS_FILE_NAME));
+				reader = Files.newBufferedReader(DEFAULT_CREDENTIALS_FILE_NAME);
 				lexer = new JSONLexer(reader);
 				final JSONParser parser = new JSONParser(lexer);
 				
@@ -164,9 +175,9 @@ public class CredentialsCoreModule extends CoreModule {
 
 	@Override
 	public void postLaunch() throws CoreModuleLaunchingException {
-		this.credentialsContent.clear();
-		this.dbCredentialsContent.clear();
-		this.externalApiCredentialsContent.clear();
+		if(this.credentialsContent != null) this.credentialsContent.clear();
+		if(this.dbCredentialsContent != null) this.dbCredentialsContent.clear();
+		if(this.externalApiCredentialsContent != null) this.externalApiCredentialsContent.clear();
 	}
 	
 	@Override
