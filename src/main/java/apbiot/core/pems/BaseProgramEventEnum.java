@@ -3,10 +3,12 @@ package apbiot.core.pems;
 import apbiot.core.pems.events.CommandErrorEvent;
 import apbiot.core.pems.events.CommandReceivedEvent;
 import apbiot.core.pems.events.CommandsListParsedEvent;
+import apbiot.core.pems.events.ConfigurationLoadedEvent;
 import apbiot.core.pems.events.CoreModuleInitializationEvent;
 import apbiot.core.pems.events.CoreModuleLaunchEvent;
 import apbiot.core.pems.events.CoreModuleShutdownEvent;
 import apbiot.core.pems.events.DatabaseCredentialsAcquiredEvent;
+import apbiot.core.pems.events.DirectoriesLoadedEvent;
 import apbiot.core.pems.events.ExternalAPICredentialsAcquieredEvent;
 import apbiot.core.pems.events.InstanceConnectedEvent;
 import apbiot.core.pems.events.InstanceDisconnectedEvent;
@@ -18,6 +20,9 @@ public enum BaseProgramEventEnum implements ProgramEventEnumerator {
 	CORE_MODULE_INIT_EVENT(CoreModuleInitializationEvent.class),
 	CORE_MODULE_LAUNCH_EVENT(CoreModuleLaunchEvent.class),
 	CORE_MODULE_SHUTDOWN_EVENT(CoreModuleShutdownEvent.class),
+	
+	CONFIGURATION_LOADED_EVENT(ConfigurationLoadedEvent.class),
+	DIRECTORIES_LOADED_EVENT(DirectoriesLoadedEvent.class),
 	
 	EXTERNAL_API_CREDENTIALS_ACQUIERED(ExternalAPICredentialsAcquieredEvent.class),
 	DATABASE_CREDENTIALS_ACQUIERED(DatabaseCredentialsAcquiredEvent.class),

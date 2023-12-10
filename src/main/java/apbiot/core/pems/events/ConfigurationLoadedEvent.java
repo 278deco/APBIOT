@@ -6,9 +6,9 @@ import apbiot.core.pems.ProgramEvent;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.intent.IntentSet;
 
-public class ConfigurationFileLoadedEvent extends ProgramEvent {
+public class ConfigurationLoadedEvent extends ProgramEvent {
 
-	public ConfigurationFileLoadedEvent(Object[] arguments) {
+	public ConfigurationLoadedEvent(Object[] arguments) {
 		super(arguments);
 	}
 
