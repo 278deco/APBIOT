@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +36,6 @@ import apbiot.core.pems.ProgramEventManager;
 import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
-import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
 import discord4j.core.event.domain.interaction.ApplicationCommandInteractionEvent;
@@ -62,7 +62,8 @@ public class ClientBuilder {
 
 	private static final Logger LOGGER = LogManager.getLogger(ClientBuilder.class);
 	
-	private static GatewayDiscordClient gateway;
+	private GatewayDiscordClient gateway;
+	private ReentrantLock lock = new ReentrantLock();
 	
 	private String botPrefix;
 	private Snowflake ownerID;
@@ -78,16 +79,18 @@ public class ClientBuilder {
 	
 	/**
 	 * Create a discord client with DiscordClientBuilder
-	 * @return an instance of ClientBuilder
 	 */
-	public ClientBuilder createNewInstance() {
-		this.commandCooldown = new ArrayList<>();
-		
-		this.NATIVE_COMMANDS = new HashMap<>();
-		this.SLASH_COMMANDS = new HashMap<>();
-		this.APPLICATION_COMMANDS = new HashMap<>();
-		
-		return this;
+	public void createNewInstance() {
+		try {
+			this.lock.lock();
+			this.commandCooldown = new ArrayList<>();
+			
+			this.NATIVE_COMMANDS = new HashMap<>();
+			this.SLASH_COMMANDS = new HashMap<>();
+			this.APPLICATION_COMMANDS = new HashMap<>();
+		}finally {
+			this.lock.unlock();
+		}
 	}
 	
 	/**
@@ -487,25 +490,34 @@ public class ClientBuilder {
 	 * @see DiscordClient#login()
 	 * @throws UnbuiltBotException
 	 */
-	public synchronized void launch(String token, IntentSet intent, String prefix, Optional<ClientPresence> defaultStatus) throws UnbuiltBotException {
-		if(NATIVE_COMMANDS == null || SLASH_COMMANDS == null || APPLICATION_COMMANDS == null ) throw new UnbuiltBotException("You cannot launch a bot without building it.");
+	public void launch(String token, IntentSet intent, String prefix, Optional<ClientPresence> defaultStatus) throws UnbuiltBotException {
+		try {
+			this.lock.lock();
+			if(NATIVE_COMMANDS == null || SLASH_COMMANDS == null || APPLICATION_COMMANDS == null ) throw new UnbuiltBotException("You cannot launch a bot without building it.");
+			
+			this.botPrefix = prefix;
+			
+			final DiscordClient client = DiscordClient.create(token);
+			
+			this.gateway = GatewayBootstrap.create(client)
+				.setEnabledIntents(intent)
+				.setDisabledIntents(IntentSet.none())
+				.login().block();
+			
+			if(defaultStatus.isPresent()) setPresenceText(defaultStatus.get());
+			this.ownerID = this.gateway.getApplicationInfo().block().getOwnerId();
+			
+			createNativeCommandListener();
+			createApplicationCommandListener();
+			
+			createComponentListener();
+					
+			ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.CLIENT_INSTANCE_CONNECTED, new Object[] {gateway});	
+		}finally {
+			this.lock.unlock();
+		}
 		
-		this.botPrefix = prefix;
-		
-		gateway = GatewayBootstrap.create(DiscordClientBuilder.create(token).build()).setEnabledIntents(intent).setDisabledIntents(IntentSet.none()).login().block();
-	
-		if(defaultStatus.isPresent()) setPresenceText(defaultStatus.get());
-		
-		createNativeCommandListener();
-		createApplicationCommandListener();
-		
-		createComponentListener();
-		
-		ownerID = gateway.getApplicationInfo().block().getOwnerId();
-		
-		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.CLIENT_INSTANCE_CONNECTED, new Object[] {gateway});
-		
-		gateway.onDisconnect().block();
+		this.gateway.onDisconnect().block();
 	}
 	
 	/**
@@ -521,9 +533,15 @@ public class ClientBuilder {
 	 * Used to disconnect the bot from discord
 	 * @throws UnbuiltBotException
 	 */
-	public synchronized void shutdownInstance() throws UnbuiltBotException {
-		if(gateway == null) throw new UnbuiltBotException("You cannot destroy a nonexistent bot.");
-		gateway.logout().block();
+	public void shutdownInstance() throws UnbuiltBotException {
+		try {
+			this.lock.lock();
+			
+			if(this.gateway == null) throw new UnbuiltBotException("You cannot destroy a nonexistent bot.");
+			this.gateway.logout().block();
+		}finally {
+			this.lock.unlock();
+		}
 	}
 	
 	/**
@@ -552,15 +570,7 @@ public class ClientBuilder {
 	 * @return the client bot instance
 	 */
 	public GatewayDiscordClient getGateway() {
-		return gateway;
-	}
-	
-	/**
-	 * User instance of the bot
-	 * @return the client user instance
-	 */
-	public User getSelf() {
-		return gateway.getSelf().block();
+		return this.gateway;
 	}
 	
 	/**
