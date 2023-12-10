@@ -24,10 +24,11 @@ import apbiot.core.pems.events.CommandsListParsedEvent;
 
 public class ConsoleCoreModule extends CoreModule {
 
+	private static final String COMMAND_NOT_FOUND_MSG = "Cannot recognize command input. Type 'help' to get the whole list of commands.";
+	
 	protected static Logger LOGGER;
 	
 	private BufferedReader inputReader;
-	
 	private Map<Set<String>, SystemCommand> commandMap = new HashMap<>();
 	
 	public ConsoleCoreModule() {
@@ -60,20 +61,32 @@ public class ConsoleCoreModule extends CoreModule {
 			@Override
 			public void run() {
 				coreRunning.set(true);
-				while(coreRunning.get()) {
+				String input = null;
+				do {
 					try {
-						final String input = inputReader.readLine();
+						input = inputReader.readLine();
 						
+						if(input == null) continue;
+						
+						if(input.isBlank() || input.isEmpty() || input == "") {
+							LOGGER.info(COMMAND_NOT_FOUND_MSG);
+							continue;
+						}
+						
+						boolean found = false;
 						for(var entry : commandMap.entrySet()) {
 							if(entry.getKey().contains(input.split(" +")[0])) {
+								found = true;
 								entry.getValue().execute(ArgumentHelper.formatCommandArguments(false, input));
 							}
 						}
-					
+						
+						if(!found) LOGGER.info(COMMAND_NOT_FOUND_MSG);
+						
 					}catch(IOException e) {
 						LOGGER.warn("Unexpected error while parsing console input ",e);
 					}
-				}
+				}while(coreRunning.get() && input != null);
 			}
 			
 		}, getType().getName()+" Thread");
@@ -90,9 +103,10 @@ public class ConsoleCoreModule extends CoreModule {
 	@Override
 	public void shutdown() throws CoreModuleShutdownException {
 		try {
-			this.inputReader.close();
-			this.coreRunning.set(false);
-		}catch(IOException | SecurityException e ) {
+			this.coreRunning.set(false);			
+			if(!this.coreThread.isInterrupted()) this.coreThread.interrupt();
+			
+		}catch(SecurityException e ) {
 			this.coreHealthy.set(false);
 			throw new CoreModuleShutdownException("An exception happened while shutting down "+getType().getName()+" core.", e);
 		}

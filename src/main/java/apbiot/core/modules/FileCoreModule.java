@@ -7,6 +7,7 @@ import apbiot.core.modules.exceptions.CoreModuleLoadingException;
 import apbiot.core.modules.exceptions.CoreModuleShutdownException;
 import apbiot.core.pems.ProgramEvent;
 import apbiot.core.pems.ProgramEvent.EventPriority;
+import apbiot.core.pems.events.DirectoriesLoadedEvent;
 
 public class FileCoreModule extends CoreModule {
 
@@ -16,7 +17,6 @@ public class FileCoreModule extends CoreModule {
 
 	@Override
 	public void executeAssertion() {
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -40,7 +40,9 @@ public class FileCoreModule extends CoreModule {
 	
 	@Override
 	public void onEventReceived(ProgramEvent e, EventPriority priority) {
-	
+		if(e instanceof DirectoriesLoadedEvent) {
+			//TODO
+		}
 	}
 
 

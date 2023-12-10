@@ -3,6 +3,9 @@ package apbiot.core.modules;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import apbiot.core.builder.ClientBuilder;
 import apbiot.core.exceptions.UnbuiltBotException;
 import apbiot.core.modules.exceptions.CoreModuleLaunchingException;
@@ -11,12 +14,15 @@ import apbiot.core.modules.exceptions.CoreModuleShutdownException;
 import apbiot.core.pems.ProgramEvent;
 import apbiot.core.pems.ProgramEvent.EventPriority;
 import apbiot.core.pems.events.CommandsListParsedEvent;
-import apbiot.core.pems.events.ConfigurationFileLoadedEvent;
+import apbiot.core.pems.events.ConfigurationLoadedEvent;
 import apbiot.core.pems.events.InstanceTokenAcquieredEvent;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.intent.IntentSet;
+import discord4j.rest.http.client.ClientException;
 
 public class DiscordCoreModule extends CoreModule {
+	
+	private static final Logger LOGGER = LogManager.getLogger(ConsoleCoreModule.class);
 	
 	private static final String DEFAULT_PREFIX = ";";
 	private static final IntentSet DEFAULT_INTENTS = IntentSet.none();
@@ -56,7 +62,8 @@ public class DiscordCoreModule extends CoreModule {
 				coreRunning.set(true);
 				try {
 					clientBuilder.launch(tokenSecret.orElseThrow(() -> new UnbuiltBotException("Undefined token secret")), intents.orElse(DEFAULT_INTENTS), prefix.orElse(DEFAULT_PREFIX), defaultPresence);
-				} catch (UnbuiltBotException e) {
+				} catch (UnbuiltBotException | ClientException e) {
+					LOGGER.error("Unexpected error while launching client", e);
 					coreHealthy.set(false);
 					coreRunning.set(false);
 					coreThread.interrupt();
@@ -92,8 +99,8 @@ public class DiscordCoreModule extends CoreModule {
 				clientBuilder.updateNativeCommandMapping(parsed.getDiscordCoreNativeCommands());
 				clientBuilder.updateSlashCommandMapping(parsed.getDiscordCoreSlashCommands());
 				clientBuilder.updateApplicationCommandMapping(parsed.getDiscordCoreApplicationCommands());
-			}else if(e instanceof ConfigurationFileLoadedEvent) {
-				final ConfigurationFileLoadedEvent parsed = (ConfigurationFileLoadedEvent)e;
+			}else if(e instanceof ConfigurationLoadedEvent) {
+				final ConfigurationLoadedEvent parsed = (ConfigurationLoadedEvent)e;
 				this.prefix = parsed.getInstancePrefix();
 				this.intents = parsed.getInstanceIntentSet();
 				this.defaultPresence = parsed.getInstanceClientPresence(); 

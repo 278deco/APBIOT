@@ -49,6 +49,7 @@ import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.core.shard.GatewayBootstrap;
 import discord4j.gateway.intent.IntentSet;
+import discord4j.rest.http.client.ClientException;
 
 /**
  * Class that handle the bot instance.
@@ -490,7 +491,7 @@ public class ClientBuilder {
 	 * @see DiscordClient#login()
 	 * @throws UnbuiltBotException
 	 */
-	public void launch(String token, IntentSet intent, String prefix, Optional<ClientPresence> defaultStatus) throws UnbuiltBotException {
+	public void launch(String token, IntentSet intent, String prefix, Optional<ClientPresence> defaultStatus) throws UnbuiltBotException, ClientException {
 		try {
 			this.lock.lock();
 			if(NATIVE_COMMANDS == null || SLASH_COMMANDS == null || APPLICATION_COMMANDS == null ) throw new UnbuiltBotException("You cannot launch a bot without building it.");
