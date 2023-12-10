@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.Set;
 
 import apbiot.core.command.SystemCommand;
+import apbiot.core.pems.BaseProgramEventEnum;
+import apbiot.core.pems.ProgramEventManager;
+import discord4j.core.GatewayDiscordClient;
 
 /**
  * SystemCommandHandler class
@@ -16,8 +19,17 @@ import apbiot.core.command.SystemCommand;
 public abstract class AbstractSystemCommandHandler extends Handler {
 	public final Map<Set<String>, SystemCommand> COMMANDS = new HashMap<>();
 	
+	protected abstract void registerCommands(GatewayDiscordClient client);
+	
 	protected void addNewCommand(SystemCommand cmd) {
 		COMMANDS.put(cmd.getNames(), cmd);
+	}
+	
+	@Override
+	protected final void register(GatewayDiscordClient client) throws HandlerPreProcessingException {
+		registerCommands(client);
+				
+		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_LIST_PARSED, new Object[] {COMMANDS, null, null, null});
 	}
 
 }
