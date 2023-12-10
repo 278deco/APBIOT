@@ -78,19 +78,22 @@ public class ConsoleCoreModule extends CoreModule {
 			
 		}, getType().getName()+" Thread");
 		
-		this.coreThread.setDaemon(true);
-		this.coreThread.start();
+		try {
+			this.coreThread.setDaemon(true);
+			this.coreThread.start();
+		}catch(IllegalThreadStateException e) {
+			this.coreHealthy.set(false);
+			throw new CoreModuleLaunchingException("", e);
+		}
 	}
 	
 	@Override
 	public void shutdown() throws CoreModuleShutdownException {
-		this.coreRunning.set(false);
-		
 		try {
 			this.inputReader.close();
-			
-			if(this.coreThread.isInterrupted()) this.coreThread.interrupt();
+			this.coreRunning.set(false);
 		}catch(IOException | SecurityException e ) {
+			this.coreHealthy.set(false);
 			throw new CoreModuleShutdownException("An exception happened while shutting down "+getType().getName()+" core.", e);
 		}
 	}

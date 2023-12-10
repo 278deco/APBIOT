@@ -2,7 +2,6 @@ package apbiot.core.modules;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import apbiot.core.builder.ClientBuilder;
 import apbiot.core.exceptions.UnbuiltBotException;
@@ -49,7 +48,7 @@ public class DiscordCoreModule extends CoreModule {
 
 	@Override
 	public void launch() throws CoreModuleLaunchingException {
-		final AtomicBoolean stopWithException = new AtomicBoolean();
+		
 		this.coreThread = new Thread(new Runnable() {
 
 			@Override
@@ -58,26 +57,31 @@ public class DiscordCoreModule extends CoreModule {
 				try {
 					clientBuilder.launch(tokenSecret.orElseThrow(() -> new UnbuiltBotException("Undefined token secret")), intents.orElse(DEFAULT_INTENTS), prefix.orElse(DEFAULT_PREFIX), defaultPresence);
 				} catch (UnbuiltBotException e) {
-					stopWithException.set(true);
+					coreHealthy.set(false);
 					coreRunning.set(false);
 					coreThread.interrupt();
-					System.err.print(e);
 				}
 			}
 			
 		}, getType().getName()+" Thread");
 		
-		this.coreThread.start();
-		
-		if(stopWithException.get()) {
-			throw new CoreModuleLaunchingException("Unexpected error while launching CoreModule "+getType().getName());
+		try {
+			this.coreThread.start();
+		}catch(IllegalThreadStateException e) {
+			throw new CoreModuleLaunchingException("Unexpected error while launching core thread", e);
 		}
 	}
 
 	@Override
 	public void shutdown() throws CoreModuleShutdownException {
-		// TODO Auto-generated method stub
-		
+		if(this.coreRunning.get()) {
+			try {
+				clientBuilder.shutdownInstance();
+				this.coreRunning.set(false);
+			} catch (UnbuiltBotException e) {
+				throw new CoreModuleShutdownException("Couldn't shutdown client correctly", e);
+			}
+		}
 	}
 	
 	@Override
@@ -97,7 +101,6 @@ public class DiscordCoreModule extends CoreModule {
 				this.tokenSecret = ((InstanceTokenAcquieredEvent)e).getClientToken();
 			}
 		}
-		
 	}
 
 	@Override

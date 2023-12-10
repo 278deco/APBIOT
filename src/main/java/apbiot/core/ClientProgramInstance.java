@@ -2,7 +2,6 @@ package apbiot.core;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -127,7 +126,7 @@ public class ClientProgramInstance {
 			}
 		}
 		
-		LOGGER.info("System is UP.");
+		LOGGER.info("All Core Modules have been launched. Get system status with 'core status'.");
 	}
 	
 	public boolean isModuleActive(CoreModuleType moduleKey) {
@@ -145,6 +144,7 @@ public class ClientProgramInstance {
 			
 			for(CoreModule cm : activeModules.values()) {
 				try {
+					LOGGER.info("Shutting down Core Module {}...",cm.getType().getName());
 					cm.shutdown();
 				} catch (CoreModuleShutdownException e) {
 					LOGGER.error("Mandatory CoreModule [ID:{}, Name:{}] encoutered fatal error during launching phase!",cm.getUUID().toString(), cm.getType().getName());		
