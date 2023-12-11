@@ -150,6 +150,8 @@ public class ClientProgramInstance {
 					LOGGER.error("Mandatory CoreModule [ID:{}, Name:{}] encoutered fatal error during launching phase!",cm.getUUID().toString(), cm.getType().getName());		
 				}
 			}
+			
+			LOGGER.info("All Core Modules have been shutdown. Bye.");
 		}
 	}
 	
