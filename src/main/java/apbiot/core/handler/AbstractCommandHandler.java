@@ -24,9 +24,9 @@ import discord4j.discordjson.json.ApplicationCommandRequest;
  * @see apbiot.core.handler.Handler
  */
 public abstract class AbstractCommandHandler extends Handler {
-	public final Map<Set<String>, NativeCommandInstance> NATIVE_COMMANDS = new HashMap<>();
-	public final Map<Set<String>, SlashCommandInstance> SLASH_COMMANDS = new HashMap<>();
-	public final Map<String, ApplicationCommandInstance> APPLICATION_COMMANDS = new HashMap<>();
+	protected final Map<Set<String>, NativeCommandInstance> NATIVE_COMMANDS = new HashMap<>();
+	protected final Map<Set<String>, SlashCommandInstance> SLASH_COMMANDS = new HashMap<>();
+	protected final Map<String, ApplicationCommandInstance> APPLICATION_COMMANDS = new HashMap<>();
 	
 	private final Snowflake destination;
 	
@@ -38,10 +38,13 @@ public abstract class AbstractCommandHandler extends Handler {
 		this(null);
 	}
 	
-	/* Example :
-	 * addNewCommand(new CommandExample());
+
+	/**
+	 * Used to register any type of commands that will be available for discord's users.<br/>
+	 * The method {@link #addNewCommand(AbstractCommandInstance)} can be used for easy registration of a command:<br/>
+	 * {@code addNewCommand(new CommandExample())}
+	 * @param client The discord gateway client
 	 */
-	
 	protected abstract void registerCommands(GatewayDiscordClient client);
 	
 	protected void addNewCommand(AbstractCommandInstance cmd) {
@@ -66,42 +69,6 @@ public abstract class AbstractCommandHandler extends Handler {
 		}
 		
 		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_LIST_PARSED, new Object[] {null, NATIVE_COMMANDS, SLASH_COMMANDS, APPLICATION_COMMANDS});
-	}
-	
-	/**
-	 * Register and push slash commands to discord API
-	 * @param gateway The discord gateway
-	 * @param guildID If present register the slash commands to a specific server, else register them as global
-	 * @deprecated see {@link #registerApplicationCommand(GatewayDiscordClient, long)}
-	 */
-	@Deprecated
-	protected void registerSlashCommand(GatewayDiscordClient gateway, long guildID) {
-		
-		boolean toGlobal = guildID == -1L;
-		if(!toGlobal) {
-			try {
-				gateway.getGuildById(Snowflake.of(guildID)).block();
-			}catch(Exception e) {
-				toGlobal = true;
-			}
-		}
-		
-		final List<ApplicationCommandRequest> commands = new ArrayList<>();
-
-		if(commands.size() > 0) {
-			if(toGlobal) {
-				gateway.getRestClient().getApplicationService().bulkOverwriteGlobalApplicationCommand(
-						gateway.getRestClient().getApplicationId().block(), 
-						commands
-				).subscribe();
-			}else {
-				gateway.getRestClient().getApplicationService().bulkOverwriteGuildApplicationCommand(
-						gateway.getRestClient().getApplicationId().block(), 
-						guildID, 
-						commands
-				).subscribe();	
-			}
-		}
 	}
 	
 	/**
@@ -143,5 +110,10 @@ public abstract class AbstractCommandHandler extends Handler {
 				).subscribe();	
 			}
 		}
+	}
+	
+	@Override
+	public final HandlerType getType() {
+		return HandlerType.GATEWAY;
 	}
 }

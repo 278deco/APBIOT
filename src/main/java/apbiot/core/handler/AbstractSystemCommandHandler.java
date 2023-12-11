@@ -32,4 +32,9 @@ public abstract class AbstractSystemCommandHandler extends Handler {
 		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_LIST_PARSED, new Object[] {COMMANDS, null, null, null});
 	}
 
+	@Override
+	public final HandlerType getType() {
+		return HandlerType.GATEWAY;
+	}
+	
 }
