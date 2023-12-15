@@ -1,5 +1,6 @@
 package apbiot.core.handler;
 
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,6 +13,14 @@ public abstract class AbstractDirectoryHandler extends Handler {
 
 	private final Set<Directory> directories = new HashSet<>();
 
+	protected final void addNewDirectory(Directory dir) {
+		this.directories.add(dir);
+	}
+	
+	protected final void addNewDirectory(String name, Path dir) {
+		this.directories.add(new Directory(name, dir));
+	}
+	
 	protected abstract void registerDirectories();
 	
 	@Override

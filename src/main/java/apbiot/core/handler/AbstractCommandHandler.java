@@ -47,7 +47,7 @@ public abstract class AbstractCommandHandler extends Handler {
 	 */
 	protected abstract void registerCommands(GatewayDiscordClient client);
 	
-	protected void addNewCommand(AbstractCommandInstance cmd) {
+	protected final void addNewCommand(AbstractCommandInstance cmd) {
 		if(cmd instanceof NativeCommandInstance) NATIVE_COMMANDS.put(cmd.getNames(), (NativeCommandInstance)cmd);
 		if(cmd instanceof SlashCommandInstance) SLASH_COMMANDS.put(cmd.getNames(), (SlashCommandInstance)cmd);
 		if(cmd instanceof ApplicationCommandInstance) APPLICATION_COMMANDS.put(cmd.getDisplayName(), (ApplicationCommandInstance)cmd);
