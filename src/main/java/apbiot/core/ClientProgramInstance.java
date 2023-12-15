@@ -20,7 +20,6 @@ import apbiot.core.modules.exceptions.CoreModuleLaunchingException;
 import apbiot.core.modules.exceptions.CoreModuleLoadingException;
 import apbiot.core.modules.exceptions.CoreModuleShutdownException;
 import apbiot.core.modules.exceptions.MandatoryCoreMissingException;
-import apbiot.core.objects.interfaces.IRunnableMethod;
 import apbiot.core.pems.ProgramEventManager;
 
 public class ClientProgramInstance {
@@ -32,8 +31,9 @@ public class ClientProgramInstance {
 	
 	private final Map<CoreModuleType, CoreModule> activeModules = new LinkedHashMap<>();
 	private final Set<Handler> activeHandlers;
-	
+		
 	private ClientProgramInstance(ClientProgramInstance.Builder builder) {
+		System.out.println("Booting up system...");
 		ProgramEventManager.get(); //Init PEMS
 		
 		for(CoreModule m : builder.activeModules) {
@@ -71,7 +71,7 @@ public class ClientProgramInstance {
 			try {
 				handler.preProcessing();
 			} catch (HandlerPreProcessingException e) {
-				LOGGER.error("Handler [Class:{}, Type:{}] encoutered fatal error during pre-processing phase!", handler.getClass().getName(), handler.getType().name());
+				LOGGER.error("Handler [Class:{}, Type:{}] encoutered fatal error during pre-processing phase!", handler.getClass().getName(), handler.getType().name(), e);
 			}
 		}
 		
@@ -83,9 +83,9 @@ public class ClientProgramInstance {
 			} catch (CoreModuleLoadingException e) {
 				final String err = "Mandatory CoreModule [ID:"+cm.getUUID().toString()+", Name:"+cm.getType().getName()+"] encoutered fatal error during initialization phase!";
 				if(cm.getType().isMandatory()) {
-					throw new CoreModuleLoadingException(err);
+					throw new CoreModuleLoadingException(err, e);
 				}else {
-					LOGGER.error(err);
+					LOGGER.error(err, e);
 				}
 			}
 		}
@@ -97,7 +97,7 @@ public class ClientProgramInstance {
 				cm.preLaunch();
 			} catch (CoreModuleLaunchingException e) {
 				e.printStackTrace();
-				LOGGER.error("CoreModule [ID:{}, Name:{}, IsMandatoy:{}] encoutered fatal error during pre-launching phase!", cm.getUUID().toString(), cm.getType().getName(), cm.getType().isMandatory());
+				LOGGER.error("CoreModule [ID:{}, Name:{}, IsMandatoy:{}] encoutered fatal error during pre-launching phase!", cm.getUUID().toString(), cm.getType().getName(), cm.getType().isMandatory(), e);
 			}
 		}
 		
@@ -109,9 +109,9 @@ public class ClientProgramInstance {
 			} catch (CoreModuleLaunchingException e) {
 				final String err = "CoreModule [ID:"+cm.getUUID().toString()+", Name:"+cm.getType().getName()+"] encoutered fatal error during launching phase!";
 				if(cm.getType().isMandatory()) {
-					throw new CoreModuleLaunchingException("Mandatory "+err);
+					throw new CoreModuleLaunchingException(err, e);
 				}else {
-					LOGGER.error(err);
+					LOGGER.error(err, e);
 				}
 			}
 		}
@@ -122,7 +122,7 @@ public class ClientProgramInstance {
 			try {
 				cm.postLaunch();
 			} catch (CoreModuleLaunchingException e) {
-				LOGGER.error("CoreModule [ID:{}, Name:{}, IsMandatoy:{}] encoutered fatal error during post-launching phase!", cm.getUUID().toString(), cm.getType().getName(), cm.getType().isMandatory());
+				LOGGER.error("CoreModule [ID:{}, Name:{}, IsMandatoy:{}] encoutered fatal error during post-launching phase!", cm.getUUID().toString(), cm.getType().getName(), cm.getType().isMandatory(), e);
 			}
 		}
 		
@@ -137,7 +137,7 @@ public class ClientProgramInstance {
 		return Collections.unmodifiableCollection(activeModules.values());
 	}
 	
-	public class ShutdownProgram implements IRunnableMethod {
+	public class ShutdownProgram implements Runnable {
 
 		@Override
 		public void run() {
@@ -147,7 +147,7 @@ public class ClientProgramInstance {
 					LOGGER.info("Shutting down Core Module {}...",cm.getType().getName());
 					cm.shutdown();
 				} catch (CoreModuleShutdownException e) {
-					LOGGER.error("Mandatory CoreModule [ID:{}, Name:{}] encoutered fatal error during launching phase!",cm.getUUID().toString(), cm.getType().getName());		
+					LOGGER.error("Mandatory CoreModule [ID:{}, Name:{}] encoutered fatal error during launching phase!",cm.getUUID().toString(), cm.getType().getName(), e);		
 				}
 			}
 			

@@ -23,7 +23,6 @@ import apbiot.core.io.DirectoriesManager;
 import apbiot.core.io.IOManager;
 import apbiot.core.io.ResourceManager;
 import apbiot.core.io.json.types.JSONProperties;
-import apbiot.core.objects.interfaces.IRunnableMethod;
 import apbiot.core.pems.EventListener;
 import apbiot.core.pems.ProgramEvent;
 import apbiot.core.pems.ProgramEvent.EventPriority;
@@ -199,7 +198,7 @@ public abstract class MainInitializerOld {
 	/**
 	 * Used to shutdown the program
 	 */
-	public class ShutdownProgram implements IRunnableMethod {
+	public class ShutdownProgram implements Runnable {
 
 		@Override
 		public void run() {
