@@ -96,6 +96,7 @@ public class ConsoleCoreModule extends CoreModule {
 			this.coreThread.start();
 		}catch(IllegalThreadStateException e) {
 			this.coreHealthy.set(false);
+			this.coreRunning.set(false);
 			throw new CoreModuleLaunchingException("", e);
 		}
 	}
@@ -106,7 +107,7 @@ public class ConsoleCoreModule extends CoreModule {
 			this.coreRunning.set(false);			
 			if(!this.coreThread.isInterrupted()) this.coreThread.interrupt();
 			
-		}catch(SecurityException e ) {
+		}catch(SecurityException e) {
 			this.coreHealthy.set(false);
 			throw new CoreModuleShutdownException("An exception happened while shutting down "+getType().getName()+" core.", e);
 		}

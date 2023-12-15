@@ -21,7 +21,7 @@ public class DatabaseCoreModule extends CoreModule {
 	private String password;
 	private String databaseName;
 	
-	protected DatabaseCoreModule() {
+	public DatabaseCoreModule() {
 		super(UUID.randomUUID());
 	}
 
@@ -37,6 +37,8 @@ public class DatabaseCoreModule extends CoreModule {
 
 	@Override
 	public void init() throws CoreModuleLoadingException {
+		this.coreHealthy.set(true);
+		this.coreRunning.set(true);
 		try {
 			final DBCredentials credentials = DBCredentials.builder()
 					.host(this.host)
@@ -52,7 +54,10 @@ public class DatabaseCoreModule extends CoreModule {
 		
 			DBFactory.newInstance(credentials);
 		}catch(IllegalArgumentException e) {
+			this.coreHealthy.set(false);
 			throw new CoreModuleLoadingException("An error occured while parsing credentials for database");
+		}finally {
+			this.coreRunning.set(false);
 		}
 	}
 
@@ -62,6 +67,11 @@ public class DatabaseCoreModule extends CoreModule {
 
 	@Override
 	public void shutdown() throws CoreModuleShutdownException {
+		try {
+			DBFactory.get().closeAllConnections();
+		}catch(RuntimeException e) {
+			throw new CoreModuleShutdownException("Unexpected error while shutting down database connections", e);
+		}
 	}
 	
 	@Override

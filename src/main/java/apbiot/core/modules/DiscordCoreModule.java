@@ -75,6 +75,8 @@ public class DiscordCoreModule extends CoreModule {
 		try {
 			this.coreThread.start();
 		}catch(IllegalThreadStateException e) {
+			this.coreHealthy.set(false);
+			this.coreRunning.set(false);
 			throw new CoreModuleLaunchingException("Unexpected error while launching core thread", e);
 		}
 	}
@@ -83,9 +85,10 @@ public class DiscordCoreModule extends CoreModule {
 	public void shutdown() throws CoreModuleShutdownException {
 		if(this.coreRunning.get()) {
 			try {
-				clientBuilder.shutdownInstance();
 				this.coreRunning.set(false);
+				clientBuilder.shutdownInstance();
 			} catch (UnbuiltBotException e) {
+				this.coreHealthy.set(false);
 				throw new CoreModuleShutdownException("Couldn't shutdown client correctly", e);
 			}
 		}

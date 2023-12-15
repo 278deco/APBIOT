@@ -73,18 +73,24 @@ public class CredentialsCoreModule extends CoreModule {
 
 	@Override
 	public void init() throws CoreModuleLoadingException {
-		this.areCredentialsEncrypted = Files.exists(DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME);
-		
-		if(areCredentialsEncrypted) {
-		credentialsSettingsBuilder = FileCredentials.builder()
-				.encryptionType(EncryptionType.AES_GCM_TAG_128)
-				.keySize(AESKeySize.SIZE_256)
-				.vectorSize(SaltSize.BYTE_12);
+		this.coreRunning.set(true);
+		try {
+			this.areCredentialsEncrypted = Files.exists(DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME);
+			
+			if(areCredentialsEncrypted) {
+			credentialsSettingsBuilder = FileCredentials.builder()
+					.encryptionType(EncryptionType.AES_GCM_TAG_128)
+					.keySize(AESKeySize.SIZE_256)
+					.vectorSize(SaltSize.BYTE_12);
+			}
+		}finally {
+			this.coreRunning.set(false);
 		}
 	}
 
 	@Override
 	public void preLaunch() throws CoreModuleLaunchingException {
+		this.coreRunning.set(true);
 		InputStream stream = null;
 		BufferedReader reader = null;
 		JSONLexer lexer = null;
@@ -140,6 +146,7 @@ public class CredentialsCoreModule extends CoreModule {
 				NullPointerException | IllegalArgumentException | IOException e) {
 			throw new CoreModuleLaunchingException("An unexpected exception was caught during pre-launching of CoreModule "+this.getType().getName(), e);
 		}finally {
+			this.coreRunning.set(false);
 			try { 
 				if(stream != null) stream.close();
 				if(reader != null) reader.close();
@@ -151,33 +158,43 @@ public class CredentialsCoreModule extends CoreModule {
 	}
 	
 	@Override
-	public void launch() throws CoreModuleLaunchingException { 
-		if(this.credentialsContent != null) {
-			ProgramEventManager.get().dispatchDedicatedEvent(
-				BaseProgramEventEnum.CLIENT_INSTANCE_TOKEN_ACQUIERED, 
-				new Object[] {this.credentialsContent.get("client_token")}, 
-				Set.of(DiscordCoreModule.class));
-		}
-		
-		if(this.dbCredentialsContent != null) {
-			ProgramEventManager.get().dispatchDedicatedEvent(
-					BaseProgramEventEnum.DATABASE_CREDENTIALS_ACQUIERED, 
-					new Object[] {this.dbCredentialsContent.get("host"),this.dbCredentialsContent.get("port"),this.dbCredentialsContent.get("username"),this.dbCredentialsContent.get("password"),this.dbCredentialsContent.get("database_name")}, 
-					Set.of(DatabaseCoreModule.class));
-		}
-		
-		if(this.externalApiCredentialsContent != null) {
-			ProgramEventManager.get().dispatchEvent(
-				BaseProgramEventEnum.EXTERNAL_API_CREDENTIALS_ACQUIERED, 
-				new Object[] {this.externalApiCredentialsContent});
+	public void launch() throws CoreModuleLaunchingException {
+		this.coreRunning.set(true);
+		try {
+			if(this.credentialsContent != null) {
+				ProgramEventManager.get().dispatchDedicatedEvent(
+					BaseProgramEventEnum.CLIENT_INSTANCE_TOKEN_ACQUIERED, 
+					new Object[] {this.credentialsContent.get("client_token")}, 
+					Set.of(DiscordCoreModule.class));
+			}
+			
+			if(this.dbCredentialsContent != null) {
+				ProgramEventManager.get().dispatchDedicatedEvent(
+						BaseProgramEventEnum.DATABASE_CREDENTIALS_ACQUIERED, 
+						new Object[] {this.dbCredentialsContent.get("host"),this.dbCredentialsContent.get("port"),this.dbCredentialsContent.get("username"),this.dbCredentialsContent.get("password"),this.dbCredentialsContent.get("database_name")}, 
+						Set.of(DatabaseCoreModule.class));
+			}
+			
+			if(this.externalApiCredentialsContent != null) {
+				ProgramEventManager.get().dispatchEvent(
+					BaseProgramEventEnum.EXTERNAL_API_CREDENTIALS_ACQUIERED, 
+					new Object[] {this.externalApiCredentialsContent});
+			}
+		}finally {
+			this.coreRunning.set(false);
 		}
 	}
 
 	@Override
 	public void postLaunch() throws CoreModuleLaunchingException {
-		if(this.credentialsContent != null) this.credentialsContent.clear();
-		if(this.dbCredentialsContent != null) this.dbCredentialsContent.clear();
-		if(this.externalApiCredentialsContent != null) this.externalApiCredentialsContent.clear();
+		this.coreRunning.set(true);
+		try {
+			if(this.credentialsContent != null) this.credentialsContent.clear();
+			if(this.dbCredentialsContent != null) this.dbCredentialsContent.clear();
+			if(this.externalApiCredentialsContent != null) this.externalApiCredentialsContent.clear();
+		}finally {
+			this.coreRunning.set(false);
+		}
 	}
 	
 	@Override
