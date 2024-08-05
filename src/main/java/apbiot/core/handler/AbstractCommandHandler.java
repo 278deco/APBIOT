@@ -54,7 +54,7 @@ public abstract class AbstractCommandHandler extends Handler {
 	}
 	
 	@Override
-	protected final void register(GatewayDiscordClient client) throws HandlerPreProcessingException {
+	protected final void register(GatewayDiscordClient client) throws HandlerRegisteringException {
 		registerCommands(client); //Read and register all the commands provided to the client
 		
 		loadApplicationCommand(client); //Link commands to discord

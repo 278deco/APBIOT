@@ -18,7 +18,7 @@ public abstract class Handler implements EventListener {
 	private Logger LOGGER = LogManager.getLogger(Handler.class);
 	
 	public abstract void preProcessing() throws HandlerPreProcessingException;
-	protected abstract void register(GatewayDiscordClient client) throws HandlerPreProcessingException;
+	protected abstract void register(GatewayDiscordClient client) throws HandlerRegisteringException;
 	
 	public abstract HandlerType getType();
 	
@@ -27,7 +27,7 @@ public abstract class Handler implements EventListener {
 		if(priority == EventPriority.HIGH && event instanceof InstanceConnectedEvent) {
 			try {
 				this.register(((InstanceConnectedEvent)event).getGateway());
-			}catch(HandlerPreProcessingException e) {
+			}catch(HandlerRegisteringException e) {
 				LOGGER.error("Handler [Class:{}, Type:{}] encoutered error during registering phase!", getClass().getName(), getType().name());
 			}
 		}

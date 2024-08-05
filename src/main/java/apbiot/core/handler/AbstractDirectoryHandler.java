@@ -24,7 +24,7 @@ public abstract class AbstractDirectoryHandler extends Handler {
 	protected abstract void registerDirectories();
 	
 	@Override
-	protected void register(GatewayDiscordClient client) throws HandlerPreProcessingException {
+	protected void register(GatewayDiscordClient client) throws HandlerRegisteringException {
 		registerDirectories();
 		
 		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.DIRECTORIES_LOADED_EVENT, new Object[] {directories});

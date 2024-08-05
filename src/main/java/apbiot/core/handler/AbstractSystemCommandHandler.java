@@ -26,7 +26,7 @@ public abstract class AbstractSystemCommandHandler extends Handler {
 	}
 	
 	@Override
-	protected final void register(GatewayDiscordClient client) throws HandlerPreProcessingException {
+	protected final void register(GatewayDiscordClient client) throws HandlerRegisteringException {
 		registerCommands(client);
 				
 		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_LIST_PARSED, new Object[] {COMMANDS, null, null, null});
