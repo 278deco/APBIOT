@@ -13,15 +13,19 @@ public class ConfigurationLoadedEvent extends ProgramEvent {
 	}
 
 	public Optional<String> getInstancePrefix() {
-		return Optional.ofNullable((String)getEventArgument(0));
+		return Optional.ofNullable(getEventArgument(String.class, 0));
 	}
 	
 	public Optional<IntentSet> getInstanceIntentSet() {
-		return Optional.ofNullable((IntentSet)getEventArgument(1));
+		return Optional.ofNullable(getEventArgument(IntentSet.class, 1));
 	}
 	
 	public Optional<ClientPresence> getInstanceClientPresence() {
-		return Optional.ofNullable((ClientPresence)getEventArgument(2));
+		return Optional.ofNullable(getEventArgument(ClientPresence.class, 2));
+	}
+	
+	public Optional<String> getInstanceVersion() {
+		return Optional.ofNullable(getEventArgument(String.class, 3));
 	}
 	
 	@Override

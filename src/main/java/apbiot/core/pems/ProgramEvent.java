@@ -39,7 +39,7 @@ public abstract class ProgramEvent {
 	}
 	
 	public <E> Optional<E> getEventArgumentAsOptional(Class<E> castingClass, int index) {
-		if(index < 0 || index >= this.arguments.length) {
+		if(index >= 0 && index < this.arguments.length) {
 			try {
 				return Optional.ofNullable(castingClass.cast(this.arguments[index]));
 			}catch(ClassCastException e) {

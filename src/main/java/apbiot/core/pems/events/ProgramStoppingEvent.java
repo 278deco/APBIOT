@@ -10,7 +10,6 @@ public class ProgramStoppingEvent extends LoggableProgramEvent {
 
 	@Override
 	public String getLoggerMessage() {
-		// TODO Auto-generated method stub
 		return null;
 	}	
 	

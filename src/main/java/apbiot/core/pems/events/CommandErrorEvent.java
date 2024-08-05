@@ -1,5 +1,8 @@
 package apbiot.core.pems.events;
 
+import java.util.Optional;
+
+import apbiot.core.commandator.CommandatorEntry;
 import apbiot.core.modules.DiscordCoreModule;
 import apbiot.core.pems.LoggableProgramEvent;
 import discord4j.core.object.entity.channel.Channel.Type;
@@ -20,25 +23,26 @@ public class CommandErrorEvent extends LoggableProgramEvent {
 	}
 
 	public String getUser() {
-		return (String)arguments[0];
+		return getEventArgument(String.class, 0);
 	}
 
 	public String getCommand() {
-		return (String)arguments[1];
+		return getEventArgument(String.class, 1);
 	}
 	
-	public String getCommandatorResponse() {
-		return this.arguments[2] == null ? "none" : (String)this.arguments[2];
+	public Optional<CommandatorEntry> getCommandatorResponse() {
+		return this.arguments[2] == null ? Optional.empty() : getEventArgumentAsOptional(CommandatorEntry.class, 2);
 	}
 	
 	public Type getChannelType() {
-		return (Type)this.arguments[3];
+		return getEventArgument(Type.class, 3);
 	}
 	
 	@Override
 	public String getLoggerMessage() {
 		return "User "+getUser()+" issued inexistent bot command : "+getCommand()+
-				" and got commandator response : "+getCommandatorResponse()+" (Channel Type: "+getChannelType()+")";
+				(getCommandatorResponse().isPresent() ? " and got commandator response: "+getCommandatorResponse().get()+")" : " and got no commandator response")+
+				" (Channel Type: "+getChannelType()+")";
 	}
 
 	@Override
