@@ -58,7 +58,7 @@ public class CredentialsCoreModule extends CoreModule {
 	public void executeAssertion() {
 
 		try {
-			boolean assertPresent = false; 
+			boolean assertPresent = false;
 			if(Files.exists(DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME) && Files.size(DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME) != 0)
 				assertPresent = true;
 			
@@ -73,6 +73,7 @@ public class CredentialsCoreModule extends CoreModule {
 
 	@Override
 	public void init() throws CoreModuleLoadingException {
+		this.coreHealthy.set(true);
 		this.coreRunning.set(true);
 		try {
 			this.areCredentialsEncrypted = Files.exists(DEFAULT_ENCRYPTED_CREDENTIALS_FILE_NAME);
@@ -96,19 +97,22 @@ public class CredentialsCoreModule extends CoreModule {
 		JSONLexer lexer = null;
 		JSONObject content = null;
 		try {
-			if(areCredentialsEncrypted) {				
-				Scanner inputScanner = null;
-				String keyInput;
+			if(areCredentialsEncrypted) {		
+				String keyInput = System.getenv("CREDENTIALS_FILE_KEY"); //You can provided the key as an environment variable
 				
-				try {
-					System.out.println("A Credentials Key is required for this program to run:");
+				if(keyInput == null || keyInput.isEmpty()) { //If the key is not provided as an environment variable, ask for it
+					Scanner inputScanner = null;
 					
-					inputScanner = new Scanner(new NoCloseInputStream(System.in));
-					keyInput = inputScanner.next();
-					
-				}finally {
-					if(inputScanner != null) inputScanner.close();
-					inputScanner = null;
+					try {
+						System.out.println("A Credentials Key is required for this program to run:");
+						
+						inputScanner = new Scanner(new NoCloseInputStream(System.in));
+						keyInput = inputScanner.next();
+						
+					}finally {
+						if(inputScanner != null) inputScanner.close();
+						inputScanner = null;
+					}
 				}
 				
 				final SecretKey key = new SecretKeySpec(HexFormat.of().parseHex(keyInput), "AES");
@@ -130,7 +134,7 @@ public class CredentialsCoreModule extends CoreModule {
 			}
 			
 			if(content != null) {
-				this.dbCredentialsContent = (JSONObject)content.get("database");
+				this.dbCredentialsContent = content.get("database", JSONObject.class);
 				
 				this.externalApiCredentialsContent = new JSONObject(content.entrySet()
 						.stream()
@@ -144,6 +148,7 @@ public class CredentialsCoreModule extends CoreModule {
 			}
 		}catch(InvalidKeyException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException | 
 				NullPointerException | IllegalArgumentException | IOException e) {
+			this.coreHealthy.set(false);
 			throw new CoreModuleLaunchingException("An unexpected exception was caught during pre-launching of CoreModule "+this.getType().getName(), e);
 		}finally {
 			this.coreRunning.set(false);
@@ -152,6 +157,7 @@ public class CredentialsCoreModule extends CoreModule {
 				if(reader != null) reader.close();
 				if(lexer != null) lexer.close();
 			} catch (IOException e) {
+				this.coreHealthy.set(false);
 				throw new CoreModuleLaunchingException("An unexpected exception was caught during pre-launching of CoreModule "+this.getType().getName(), e);
 			}
 		}

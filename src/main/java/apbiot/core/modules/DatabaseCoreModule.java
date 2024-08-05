@@ -38,6 +38,10 @@ public class DatabaseCoreModule extends CoreModule {
 	@Override
 	public void init() throws CoreModuleLoadingException {
 		this.coreHealthy.set(true);
+	}
+
+	@Override
+	public void launch() throws CoreModuleLaunchingException {
 		this.coreRunning.set(true);
 		try {
 			final DBCredentials credentials = DBCredentials.builder()
@@ -55,14 +59,13 @@ public class DatabaseCoreModule extends CoreModule {
 			DBFactory.newInstance(credentials);
 		}catch(IllegalArgumentException e) {
 			this.coreHealthy.set(false);
-			throw new CoreModuleLoadingException("An error occured while parsing credentials for database");
+			
+			final CoreModuleLaunchingException thrownedE = new CoreModuleLaunchingException("Cannot initialize database connection");
+			thrownedE.addSuppressed(e);
+			throw thrownedE;
 		}finally {
 			this.coreRunning.set(false);
 		}
-	}
-
-	@Override
-	public void launch() throws CoreModuleLaunchingException {
 	}
 
 	@Override
@@ -76,16 +79,13 @@ public class DatabaseCoreModule extends CoreModule {
 	
 	@Override
 	public void onEventReceived(ProgramEvent e, EventPriority priority) {
-		if(priority == EventPriority.HIGH) {
-			if(e instanceof DatabaseCredentialsAcquiredEvent) {
-				final DatabaseCredentialsAcquiredEvent event = ((DatabaseCredentialsAcquiredEvent)e);
-				this.host = event.getHostAddress();
-				this.username = event.getUsername();
-				this.password = event.getPassword();
-				this.databaseName = event.getDatabaseName();
-			}
+		if(priority == EventPriority.HIGH && e instanceof DatabaseCredentialsAcquiredEvent) {
+			final DatabaseCredentialsAcquiredEvent event = ((DatabaseCredentialsAcquiredEvent)e);
+			this.host = event.getHostAddress();
+			this.username = event.getUsername();
+			this.password = event.getPassword();
+			this.databaseName = event.getDatabaseName();
 		}
-		
 	}
 
 	@Override

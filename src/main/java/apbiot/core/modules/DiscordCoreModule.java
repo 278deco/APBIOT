@@ -13,8 +13,10 @@ import apbiot.core.modules.exceptions.CoreModuleLoadingException;
 import apbiot.core.modules.exceptions.CoreModuleShutdownException;
 import apbiot.core.pems.ProgramEvent;
 import apbiot.core.pems.ProgramEvent.EventPriority;
+import apbiot.core.pems.actions.CommandRebuildAction;
 import apbiot.core.pems.events.CommandsListParsedEvent;
 import apbiot.core.pems.events.ConfigurationLoadedEvent;
+import apbiot.core.pems.events.CoreModulesReadyEvent;
 import apbiot.core.pems.events.InstanceTokenAcquieredEvent;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.intent.IntentSet;
@@ -102,14 +104,24 @@ public class DiscordCoreModule extends CoreModule {
 				clientBuilder.updateNativeCommandMapping(parsed.getDiscordCoreNativeCommands());
 				clientBuilder.updateSlashCommandMapping(parsed.getDiscordCoreSlashCommands());
 				clientBuilder.updateApplicationCommandMapping(parsed.getDiscordCoreApplicationCommands());
+				clientBuilder.buildCommandator();
+				
 			}else if(e instanceof ConfigurationLoadedEvent) {
 				final ConfigurationLoadedEvent parsed = (ConfigurationLoadedEvent)e;
 				this.prefix = parsed.getInstancePrefix();
 				this.intents = parsed.getInstanceIntentSet();
 				this.defaultPresence = parsed.getInstanceClientPresence(); 
+
 			}else if(e instanceof InstanceTokenAcquieredEvent) {
 				this.tokenSecret = ((InstanceTokenAcquieredEvent)e).getClientToken();
+			//EVENT_ACTIONS
+			}else if(e instanceof CommandRebuildAction) {
+				clientBuilder.rebuildCommandMapping(((CommandRebuildAction)e).getScope());
 			}
+		}
+		
+		if(priority == EventPriority.INTERMEDIATE && e instanceof CoreModulesReadyEvent) {
+			clientBuilder.setReady(true);
 		}
 	}
 
