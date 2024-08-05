@@ -12,8 +12,8 @@ import java.util.stream.Stream;
 
 import org.apache.logging.log4j.Logger;
 
-import apbiot.core.io.objects.Directory;
 import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
+import marshmalliow.core.objects.Directory;
 
 public class DirectoryHelper {
 
@@ -22,6 +22,7 @@ public class DirectoryHelper {
 	 * @param directories The set of directories
 	 * @param nameId The name of the directory researched
 	 * @return The directory if it exist or null
+	 * @since 5.0
 	 */
 	public static Directory getDirectoryByName(Set<Directory> directories, String nameId) {
 		return directories.stream().filter(dir -> dir.isNameSimilar(nameId)).findFirst().orElse(null);
@@ -34,6 +35,7 @@ public class DirectoryHelper {
 	 * @param onError The action to perform when an error has occured
 	 * @return the directory
 	 * @see java.io.File#mkdirs()
+	 * @since 5.0
 	 */
 	public static Path generateDirectory(String directory, Consumer<Boolean> onSuccess, Consumer<Throwable> onError) {
 		Objects.requireNonNull(onSuccess);
@@ -62,6 +64,7 @@ public class DirectoryHelper {
 	 * @param logger The logger used by the program
 	 * @return the directory
 	 * @see apbiot.core.helper.FileHelper#generateDirectory(String, Consumer, Consumer)
+	 * @since 4.0
 	 */
 	public static Path generateDirectoryWithLogging(String directory, String loadMessage, String creationMessage, String errorMessage, Logger logger) {
 		return generateDirectory(directory, response -> logger.info(response ? creationMessage : loadMessage), error -> logger.error(errorMessage+""+error));
@@ -76,6 +79,7 @@ public class DirectoryHelper {
 	 * @param logger The logger used by the program
 	 * @return the directory
 	 * @see apbiot.core.helper.FileHelper#generateDirectory(String, Consumer, Consumer)
+	 * @since 4.0
 	 */
 	public static Path generateDirectoryWithLogging(String directory, Logger logger) {
 		return generateDirectory(directory, response -> logger.info(response ? "Directory "+directory+" has been successfully created !" : "Directory "+directory+" has been successfully loaded !"), error -> logger.error(error));
@@ -86,6 +90,7 @@ public class DirectoryHelper {
 	 * @param dir The directory
 	 * @param fileName The file's name
 	 * @return The number of file found. If the directory doesn't exist, return -1
+	 * @since 4.0
 	 */
 	public static int countFileWithName(Path dir, String fileName) {
 		return getDirectorySubfiles(dir, fileName, 0).size();
@@ -106,6 +111,7 @@ public class DirectoryHelper {
 	 * @param dir The directory
 	 * @param fileName The file's name
 	 * @return The number of file found. If the directory doesn't exist, return -1
+	 * @since 4.0
 	 */
 	public static int countFile(Path dir) {
 		return getDirectorySubfiles(dir, 0).size();
@@ -116,6 +122,7 @@ public class DirectoryHelper {
 	 * @param dir The directory
 	 * @param fileName The file's name
 	 * @return The number of file found. If the directory doesn't exist, return -1
+	 * @since 4.0
 	 */
 	public static int countFile(Directory dir) {
 		return countFile(dir.getPath());
@@ -128,6 +135,7 @@ public class DirectoryHelper {
 	 * @param fileName The file's name
 	 * @param threshold The maximum number of file to be fetched from the method. Set it to 0 or lower to have no threshold.
 	 * @return A set of path representing the found files or an empty one if an error occur
+	 * @since 4.0
 	 */
 	public static Set<Path> getDirectorySubfiles(Path dir, String fileName, int threshold) {
 		final Set<Path> result = new HashSet<>();
@@ -165,6 +173,7 @@ public class DirectoryHelper {
 	 * @param fileName The file's name
 	 * @param threshold The maximum number of file to be fetched from the method. Set it to 0 or lower to have no threshold.
 	 * @return A set of path representing the found files or an empty one if an error occur
+	 * @since 4.0
 	 */
 	public static Set<Path> getDirectorySubfiles(Directory dir, String fileName, int threshold) {
 		return getDirectorySubfiles(dir.getPath(), fileName, threshold);
@@ -175,6 +184,7 @@ public class DirectoryHelper {
 	 * @param dir The directory
 	 * @param threshold The maximum number of file to be fetched from the method. Set it to 0 or lower to have no threshold.
 	 * @return A set of path representing the found files or an empty one if an error occur
+	 * @since 4.0
 	 */
 	public static Set<Path> getDirectorySubfiles(Path dir, int threshold) {
 		final Set<Path> result = new HashSet<>();
@@ -205,6 +215,7 @@ public class DirectoryHelper {
 	 * @param dir The directory
 	 * @param threshold The maximum number of file to be fetched from the method. Set it to 0 or lower to have no threshold.
 	 * @return A set of path representing the found files or an empty one if an error occur
+	 * @since 4.0
 	 */
 	public static Set<Path> getDirectorySubfiles(Directory dir, int threshold) {
 		return getDirectorySubfiles(dir.getPath(), threshold);

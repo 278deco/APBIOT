@@ -1,7 +1,8 @@
 package apbiot.core.command;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
@@ -10,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import apbiot.core.command.informations.GatewayApplicationCommandPacket;
 import apbiot.core.command.informations.GatewayComponentCommandPacket;
 import apbiot.core.command.informations.GatewayNativeCommandPacket;
+import apbiot.core.helper.StringHelper;
 import apbiot.core.objects.interfaces.ICommandCategory;
 import apbiot.core.permissions.CommandPermission;
 import apbiot.core.time.CommandCooldown;
@@ -18,43 +20,55 @@ public abstract class AbstractCommandInstance {
 	
 	protected static final Logger LOGGER = LogManager.getLogger(AbstractCommandInstance.class);
 	
-	private List<String> commandNames = new ArrayList<>();
+	private String commandDisplayName;
+	private HashSet<String> commandNames = new HashSet<>(); //Contains the aliases and the display name
+	
 	private String description;
 	private ICommandCategory category;
 	private CommandPermission permissions;
 	
 	private final UUID commandId;
+	private final String shortenCommandId; //The shorten version of the command id pre-processed for faster access. Use base64
 	
 	protected boolean built;
 	
 	/**
 	 * Create a new CommandInstance
-	 * @param cmdName - the command's name and it alias
-	 * @param description - the command's description
-	 * @param category - the category of the command
+	 * @param displayName The main name of the command. Is displayed to represent the command to the user
+	 * @param aliases A {@link Set} of aliases for the command.
+	 * @param description The command's description
+	 * @param category The category of the command
 	 */
-	public AbstractCommandInstance(List<String> cmdName, String description, ICommandCategory category) {
-		this.commandNames = cmdName;
-		this.description = (description == null || description == "" ? "No description available" : description);
+	public AbstractCommandInstance(String displayName, Set<String> aliases, String description, ICommandCategory category) {
+		this.commandDisplayName = displayName;
+		this.commandNames.add(displayName);
+		if(aliases != null) this.commandNames.addAll(aliases);
+		
+		this.description = (description == null || description.isBlank() || description.isEmpty() ? "No description available" : description);
 		this.category = category;
 		this.commandId = UUID.randomUUID();
+		this.shortenCommandId = StringHelper.shortenUUIDToBase64(this.commandId);
 		
 		this.permissions = setPermissions();
-		
 	}
 	
 	/**
 	 * Create a new CommandInstance
-	 * @param cmdName - the command's name and it alias
-	 * @param description - the command's description
-	 * @param category - the category of the command
-	 * @param staticID - define an ID for the command. With this defined, the id used will remains the same for all instances
+	 * @param displayName The main name of the command. Is displayed to represent the command to the user
+	 * @param aliases A {@link Set} of aliases for the command.
+	 * @param description The command's description
+	 * @param category The category of the command
+	 * @param staticID Define an UUID for the command. With this defined, the id used will remains the same for all instances
 	 */
-	public AbstractCommandInstance(List<String> cmdName, String description, ICommandCategory category, String staticID) {
-		this.commandNames = cmdName;
-		this.description = (description == null || description == "" ? "No description available" : description);
+	public AbstractCommandInstance(String displayName, Set<String> aliases, String description, ICommandCategory category, String staticID) {
+		this.commandDisplayName = displayName;
+		this.commandNames.add(displayName);
+		if(aliases != null) this.commandNames.addAll(aliases);
+		
+		this.description = (description == null || description.isBlank() || description.isEmpty() ? "No description available" : description);
 		this.category = category;
 		this.commandId = UUID.fromString(staticID);
+		this.shortenCommandId = StringHelper.shortenUUIDToBase64(this.commandId);
 		
 		this.permissions = setPermissions();
 	}
@@ -75,14 +89,14 @@ public abstract class AbstractCommandInstance {
 	
 	/**
 	 * Execute the code contained in the command instance
-	 * @param info - the informations given by the bot
+	 * @param info The informations given by the bot
 	 */
 	public abstract void execute(GatewayNativeCommandPacket infos);
 	public abstract void execute(GatewayApplicationCommandPacket infos);
 	
 	/**
 	 * Execute the code if the command is handling discord components
-	 * @param infos - the informations given by the bot
+	 * @param infos The informations given by the bot
 	 */
 	public abstract void executeComponent(GatewayComponentCommandPacket infos);
 	
@@ -114,19 +128,29 @@ public abstract class AbstractCommandInstance {
 	}
 	
 	/**
-	 * Get the main name of the command and it alias
-	 * @return the command's name
+	 * Get the display name of the command and its aliases. The set can only contains the display name if no aliases are found.
+	 * @return A set containing the command's display name and aliases
 	 */
-	public List<String> getNames() {
-		return this.commandNames;
+	public Set<String> getNames() {
+		return Collections.unmodifiableSet(this.commandNames);
 	}
-	
+
 	/**
 	 * Get the main name of the command
 	 * @return the main name
+	 * @deprecated since 5.0
+	 * @see #getDisplayName()
 	 */
 	public String getMainName() {
-		return commandNames.size() > 0 ? commandNames.get(0) : "null";
+		return "null";
+	}
+	
+	/**
+	 * Get the command's display name
+	 * @return the main name
+	 */
+	public String getDisplayName() {
+		return this.commandDisplayName;
 	}
 	
 	/**
@@ -150,9 +174,17 @@ public abstract class AbstractCommandInstance {
 	 * Get the unique command id
 	 * @return the command's id
 	 */
-	public UUID getID() {
+	public final UUID getID() {
 		return this.commandId;
 	}
+	
+	/**
+	 * Get the unique command id shorten to base64
+	 * @return the command's id
+	 */
+	public final String getShortenID() {
+        return this.shortenCommandId;
+    }
 	
 	/**
 	 * Get the permission of the command

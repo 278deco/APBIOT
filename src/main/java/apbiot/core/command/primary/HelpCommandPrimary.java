@@ -3,11 +3,10 @@ package apbiot.core.command.primary;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import apbiot.core.ClientInstance;
 import apbiot.core.builder.ColorBuilder;
 import apbiot.core.builder.DateBuilder;
 import apbiot.core.builder.TimedMessage;
@@ -38,19 +37,26 @@ import discord4j.core.spec.MessageCreateSpec;
 
 public class HelpCommandPrimary extends NativeCommandInstance {
 	
+	//Compilated Command Map and Slash Command Map
+	private Map<Set<String>, NativeCommandInstance> NATIVE_COMMANDS;
+	private Map<Set<String>, SlashCommandInstance> SLASH_COMMANDS;
+	
 	private EmbedCreateSpec helpEmbed;
 	private ActionRow buttonsRow;
 	
 	private final Snowflake ownerID;
 	private final String botUsername, botAvatarUrl;
 	
-	public HelpCommandPrimary(Snowflake ownerID, User botAccount) {
-		super(Arrays.asList("help"), "Permet d'obtenir la liste des commandes éxécutables.", CommandCategory.UTILITY);
+	public HelpCommandPrimary(Snowflake ownerID, User botAccount, Map<Set<String>, NativeCommandInstance> nativeCommands,
+			Map<Set<String>, SlashCommandInstance> slashCommands) {
+		super("help", "Permet d'obtenir la liste des commandes éxécutables.", CommandCategory.UTILITY);
 		
 		this.ownerID = ownerID;
 		
 		this.botUsername = botAccount.getUsername();
-		this.botAvatarUrl = botAccount.getAvatarUrl();	
+		this.botAvatarUrl = botAccount.getAvatarUrl();
+		this.NATIVE_COMMANDS = nativeCommands;
+		this.SLASH_COMMANDS = slashCommands;
 	}
 	
 	@Override
@@ -92,18 +98,18 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 	private boolean process(Member member, CommandCategory choosenCat) {
 		final List<Field> fields = new ArrayList<>();
 		
-		for(Map.Entry<List<String>, NativeCommandInstance> entry : ClientInstance.getInstance().getClientBuilder().getNativeCommandMap().entrySet()) {
+		for(var entry : NATIVE_COMMANDS.entrySet()) {
 			if(entry.getValue().isInHelpListed() && entry.getValue().isSameCommandCategory(choosenCat)) {
 				if(PermissionHelper.doesUserHavePermissions(member, this.getPermissions(), this.ownerID)) {
-					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getMainName()+" ➭", entry.getValue().getDescription(), false));
+					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getDisplayName()+" ➭", entry.getValue().getDescription(), false));
 				}
 			}
 		}
 		
-		for(Map.Entry<List<String>, SlashCommandInstance> entry : ClientInstance.getInstance().getClientBuilder().getSlashCommandMap().entrySet()) {
+		for(var entry : SLASH_COMMANDS.entrySet()) {
 			if(entry.getValue().isInHelpListed() && entry.getValue().isSameCommandCategory(choosenCat)) {
 				if(PermissionHelper.doesUserHavePermissions(member, this.getPermissions(), this.ownerID)) {
-					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getMainName()+" ➭", "	*Se référer au menu commandes slash* ", false));
+					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getDisplayName()+" ➭", "	*Se référer au menu commandes slash* ", false));
 				}
 			}
 		}
@@ -187,6 +193,5 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 	protected CommandPermission setPermissions() {
 		return CommandPermission.EMPTY;
 	}
-
 
 }

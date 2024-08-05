@@ -1,7 +1,5 @@
 package apbiot.core.command;
 
-import java.util.Arrays;
-
 import apbiot.core.command.informations.GatewayComponentCommandPacket;
 import apbiot.core.command.informations.GatewayNativeCommandPacket;
 import apbiot.core.objects.interfaces.ICommandCategory;
@@ -12,16 +10,16 @@ public abstract class ApplicationCommandInstance extends AbstractCommandInstance
 
 	protected Type applicationCommandType;
 	
-	public ApplicationCommandInstance(String cmdName, Type applicationCommandType, ICommandCategory category) {
-		super(Arrays.asList(cmdName), "", category);
+	public ApplicationCommandInstance(String displayName, Type applicationCommandType, ICommandCategory category) {
+		super(displayName, null, "", category);
 		
 		this.applicationCommandType = applicationCommandType;
 		built = false;
 		
 	}
 	
-	public ApplicationCommandInstance(String cmdName, Type applicationCommandType, ICommandCategory category, String staticID) {
-		super(Arrays.asList(cmdName), "", category, staticID);
+	public ApplicationCommandInstance(String displayName, Type applicationCommandType, ICommandCategory category, String staticID) {
+		super(displayName, null, "", category, staticID);
 		
 		this.applicationCommandType = applicationCommandType;
 		built = false;
@@ -31,7 +29,7 @@ public abstract class ApplicationCommandInstance extends AbstractCommandInstance
 	public ApplicationCommandRequest createApplicationCommand() {
 		built = true;
 		
-		return ApplicationCommandRequest.builder().type(applicationCommandType.getValue()).name(getMainName()).build();	
+		return ApplicationCommandRequest.builder().type(applicationCommandType.getValue()).name(getDisplayName()).build();	
 	}
 
 	@Override

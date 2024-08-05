@@ -11,13 +11,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import apbiot.core.MainInitializer;
 import apbiot.core.command.SystemCommand;
-import apbiot.core.event.EventListener;
 import apbiot.core.handler.AbstractSystemCommandHandler;
 import apbiot.core.helper.ArgumentHelper;
-import apbiot.core.objects.interfaces.IEvent;
-import apbiot.core.objects.interfaces.ILoggerEvent;
+import apbiot.core.pems.EventListener;
+import apbiot.core.pems.ProgramEvent;
+import apbiot.core.pems.ProgramEvent.EventPriority;
 
 public class ConsoleLogger {
 	
@@ -26,6 +25,7 @@ public class ConsoleLogger {
 	private static ConsoleLogger instance;
 	
 	private Map<List<String>, SystemCommand> COMMANDS = new HashMap<>();
+	@SuppressWarnings("unused")
 	private final Class<? extends AbstractSystemCommandHandler> clsCommandHandler;
 	
 	private AtomicBoolean running;
@@ -63,7 +63,7 @@ public class ConsoleLogger {
 	 * Updated the command mapping of the console logger
 	 */
 	public void updatedCommandReferences() {
-		this.COMMANDS = MainInitializer.getHandlers().getHandler(clsCommandHandler).COMMANDS;
+//		this.COMMANDS = MainInitializerOld.getHandlers().getHandler(clsCommandHandler).COMMANDS;
 	}
 	
 	/**
@@ -119,24 +119,24 @@ public class ConsoleLogger {
 	public class ConsoleLoggerListener implements EventListener {
 		
 		@Override
-		public void newEventReceived(IEvent e) {
-			if(e instanceof ILoggerEvent) {
-				
-				switch(((ILoggerEvent)e).getEventPriority()) {
-					case INFO:
-						LOGGER.info(((ILoggerEvent)e).getLoggerMessage());
-						break;
-					case WARNING:
-						LOGGER.warn(((ILoggerEvent)e).getLoggerMessage());
-						break;
-					case ERROR:
-						LOGGER.error(((ILoggerEvent)e).getLoggerMessage());
-						break;
-					case FATAL:
-						LOGGER.fatal(((ILoggerEvent)e).getLoggerMessage());
-						break;
-				}
-			} 
+		public void onEventReceived(ProgramEvent e, EventPriority priority) {
+//			if(e instanceof LoggableProgramEvent) {
+//				
+//				switch(((LoggableProgramEvent)e).getEventPriority()) {
+//					case INFO:
+//						LOGGER.info(((LoggableProgramEvent)e).getLoggerMessage());
+//						break;
+//					case WARNING:
+//						LOGGER.warn(((LoggableProgramEvent)e).getLoggerMessage());
+//						break;
+//					case ERROR:
+//						LOGGER.error(((LoggableProgramEvent)e).getLoggerMessage());
+//						break;
+//					case FATAL:
+//						LOGGER.fatal(((LoggableProgramEvent)e).getLoggerMessage());
+//						break;
+//				}
+//			} 
 		}	
 	}
 }

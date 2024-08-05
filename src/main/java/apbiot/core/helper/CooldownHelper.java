@@ -14,9 +14,10 @@ public class CooldownHelper {
 
 	/**
 	 * Check if the cooldown of an user is over or not
-	 * @param cooldown - an UserCommandCooldown instance 
+	 * @param cooldown an {@link UserCommandCooldown} instance 
 	 * @return boolean if the cooldown is over or not
-	 * @see apbiot.core.command.UserCommandCooldown#isCooldownOver()
+	 * @see UserCommandCooldown#isCooldownOver()
+	 * @since 3.0
 	 */
 	public static boolean isCooldownOver(UserCommandCooldown cooldown) {
 		return cooldown.isCooldownOver();
@@ -24,10 +25,11 @@ public class CooldownHelper {
 	
 	/**
 	 * Check if an user can execute a command (check if the player is the cooldown list)
-	 * @param list - The list which contains the userlist cooldown
-	 * @param user - The user targetted
-	 * @param chan - The messagechannel where the user send the message
+	 * @param list The list which contains the userlist cooldown
+	 * @param user The {@link User} wanting to execute the command
+	 * @param chan The {@link MessageChannel} where the user send the message
 	 * @return boolean if the user can execute the command
+	 * @since 3.0
 	 */
 	public static boolean canExecuteCommand(List<UserCommandCooldown> list, User u, MessageChannel chan) {
 		for(UserCommandCooldown cmdU : list) {
@@ -46,12 +48,13 @@ public class CooldownHelper {
 	}
 	
 	/**
-	 * Clears all cooldowns for which the timer has ended
-	 * @param list - The list which contains the userlist cooldown
+	 * Clears all cooldown for which the timer has ended
+	 * @param list The list which contains the user list cooldown
 	 * @return the list without null instance
+	 * @since 3.0
 	 */
 	public synchronized static List<UserCommandCooldown> wipeNullInstance(List<UserCommandCooldown> list) {
-		List<UserCommandCooldown> memory = new ArrayList<>(list);
+		final List<UserCommandCooldown> memory = new ArrayList<>(list);
 		
 		for(UserCommandCooldown cmdU : list) {
 			if(cmdU.getUser() == null) {
@@ -64,11 +67,12 @@ public class CooldownHelper {
 	
 	/**
 	 * Used to create an new command cooldown
-	 * @param cmd - the command executed by the user
-	 * @param user - the targetted user
-	 * @param guild - the guild where the command was been executed
+	 * @param cmd The command executed by the user
+	 * @param user The targeted user
+	 * @param guild The guild where the command was been executed
 	 * @return an instance of UserCommandCooldown or null
 	 * @see apbiot.core.command.UserCommandCooldown
+	 * @since 3.0
 	 */
 	public static UserCommandCooldown createNewCooldown(AbstractCommandInstance cmd, User user, Guild guild) {
 		if(cmd.getCooldown().isARestrictingCooldown()) {

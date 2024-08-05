@@ -16,11 +16,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import apbiot.core.event.EventDispatcher;
-import apbiot.core.event.events.io.EventResourceDeleted;
-import apbiot.core.io.objects.Directory;
 import apbiot.core.io.resources.AbstractBuffer;
 import apbiot.core.io.resources.Resource;
+import marshmalliow.core.objects.Directory;
 
+/**
+ * 
+ * @author 278deco
+ * @deprecated since 5.0.0
+ */
 public class ResourceManager {
 
 	private static final Logger LOGGER = LogManager.getLogger(ResourceManager.class);
@@ -191,7 +195,7 @@ public class ResourceManager {
 		if(!isDirectoryExisting(rsc.getDirectory())) throw new IllegalArgumentException("Cannot access a directory if it hasn't been initialized at the start !");
 		final boolean response = Files.deleteIfExists(rsc.getDirectory().getPath().resolve(rsc.getFileName()));
 		
-		ioEventDispatcher.dispatchEvent(new EventResourceDeleted(rsc.getID()));
+//		ioEventDispatcher.dispatchEvent(new EventResourceDeleted(rsc.getID()));
 		
 		return response;
 	}
@@ -212,7 +216,7 @@ public class ResourceManager {
 		
 		final boolean response = Files.deleteIfExists(resourceDir.getPath().resolve(resource));
 		
-		ioEventDispatcher.dispatchEvent(new EventResourceDeleted(splitName[0]));
+//		ioEventDispatcher.dispatchEvent(new EventResourceDeleted(splitName[0]));
 		
 		return response;
 	}

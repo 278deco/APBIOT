@@ -11,10 +11,17 @@ import apbiot.core.handler.AbstractCommandHandler;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.intent.IntentSet;
 
+/**
+ * 
+ * @author 278deco
+ * @version 2.0
+ * @deprecated since 5.0
+ */
 public class ClientInstance {
 	
 	private static ClientInstance instance;
 	
+	@SuppressWarnings("unused")
 	private static final Logger LOGGER = LogManager.getLogger(ClientInstance.class);
 	
 	//Builder
@@ -62,17 +69,17 @@ public class ClientInstance {
 	 */
 	public synchronized void launch(String[] args, ClientPresence defaultPresence, IntentSet intent, String prefix) {
 		this.running.set(true);
-		
-		try {
-			clientBuilder.build(args[0], defaultPresence, intent, prefix);
-			
-		}catch (UnbuiltBotException e) {
-			LOGGER.fatal("Error thrown will launching the client",e);
-			this.running.set(false);
-		}catch(ArrayIndexOutOfBoundsException e1) {
-			LOGGER.fatal("No token was found during the launch. Shutting down...");
-			this.running.set(false);
-		}
+//		
+//		try {
+//			clientBuilder.build(args[0], defaultPresence, intent, prefix);
+//			
+//		}catch (UnbuiltBotException e) {
+//			LOGGER.fatal("Error thrown will launching the client",e);
+//			this.running.set(false);
+//		}catch(ArrayIndexOutOfBoundsException e1) {
+//			LOGGER.fatal("No token was found during the launch. Shutting down...");
+//			this.running.set(false);
+//		}
 	}
 	
 	/**
@@ -93,7 +100,7 @@ public class ClientInstance {
 	public synchronized void updatedCommandReferences() throws IllegalAccessException {
 		if(!isInstanceAlive()) throw new IllegalAccessException("You cannot update the command references if the bot isn't built.");
 		if(clsCommandHandler == null) throw new NullPointerException("Cannot launch the bot if the command handler class isn't defined!");
-		clientBuilder.updatedCommandReferences(MainInitializer.getHandlers().getHandler(clsCommandHandler));
+//		clientBuilder.updatedCommandReferences(MainInitializerOld.getHandlers().getHandler(clsCommandHandler));
 		
 		clientBuilder.buildCommandator();
 	}

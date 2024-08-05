@@ -17,7 +17,14 @@ import apbiot.core.io.json.JSONContent;
 import apbiot.core.io.objects.IOArguments;
 import apbiot.core.io.objects.IOElement;
 import apbiot.core.objects.enums.FileType;
+import marshmalliow.core.json.JSONFile;
 
+/**
+ * Handling JSON Array Files
+ * @author 278deco
+ * @deprecated 5.0
+ * @see JSONFile
+ */
 public abstract class JSONObjectFile extends IOElement {
 	
 	protected static final Logger LOGGER = LogManager.getLogger(JSONObjectFile.class);

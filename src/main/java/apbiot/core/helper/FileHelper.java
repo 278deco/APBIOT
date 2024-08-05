@@ -9,8 +9,6 @@ import java.util.Random;
 
 public class FileHelper {
 	
-	
-	
 	/**
 	 * @deprecated 4.0
 	 * @since 1.0
@@ -84,8 +82,20 @@ public class FileHelper {
 	
 	/**
 	 * Return a random path pointing to a file from a list of files
-	 * @param list - A list of file's path
+	 * @param list A list of file's path
 	 * @return an element from the list
+	 * @since 5.0
+	 */
+	public static String getRandomFilePath(List<String> pathList, Random random) {
+		return pathList.get(random.nextInt(pathList.size()));
+	}
+	
+	/**
+	 * Return a random path pointing to a file from a list of files
+	 * @param list A list of file's path
+	 * @return an element from the list
+	 * @deprecated since 5.0
+	 * @since 4.0
 	 */
 	public static String getRandomFilePath(List<String> pathList) {
 		return pathList.get(new Random().nextInt(pathList.size()));

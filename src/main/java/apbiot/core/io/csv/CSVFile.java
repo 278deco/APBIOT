@@ -17,14 +17,15 @@ import javax.annotation.Nullable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import apbiot.core.io.files.TextFile;
-import apbiot.core.io.objects.IOArguments;
-import apbiot.core.io.objects.IOElement;
-import apbiot.core.objects.enums.FileType;
+import marshmalliow.core.objects.Directory;
+import marshmalliow.core.objects.FileType;
+import marshmalliow.core.objects.IOClass;
 
-public class CSVFile extends IOElement {
+public class CSVFile extends IOClass {
 	
-	private static final Logger LOGGER = LogManager.getLogger(TextFile.class);
+	private static final String DEFAULT_SEPARATOR = ",";
+	
+	private static final Logger LOGGER = LogManager.getLogger(CSVFile.class);
 	
 	private CSVDocument document;
 	private String separator;
@@ -38,16 +39,17 @@ public class CSVFile extends IOElement {
 	 * @param separator the separator used in the csv file
 	 * @throws Exception
 	 */
-	public CSVFile(IOArguments args, @Nullable String separator) throws Exception {
-		super(args);
+	public CSVFile(Directory directory, String name, @Nullable String separator) throws Exception {
+		super(directory, name);
 		
-		this.separator = separator != null ? separator : ",";
+		this.separator = separator != null ? separator : DEFAULT_SEPARATOR;
 		this.document = new CSVDocument();
 		
 		try {
-			Files.createFile(directory.getPath().resolve(this.fileName));
+			if(!Files.exists(getFullPath()))
+				Files.createFile(getFullPath());
 			
-			readFile();
+			readFile(false);
 		}catch(IOException e) {
 			LOGGER.error("Unexpected error while loading CSV file [dir: {}, name: {}] with message {}", this.directory.getName(), this.fileName, e.getMessage());
 		}
@@ -58,7 +60,7 @@ public class CSVFile extends IOElement {
 	 * @throws IOException
 	 */
 	@Override
-	public boolean saveFile(boolean forceSave) {
+	public void saveFile(boolean forceSave) {
 		new Thread(new Runnable() {
 			
 			@Override
@@ -87,27 +89,18 @@ public class CSVFile extends IOElement {
 				
 			}
 		},"File-Save-Thread").start();
-		
-		return true;
 	}
-
-	/**
-	 * Reload the file instance running in the program
-	 * Any change made to the original file that are not saved will be overwritten
-	 */
-	@Override
-	public boolean reloadFile() {
-		this.document = new CSVDocument();
-		
-		return readFile();
+	
+	public void saveFile() throws IOException {
+		saveFile(false);
 	}
-
+	
 	/**
 	 * Read and add all file's content in a list
 	 * @throws IOException
 	 */
 	@Override
-	protected boolean readFile() {
+	public void readFile(boolean forceRead) throws IOException {
 		FileInputStream input = null;
 		InputStreamReader fileReader = null;
 		BufferedReader buffer = null;
@@ -125,14 +118,16 @@ public class CSVFile extends IOElement {
 		}catch(IOException e) {
 			LOGGER.error("Unexpected error while loading CSV file [dir: {}, name: {}] with message {}", this.directory.getName(), this.fileName, e.getMessage());
 			
-			return false;
 		}finally {
 			try { if(input != null) input.close(); }catch(IOException e) {}
 			try { if(buffer != null) buffer.close(); }catch(IOException e) {}
 			try { if(fileReader != null) fileReader.close(); }catch(IOException e) {}
 		}
 		
-		return true;
+	}
+	
+	public void readFile() throws IOException {
+		readFile(false);
 	}
 	
 	private String formatRow(List<CSVCell> row, String separator) {
@@ -198,7 +193,12 @@ public class CSVFile extends IOElement {
 	
 	@Override
 	public FileType getFileType() {
-		return FileType.CSV;
+		return FileType.UNKNOWN;
+	}
+
+	@Override
+	public String getFullName() {
+		return this.fileName+".csv";
 	}
 	
 }

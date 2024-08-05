@@ -29,7 +29,7 @@ public class HelpDescription {
 	private String format(NativeCommandInstance cmd) {
 		StringBuilder sb = new StringBuilder();
 		
-		 sb.append("ℹ **Commande "+cmd.getMainName()+" :**");
+		 sb.append("ℹ **Commande "+cmd.getDisplayName()+" :**");
 		 sb.append("\n   __Argument(s) requis__ :");
 		 Tuple<List<String>,List<String>> tp = formatArgument(cmd.getRequiredArguments());
 		 sb.append("```\tObligatoire(s) ("+tp.getValueA().size()+"):\n"+StringHelper.listToString(tp.getValueA(), "\n")+"\n");

@@ -3,8 +3,14 @@ package apbiot.core.event;
 import java.util.HashSet;
 import java.util.Set;
 
-import apbiot.core.objects.interfaces.IEvent;
+import apbiot.core.pems.EventListener;
+import apbiot.core.pems.ProgramEventManager;
 
+/**
+ * @author 278deco
+ * @deprecated since 5.0
+ * @see ProgramEventManager
+ */
 public class EventDispatcher {
 	
 	private Set<EventListener> listeners;
@@ -21,8 +27,8 @@ public class EventDispatcher {
 		return this.listeners.remove(listener);
 	}
 	
-	public void dispatchEvent(IEvent event) {
-		this.listeners.forEach(listener -> listener.newEventReceived(event));
-	}
+//	public void dispatchEvent(Event event) {
+//		this.listeners.forEach(listener -> listener.newEventReceived(event));
+//	}
 
 }
