@@ -3,81 +3,82 @@ package apbiot.core.commandator;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import apbiot.core.helper.StringHelper;
 import apbiot.core.objects.Tuple;
 
 /**
- * An IA using k-NN algorithm to determine what command the user wanted to write
+ * A pseudo-AI using k-NN algorithm to determine what command the user wanted to write
  * class containing the method
- * @version 1.1
+ * @version 1.1.0
  * @author 278deco
  */
 public abstract class CommandatorMethods {
 
-	protected volatile Set<String> commandsList;
+	protected volatile Set<CommandatorEntry> commandsList;
 	
-	protected String getBestProposalCommand(List<Tuple<Integer, String>> knn1, List<Tuple<Integer, String>> knn2) {
-		if(knn1.size() < 1 || knn2.size() < 1) return "";
+	protected Optional<CommandatorEntry> getBestProposalCommand(List<Tuple<Integer, CommandatorEntry>> knn1, List<Tuple<Integer, CommandatorEntry>> knn2) {
+		if(knn1.size() < 1 || knn2.size() < 1) return Optional.empty();
 		
-		final String firstCmdKnn1 = knn1.get(0).getValueB();
-		final String firstCmdKnn2 = knn2.get(0).getValueB();
+		final CommandatorEntry firstCmdKnn1 = knn1.get(0).getValueB();
+		final CommandatorEntry firstCmdKnn2 = knn2.get(0).getValueB();
 		
 		if(firstCmdKnn1.equals(firstCmdKnn2) && (knn1.get(0).getValueA() > 1 && knn2.get(0).getValueA() > 1)) {
-			return firstCmdKnn1;
+			return Optional.of(firstCmdKnn1);
 		}else {
-			for(Tuple<Integer,String> tuple : knn2) {
-				if(tuple.getValueB().equals(firstCmdKnn1) && (tuple.getValueA() > 1 && knn1.get(0).getValueA() > 1)) return firstCmdKnn1;
+			for(Tuple<Integer,CommandatorEntry> tuple : knn2) {
+				if(tuple.getValueB().equals(firstCmdKnn1) && (tuple.getValueA() > 1 && knn1.get(0).getValueA() > 1)) return Optional.of(firstCmdKnn1);
 			}
 			
-			for(Tuple<Integer,String> tuple : knn1) {
-				if(tuple.getValueB().equals(firstCmdKnn2) && (tuple.getValueA() > 1 && knn2.get(0).getValueA() > 1)) return firstCmdKnn2;
+			for(Tuple<Integer,CommandatorEntry> tuple : knn1) {
+				if(tuple.getValueB().equals(firstCmdKnn2) && (tuple.getValueA() > 1 && knn2.get(0).getValueA() > 1)) return Optional.of(firstCmdKnn2);
 			}
 			
-			return "";
+			return Optional.empty();
 		}
 	}
 	
-	protected List<Tuple<Integer, String>> knnLetterInCommon(String userCmd, int k) {
-		final List<Tuple<Integer, String>> kList = letterInCommon(userCmd);
+	protected List<Tuple<Integer, CommandatorEntry>> knnLetterInCommon(String userCmd, int k) {
+		final List<Tuple<Integer, CommandatorEntry>> kList = letterInCommon(userCmd);
 		
 		return k > kList.size() ? kList : new ArrayList<>(kList.subList(0, k));
 	}
 	
-	protected List<Tuple<Integer, String>> knnLetterSamePlace(String userCmd, int k) {
-		final List<Tuple<Integer, String>> kList = letterSamePlace(userCmd);
+	protected List<Tuple<Integer, CommandatorEntry>> knnLetterSamePlace(String userCmd, int k) {
+		final List<Tuple<Integer, CommandatorEntry>> kList = letterSamePlace(userCmd);
 		
 		return k > kList.size() ? kList : new ArrayList<>(kList.subList(0, k));
 	}
 	
-	protected List<Tuple<Integer, String>> letterInCommon(String userCmd) {
-		final List<Tuple<Integer, String>> rList = new ArrayList<>();
+	protected List<Tuple<Integer, CommandatorEntry>> letterInCommon(String userCmd) {
+		final List<Tuple<Integer, CommandatorEntry>> rList = new ArrayList<>();
 		
-		for (String cmd : commandsList) {
-			rList.add(Tuple.of(numberOfLetterInWords(userCmd, cmd), cmd));
+		for (CommandatorEntry entry : commandsList) {
+			rList.add(Tuple.of(numberOfLetterInWords(userCmd, entry.getCommandName()), entry));
 		}
 		
 		rList.sort((t1, t2) -> { return t2.getValueA() - t1.getValueA(); });
 		return rList;
 	}
 	
-	protected List<Tuple<Integer, String>> letterSamePlace(String userCmd) {
-		final List<Tuple<Integer, String>> rList = new ArrayList<>();
+	protected List<Tuple<Integer, CommandatorEntry>> letterSamePlace(String userCmd) {
+		final List<Tuple<Integer, CommandatorEntry>> rList = new ArrayList<>();
 		
-		for (String cmd : commandsList) {
-			rList.add(Tuple.of(numberOfLetterSamePlace(cmd, userCmd), cmd));
+		for (CommandatorEntry entry : commandsList) {
+			rList.add(Tuple.of(numberOfLetterSamePlace(entry.getCommandName(), userCmd), entry));
 		}
 		
 		rList.sort((t1, t2) -> { return t2.getValueA() - t1.getValueA(); });
 		return rList;
 	}
 	
-	protected Set<String> compareCommandSize(String userCmd) {
-		final Set<String> rList = new HashSet<>();
+	protected Set<CommandatorEntry> compareCommandSize(String userCmd) {
+		final Set<CommandatorEntry> rList = new HashSet<>();
 		
-		this.commandsList.forEach(cmd -> {
-			if(cmd.length() >= (userCmd.length() - 2) && cmd.length() <= (userCmd.length() + 2)) rList.add(cmd);
+		this.commandsList.forEach(entry -> {
+			if(entry.getCommandName().length() >= (userCmd.length() - 2) && entry.getCommandName().length() <= (userCmd.length() + 2)) rList.add(entry);
 		});
 	
 		return rList;
