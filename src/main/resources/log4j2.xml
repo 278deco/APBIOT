@@ -21,6 +21,10 @@
     </Appenders>
 
     <Loggers>
+        <Logger name="org.quartz" level="ERROR" additivity="false">
+      		<AppenderRef ref="stdout" />
+            <AppenderRef ref="fileout" level="ERROR"/>
+    	</Logger>
         
         <Root level="info">
             <AppenderRef ref="stdout" />
