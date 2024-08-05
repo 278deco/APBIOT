@@ -22,7 +22,7 @@ import apbiot.core.handler.Handler;
 import apbiot.core.io.DirectoriesManager;
 import apbiot.core.io.IOManager;
 import apbiot.core.io.ResourceManager;
-import apbiot.core.io.json.types.JSONProperties;
+import apbiot.core.io.json.JSONProperties;
 import apbiot.core.pems.EventListener;
 import apbiot.core.pems.ProgramEvent;
 import apbiot.core.pems.ProgramEvent.EventPriority;
