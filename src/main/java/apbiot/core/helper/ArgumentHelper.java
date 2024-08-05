@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import apbiot.core.objects.Argument;
-import apbiot.core.objects.enums.ArgumentLevel;
 import apbiot.core.objects.enums.Ternary;
 import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
@@ -38,80 +37,101 @@ public class ArgumentHelper {
 	}
 	
 	/**
-	 * A advanced function for help with argument command
-	 * @param map contains the command's arguments
-	 * @param command name the name of the command
-	 * @param prefix the prefix of the bot
-	 * @return a constructed string
+	 * Format a string containing the command and its arguments for help purpose
+	 * @param args The command's arguments
+	 * @param commandName The name of the command
+	 * @param prefix The prefix used by the client
+	 * @return the formatted string
 	 * @see apbiot.core.objects.enums.ArgumentLevel
+	 * @since 2.0
 	 */
-	
 	public static String getStringHelpSyntaxe(List<Argument> args, String commandName, String prefix ) {
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append(Emojis.WARNING+" ERREUR Syntaxe : "+prefix+""+commandName+" ");
-		
+		final StringBuilder sb = new StringBuilder(Emojis.WARNING+" ERREUR Syntaxe : "+prefix+""+commandName+" ");
+				
 		for(Argument arg : args) {
+			final String argName = arg.haveMultipleName() ? StringHelper.listToString(arg.getNames(), "/") : arg.getPrincipalName();
 			
-			String argName = arg.haveMultipleName() ? StringHelper.listToString(arg.getNames(), "/") : arg.getPrincipalName();
-			
-			if(arg.getLevel() == ArgumentLevel.REQUIRED) {
-				sb.append("**<"+argName+">** ");
-			}else if(arg.getLevel()  == ArgumentLevel.OPTIONNAL) {
-				sb.append("*<"+argName+">* ");
-			}else {
-				sb.append("<"+argName+"> ");
+			switch(arg.getLevel()) {
+				case REQUIRED -> sb.append("**<"+argName+">** ");
+				case OPTIONNAL -> sb.append("*<"+argName+">* ");
+				default -> sb.append("<"+argName+"> ");
 			}
 		}
 		
 		sb.setLength(sb.length() - 1);
-		
 		return sb.toString();
 	}
 	
 	/**
-	 * Format a list and make all the item appear in italic
-	 * @param list - the list to format
+	 * Format a list of {@link Object} and make all the item appear in italic using Markdown syntax
+	 * @param list The list of objects to be formatted
+	 * @return The list's content formatted
+	 * @since 5.0
+	 */
+	public static String formatListContentItalic(List<Object> list) {
+		final StringBuilder sb = new StringBuilder();
+		list.forEach(obj -> sb.append("*"+obj.toString()+"*").append(", "));
+
+		if(!list.isEmpty()) sb.setLength(sb.length() - 2);
+		return sb.toString();
+	}
+	
+	/**
+	 * Format a list and make all the item appear in italic using Markdown syntax
+	 * @param list The list to be formatted
 	 * @return the formatted list
+	 * @since 2.0
+	 * @deprecated since 5.0
+	 * @see #formatListContentItalic(List)
 	 */
 	public static String getFormattedStringList(List<String> list) {
-		StringBuilder sb = new StringBuilder();
-		for(String str : list) {
-			sb.append("*"+str+"*").append(", ");
-		}
+		final StringBuilder sb = new StringBuilder();
+		list.forEach(str -> sb.append("*"+str+"*").append(", "));
+
 		if(!list.isEmpty()) sb.setLength(sb.length() - 2);
 		return sb.toString();
 	}
 	
 	/**
-	 * Format a list of permission and make all the item appear in italic
-	 * @param list - the list containing the permission
+	 * Format a list of permission and make all the item appear in italic using Markdown syntax
+	 * @param list The list containing the permission
 	 * @return the formatted list
+	 * @since 2.0
+	 * @deprecated since 5.0
+	 * @see #formatListContentItalic(List)
 	 */
 	public static String getFormattedPermissionList(List<Permission> list) {
-		StringBuilder sb = new StringBuilder();
-		for(Permission perm : list) {
-			sb.append("*"+perm.toString()+"*").append(", ");
-		}
+		final StringBuilder sb = new StringBuilder();
+		list.forEach(perm -> sb.append("*"+perm.toString()+"*").append(", "));
+
 		if(!list.isEmpty()) sb.setLength(sb.length() - 2);
 		return sb.toString();
 	}
 	
 	/**
-	 * Handle all boolean command's argument
-	 * Return if the boolean is true, false or in an undefined state
-	 * @param message - the argument
-	 * @return an Ternary operator (true or false like a boolean and UNDEFINED a problem occur) 
+	 * Used when getting a 'yes' or 'no' answer for an user.<br/>
+	 * Convert the response to a {@link Ternary}. The ternary will be {@code true} if the user answered yes, {@code false} if the user answered no.
+	 * If the response cannot be parsed properly, the ternary will be set to {@code undefined}.
+	 * @param response The user's answer to a question
+	 * @return a Ternary operator
+	 * @since 3.0
 	 */
-	public static Ternary getBooleanArgumentResponse(String message) {
-		message = StringHelper.getRawCharacterString(message);
+	public static Ternary getBooleanArgumentResponse(String response) {
+		response = StringHelper.getRawCharacterString(response);
 		
-		if(message.equalsIgnoreCase("oui") || message.equalsIgnoreCase("yes")) {
-			return Ternary.TRUE;
-		}else if(message.equalsIgnoreCase("non") || message.equalsIgnoreCase("no")) {
-			return Ternary.FALSE;
-		}else {
-			return Ternary.UNDEFINED;
+		switch(response.toLowerCase()) {
+			case "oui":
+			case "yes":
+			case "ja":
+			case "si":
+			case "sí":
+				return Ternary.TRUE;
+			case "non":
+			case "no":
+			case "nein":
+				return Ternary.FALSE;
+			default:
+				return Ternary.UNDEFINED;	
 		}
 	}
 	
@@ -128,18 +148,18 @@ public class ArgumentHelper {
 	}
 	
 	/**
-	 * Used to return the arguments contains in user's message
-	 * @param userCommand - a tuple containing the information about user's command
-	 * @return the list of arguments
+	 * Format the arguments provided in an user command. Separate the command from the argument.
+	 * @param isPrefixSplitted tell the function if its needs to handle a prefix separated from the command
+	 * @param command the whole command containing the command name and the arguments
+	 * @return the list of arguments as {@link String}
+	 * @since 2.0
 	 */
 	public static List<String> formatCommandArguments(boolean isPrefixSplitted, String command) {
 		if(command == "") return Arrays.asList("");
 		
-		List<String> result = new ArrayList<>(Arrays.asList(command.split(" +")));
-		if(isPrefixSplitted) {
-			result.remove(1);
-		}
-		result.remove(0);
+		final List<String> result = new ArrayList<>(Arrays.asList(command.split(" +")));
+		if(isPrefixSplitted) result.remove(1); //Remove the separated prefix
+		result.remove(0); //Remove the command name
 		
 		return result;
 	}
