@@ -1,7 +1,6 @@
-package apbiot.core.io.json.types;
+package apbiot.core.io.json;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.function.BiPredicate;
 
@@ -24,16 +23,13 @@ public abstract class JSONProperties extends JSONFile {
 		super(dir, name);
 		
 		try {
-
-			if(!Files.exists(getFullPath()))
-				Files.createFile(getFullPath());
 			
 			readFile();
 			
-			controlRegistredProperties();
-			
 		} catch (IOException e) {
 			LOGGER.error("Unexpected error while loading JSON file [dir: {}, name: {}] with error {} and message {}", this.directory.getName(), this.fileName, e.getClass().getName(), e.getMessage());
+		}finally {
+			controlRegistredProperties();
 		}
 		
 	}
@@ -51,7 +47,7 @@ public abstract class JSONProperties extends JSONFile {
 	 * @throws ClassCastException
 	 */
 	protected boolean getBooleanProperty(String propKey) throws ClassCastException {
-		return (boolean)this.getContentAsObject().get(propKey);
+		return this.getContentAsObject().get(propKey, Boolean.class);
 	}
 	
 	/**
@@ -62,7 +58,7 @@ public abstract class JSONProperties extends JSONFile {
 	 * @throws ClassCastException
 	 */
 	protected String getStringProperty(String propKey) throws ClassCastException {
-		return (String)this.getContentAsObject().get(propKey);
+		return this.getContentAsObject().get(propKey, String.class);
 	}
 	
 	/**
@@ -73,7 +69,7 @@ public abstract class JSONProperties extends JSONFile {
 	 * @throws ClassCastException
 	 */
 	protected Long getLongProperty(String propKey) throws ClassCastException {
-		return (Long)this.getContentAsObject().get(propKey);
+		return this.getContentAsObject().get(propKey, Long.class);
 	}
 	
 	/**
@@ -86,7 +82,7 @@ public abstract class JSONProperties extends JSONFile {
 	 * @throws ClassCastException
 	 */
 	protected Integer getIntegerProperty(String propKey) throws ClassCastException {
-		return ((Long)this.getContentAsObject().get(propKey)).intValue();
+		return this.getContentAsObject().get(propKey, Integer.class);
 	}
 	
 	/**
@@ -97,7 +93,7 @@ public abstract class JSONProperties extends JSONFile {
 	 * @throws ClassCastException
 	 */
 	protected Float getFloatProperty(String propKey) throws ClassCastException {
-		return ((Float)this.getContentAsObject().get(propKey));
+		return this.getContentAsObject().get(propKey, Float.class);
 	}
 	
 	/**

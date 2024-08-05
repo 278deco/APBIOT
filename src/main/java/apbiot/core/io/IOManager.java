@@ -15,7 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 import apbiot.core.exceptions.NonExistingFileInstanceException;
 import apbiot.core.helper.DirectoryHelper;
-import apbiot.core.io.json.types.JSONProperties;
+import apbiot.core.io.json.JSONProperties;
 import apbiot.core.io.objects.IOArguments;
 import apbiot.core.io.objects.IOElement;
 import apbiot.core.pems.EventListener;
