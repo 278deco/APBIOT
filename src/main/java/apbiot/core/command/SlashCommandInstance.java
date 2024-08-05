@@ -42,7 +42,7 @@ public abstract class SlashCommandInstance extends AbstractCommandInstance {
 	}
 	
 	@Override
-	public void execute(GatewayNativeCommandPacket infos) { }
+	public final void execute(GatewayNativeCommandPacket infos) { }
 	
 	/**
 	 * Define the arguments of the command

@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import apbiot.core.command.informations.GatewayApplicationCommandPacket;
 import apbiot.core.command.informations.GatewayComponentCommandPacket;
 import apbiot.core.command.informations.GatewayNativeCommandPacket;
+import apbiot.core.helper.StringHelper;
 import apbiot.core.objects.interfaces.ICommandCategory;
 import apbiot.core.permissions.CommandPermission;
 import apbiot.core.time.CommandCooldown;
@@ -27,6 +28,7 @@ public abstract class AbstractCommandInstance {
 	private CommandPermission permissions;
 	
 	private final UUID commandId;
+	private final String shortenCommandId; //The shorten version of the command id pre-processed for faster access. Use base64
 	
 	protected boolean built;
 	
@@ -45,6 +47,7 @@ public abstract class AbstractCommandInstance {
 		this.description = (description == null || description.isBlank() || description.isEmpty() ? "No description available" : description);
 		this.category = category;
 		this.commandId = UUID.randomUUID();
+		this.shortenCommandId = StringHelper.shortenUUIDToBase64(this.commandId);
 		
 		this.permissions = setPermissions();
 	}
@@ -65,6 +68,7 @@ public abstract class AbstractCommandInstance {
 		this.description = (description == null || description.isBlank() || description.isEmpty() ? "No description available" : description);
 		this.category = category;
 		this.commandId = UUID.fromString(staticID);
+		this.shortenCommandId = StringHelper.shortenUUIDToBase64(this.commandId);
 		
 		this.permissions = setPermissions();
 	}
@@ -170,9 +174,17 @@ public abstract class AbstractCommandInstance {
 	 * Get the unique command id
 	 * @return the command's id
 	 */
-	public UUID getID() {
+	public final UUID getID() {
 		return this.commandId;
 	}
+	
+	/**
+	 * Get the unique command id shorten to base64
+	 * @return the command's id
+	 */
+	public final String getShortenID() {
+        return this.shortenCommandId;
+    }
 	
 	/**
 	 * Get the permission of the command

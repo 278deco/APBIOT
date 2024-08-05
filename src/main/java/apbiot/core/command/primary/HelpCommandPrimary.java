@@ -21,10 +21,6 @@ import apbiot.core.objects.Argument;
 import apbiot.core.objects.enums.ArgumentLevel;
 import apbiot.core.objects.enums.ArgumentType;
 import apbiot.core.objects.enums.CommandCategory;
-import apbiot.core.pems.EventListener;
-import apbiot.core.pems.ProgramEvent;
-import apbiot.core.pems.ProgramEvent.EventPriority;
-import apbiot.core.pems.events.CommandsListParsedEvent;
 import apbiot.core.permissions.CommandPermission;
 import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
@@ -39,7 +35,7 @@ import discord4j.core.spec.EmbedCreateFields.Field;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 
-public class HelpCommandPrimary extends NativeCommandInstance implements EventListener {
+public class HelpCommandPrimary extends NativeCommandInstance {
 	
 	//Compilated Command Map and Slash Command Map
 	private Map<Set<String>, NativeCommandInstance> NATIVE_COMMANDS;
@@ -51,13 +47,16 @@ public class HelpCommandPrimary extends NativeCommandInstance implements EventLi
 	private final Snowflake ownerID;
 	private final String botUsername, botAvatarUrl;
 	
-	public HelpCommandPrimary(Snowflake ownerID, User botAccount) {
+	public HelpCommandPrimary(Snowflake ownerID, User botAccount, Map<Set<String>, NativeCommandInstance> nativeCommands,
+			Map<Set<String>, SlashCommandInstance> slashCommands) {
 		super("help", "Permet d'obtenir la liste des commandes éxécutables.", CommandCategory.UTILITY);
 		
 		this.ownerID = ownerID;
 		
 		this.botUsername = botAccount.getUsername();
-		this.botAvatarUrl = botAccount.getAvatarUrl();	
+		this.botAvatarUrl = botAccount.getAvatarUrl();
+		this.NATIVE_COMMANDS = nativeCommands;
+		this.SLASH_COMMANDS = slashCommands;
 	}
 	
 	@Override
@@ -194,15 +193,5 @@ public class HelpCommandPrimary extends NativeCommandInstance implements EventLi
 	protected CommandPermission setPermissions() {
 		return CommandPermission.EMPTY;
 	}
-
-	@Override
-	public void onEventReceived(ProgramEvent e, EventPriority priority) {
-		if(priority == EventPriority.HIGH && e instanceof CommandsListParsedEvent) {
-			final CommandsListParsedEvent parsed = (CommandsListParsedEvent)e;
-			if(parsed.getDiscordCoreNativeCommands().isPresent()) this.NATIVE_COMMANDS = parsed.getDiscordCoreNativeCommands().get();
-			if(parsed.getDiscordCoreSlashCommands().isPresent()) this.SLASH_COMMANDS = parsed.getDiscordCoreSlashCommands().get();
-		}
-	}
-
 
 }
