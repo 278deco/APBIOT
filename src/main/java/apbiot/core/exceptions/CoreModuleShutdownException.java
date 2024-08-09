@@ -1,4 +1,4 @@
-package apbiot.core.modules.exceptions;
+package apbiot.core.exceptions;
 
 public class CoreModuleShutdownException extends Exception {
 
