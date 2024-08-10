@@ -15,7 +15,7 @@ public class ShutdownCommandPrimary extends SlashCommandInstance {
 	private final Runnable shutdownMethod;
 	
 	public ShutdownCommandPrimary(Runnable shutdownMethod) {
-		super("shutdown", "Eteint le bot.", CommandCategory.ADMIN);
+		super("shutdown", CommandCategory.ADMIN);
 		
 		this.shutdownMethod = shutdownMethod;
 	}

@@ -49,7 +49,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 	
 	public HelpCommandPrimary(Snowflake ownerID, User botAccount, Map<Set<String>, NativeCommandInstance> nativeCommands,
 			Map<Set<String>, SlashCommandInstance> slashCommands) {
-		super("help", "Permet d'obtenir la liste des commandes éxécutables.", CommandCategory.UTILITY);
+		super("help", CommandCategory.UTILITY);
 		
 		this.ownerID = ownerID;
 		
@@ -101,7 +101,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 		for(var entry : NATIVE_COMMANDS.entrySet()) {
 			if(entry.getValue().isInHelpListed() && entry.getValue().isSameCommandCategory(choosenCat)) {
 				if(PermissionHelper.doesUserHavePermissions(member, this.getPermissions(), this.ownerID)) {
-					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getDisplayName()+" ➭", entry.getValue().getDescription(), false));
+					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getInternalName()+" ➭", entry.getValue().getDescription("fr_FR"), false));
 				}
 			}
 		}
@@ -109,7 +109,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 		for(var entry : SLASH_COMMANDS.entrySet()) {
 			if(entry.getValue().isInHelpListed() && entry.getValue().isSameCommandCategory(choosenCat)) {
 				if(PermissionHelper.doesUserHavePermissions(member, this.getPermissions(), this.ownerID)) {
-					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getDisplayName()+" ➭", "	*Se référer au menu commandes slash* ", false));
+					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getInternalName()+" ➭", "	*Se référer au menu commandes slash* ", false));
 				}
 			}
 		}

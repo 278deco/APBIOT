@@ -39,7 +39,7 @@ public class BugCommandPrimary extends SlashCommandInstance {
 	private final String botUsername, botAvatarUrl;
 	
 	public BugCommandPrimary(User botAccount) {
-		super("bug", "Permet d'envoyer un message au développeur pour l'informer d'un bug.", CommandCategory.UTILITY);
+		super("bug", CommandCategory.UTILITY);
 		
 		this.botUsername = botAccount.getUsername();
 		this.botAvatarUrl = botAccount.getAvatarUrl();
