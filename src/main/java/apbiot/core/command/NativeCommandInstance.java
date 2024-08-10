@@ -2,7 +2,6 @@ package apbiot.core.command;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import apbiot.core.command.informations.GatewayApplicationCommandPacket;
 import apbiot.core.commandator.HelpDescription;
@@ -14,26 +13,18 @@ public abstract class NativeCommandInstance extends AbstractCommandInstance {
 	private List<Argument> arguments;
 	private HelpDescription helpDesc;
 	
-	public NativeCommandInstance(String displayName, Set<String> aliases, String description, ICommandCategory category) {
-		super(displayName, aliases, description, category);
+	public NativeCommandInstance(String displayName, ICommandCategory category) {
+		super(displayName, category);
 		
 		this.arguments = setArguments(new ArrayList<>());
 		this.helpDesc = setHelpDescription();
 	}
 	
-	public NativeCommandInstance(String displayName, Set<String> aliases, String description, ICommandCategory category, String staticID) {
-		super(displayName, aliases, description, category, staticID);
+	public NativeCommandInstance(String displayName, ICommandCategory category, String staticID) {
+		super(displayName, category, staticID);
 		
 		this.arguments = setArguments(new ArrayList<>());
 		this.helpDesc = setHelpDescription();
-	}
-	
-	public NativeCommandInstance(String displayName, String description, ICommandCategory category) {
-		this(displayName, null, description, category);
-	}
-	
-	public NativeCommandInstance(String displayName, String description, ICommandCategory category, String staticID) {
-		this(displayName, null, description, category, staticID);
 	}
 	
 	@Override
