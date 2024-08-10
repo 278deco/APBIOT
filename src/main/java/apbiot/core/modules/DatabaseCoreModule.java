@@ -5,9 +5,9 @@ import java.util.UUID;
 
 import org.mariadb.r2dbc.util.HostAddress;
 
-import apbiot.core.modules.exceptions.CoreModuleLaunchingException;
-import apbiot.core.modules.exceptions.CoreModuleLoadingException;
-import apbiot.core.modules.exceptions.CoreModuleShutdownException;
+import apbiot.core.exceptions.CoreModuleLaunchingException;
+import apbiot.core.exceptions.CoreModuleLoadingException;
+import apbiot.core.exceptions.CoreModuleShutdownException;
 import apbiot.core.pems.ProgramEvent;
 import apbiot.core.pems.ProgramEvent.EventPriority;
 import apbiot.core.pems.events.DatabaseCredentialsAcquiredEvent;
