@@ -31,17 +31,14 @@ public class Commandator {
 	 * @param nativeCommands The set of commands
 	 * @param slashCommands The set of commands
 	 */
-	public Commandator(Set<Set<String>> nativeCommands, Set<Set<String>> slashCommands) {
-		nativeCommands.forEach(cmdSetName -> {
-			cmdSetName.forEach(cmdName -> {
-				this.commandsList.add(new CommandatorEntry(cmdName, ApplicationCommandType.NATIVE));
-			});
+	public Commandator(Set<String> nativeCommands, Set<String> slashCommands) {
+		nativeCommands.forEach(cmdName -> {
+			this.commandsList.add(new CommandatorEntry(cmdName, ApplicationCommandType.NATIVE));
+			
 		});
 		
-		slashCommands.forEach(cmdSetName -> {
-			cmdSetName.forEach(cmdName -> {
-				this.commandsList.add(new CommandatorEntry(cmdName, ApplicationCommandType.CHAT_INPUT));
-			});
+		slashCommands.forEach(cmdName -> {
+			this.commandsList.add(new CommandatorEntry(cmdName, ApplicationCommandType.CHAT_INPUT));
 		});
 	}
 	

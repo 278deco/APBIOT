@@ -26,18 +26,18 @@ public class CommandsListParsedEvent extends ProgramEvent {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Optional<Map<Set<String>, NativeCommandInstance>> getDiscordCoreNativeCommands() {
+	public Optional<Map<String, NativeCommandInstance>> getDiscordCoreNativeCommands() {
 		try {
-			return Optional.ofNullable((Map<Set<String>, NativeCommandInstance>) getEventArgument(1));
+			return Optional.ofNullable((Map<String, NativeCommandInstance>) getEventArgument(1));
 		}catch(ClassCastException | NullPointerException e) {
 			return Optional.empty();
 		}
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Optional<Map<Set<String>, SlashCommandInstance>> getDiscordCoreSlashCommands() {
+	public Optional<Map<String, SlashCommandInstance>> getDiscordCoreSlashCommands() {
 		try {
-			return Optional.ofNullable((Map<Set<String>, SlashCommandInstance>) getEventArgument(2));
+			return Optional.ofNullable((Map<String, SlashCommandInstance>) getEventArgument(2));
 		}catch(ClassCastException | NullPointerException e) {
 			return Optional.empty();
 		}

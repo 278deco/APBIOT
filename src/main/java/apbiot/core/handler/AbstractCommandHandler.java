@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import apbiot.core.command.AbstractCommandInstance;
 import apbiot.core.command.ApplicationCommandInstance;
@@ -24,8 +23,8 @@ import discord4j.discordjson.json.ApplicationCommandRequest;
  * @see apbiot.core.handler.Handler
  */
 public abstract class AbstractCommandHandler extends Handler {
-	protected final Map<Set<String>, NativeCommandInstance> NATIVE_COMMANDS = new HashMap<>();
-	protected final Map<Set<String>, SlashCommandInstance> SLASH_COMMANDS = new HashMap<>();
+	protected final Map<String, NativeCommandInstance> NATIVE_COMMANDS = new HashMap<>();
+	protected final Map<String, SlashCommandInstance> SLASH_COMMANDS = new HashMap<>();
 	protected final Map<String, ApplicationCommandInstance> APPLICATION_COMMANDS = new HashMap<>();
 	
 	private final Snowflake destination;
@@ -48,9 +47,9 @@ public abstract class AbstractCommandHandler extends Handler {
 	protected abstract void registerCommands(GatewayDiscordClient client);
 	
 	protected final void addNewCommand(AbstractCommandInstance cmd) {
-		if(cmd instanceof NativeCommandInstance) NATIVE_COMMANDS.put(cmd.getNames(), (NativeCommandInstance)cmd);
-		if(cmd instanceof SlashCommandInstance) SLASH_COMMANDS.put(cmd.getNames(), (SlashCommandInstance)cmd);
-		if(cmd instanceof ApplicationCommandInstance) APPLICATION_COMMANDS.put(cmd.getDisplayName(), (ApplicationCommandInstance)cmd);
+		if(cmd instanceof NativeCommandInstance) NATIVE_COMMANDS.put(cmd.getInternalName(), (NativeCommandInstance)cmd);
+		if(cmd instanceof SlashCommandInstance) SLASH_COMMANDS.put(cmd.getInternalName(), (SlashCommandInstance)cmd);
+		if(cmd instanceof ApplicationCommandInstance) APPLICATION_COMMANDS.put(cmd.getInternalName(), (ApplicationCommandInstance)cmd);
 	}
 	
 	@Override

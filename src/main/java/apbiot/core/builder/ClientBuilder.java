@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.logging.log4j.LogManager;
@@ -54,7 +53,7 @@ import discord4j.gateway.intent.IntentSet;
 import discord4j.rest.http.client.ClientException;
 
 /**
- * Class that handle the bot instance.
+ * Class that handle the bot instance. <br/>
  * Be careful to build the instance before register an EventHandler
  * @version 5.0
  * @author 278deco
@@ -73,8 +72,8 @@ public class ClientBuilder {
 	private Snowflake ownerID;
 
 	//Compilated Command Map and Slash Command Map
-	private Map<Set<String>, NativeCommandInstance> NATIVE_COMMANDS;
-	private Map<Set<String>, SlashCommandInstance> SLASH_COMMANDS;
+	private Map<String, NativeCommandInstance> NATIVE_COMMANDS;
+	private Map<String, SlashCommandInstance> SLASH_COMMANDS;
 	//Compilated User and Message Commands
 	private Map<String, ApplicationCommandInstance> APPLICATION_COMMANDS;
 	
@@ -110,11 +109,11 @@ public class ClientBuilder {
 //		this.APPLICATION_COMMANDS = cmdHandler.APPLICATION_COMMANDS;
 	}
 	
-	public void updateNativeCommandMapping(Optional<Map<Set<String>, NativeCommandInstance>> mapping) {
+	public void updateNativeCommandMapping(Optional<Map<String, NativeCommandInstance>> mapping) {
 		if(mapping.isPresent()) this.NATIVE_COMMANDS = mapping.get();
 	}
 	
-	public void updateSlashCommandMapping(Optional<Map<Set<String>, SlashCommandInstance>> mapping) {
+	public void updateSlashCommandMapping(Optional<Map<String, SlashCommandInstance>> mapping) {
 		if(mapping.isPresent()) this.SLASH_COMMANDS = mapping.get();
 	}
 	
@@ -130,7 +129,7 @@ public class ClientBuilder {
 				try {
 					cmd.buildCommand();
 				}catch(Exception e) {
-					errors.add(cmd.getDisplayName());
+					errors.add(cmd.getInternalName());
 				}
 			});
 		}
@@ -141,7 +140,7 @@ public class ClientBuilder {
 				try {
 					cmd.buildCommand();
 				}catch(Exception e) {
-					errors.add(cmd.getDisplayName());
+					errors.add(cmd.getInternalName());
 				}
 			});
 		}
@@ -151,7 +150,7 @@ public class ClientBuilder {
 				try {
 					cmd.buildCommand();
 				}catch(Exception e) {
-					errors.add(cmd.getDisplayName());
+					errors.add(cmd.getInternalName());
 				}
 			});
 		}
@@ -275,7 +274,7 @@ public class ClientBuilder {
 		
 		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_RECEIVED, new Object[] {
 				StringHelper.getRawCharacterString(event.getInteraction().getUser().getUsername()), 
-				cmd.getDisplayName(),
+				cmd.getInternalName(),
 				channel.getType(), 
 				type});
 		
@@ -325,14 +324,14 @@ public class ClientBuilder {
 		switch(type) {
 			case NATIVE -> {
 				for(var entry : NATIVE_COMMANDS.entrySet()) {
-					if(entry.getKey().contains(providedCmdName.toLowerCase())) {
+					if(entry.getKey().equalsIgnoreCase(providedCmdName)) {
 						return entry.getValue();
 					}
 				}
 			}
 			case CHAT_INPUT -> {
 				for(var entry : SLASH_COMMANDS.entrySet()) {
-					if(entry.getValue().getDisplayName().equalsIgnoreCase(providedCmdName)) {
+					if(entry.getKey().equalsIgnoreCase(providedCmdName)) {
 						return entry.getValue();
 					}
 				}
@@ -616,7 +615,7 @@ public class ClientBuilder {
 			this.lock.lock();
 			
 			if(this.gateway == null) throw new UnbuiltBotException("You cannot destroy a nonexistent bot.");
-			this.gateway.logout().block();
+			this.gateway.logout().subscribe();
 		}finally {
 			this.lock.unlock();
 		}
