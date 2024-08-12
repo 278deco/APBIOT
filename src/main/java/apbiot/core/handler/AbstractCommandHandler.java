@@ -13,6 +13,7 @@ import apbiot.core.pems.BaseProgramEventEnum;
 import apbiot.core.pems.ProgramEventManager;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
+import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
 /**
@@ -92,7 +93,13 @@ public abstract class AbstractCommandHandler extends Handler {
 		}
 		
 		SLASH_COMMANDS.forEach((key, value) -> {
-			commands.add(value.createApplicationCommand(value.getCommandArguments(new ArrayList<>())));
+			final List<ApplicationCommandOptionData> optionsData = new ArrayList<>();
+			value.getCommandOptions(new ArrayList<>()).forEach(opt -> {
+				opt.updateLocalizationMapping(value.getInternalName());
+				optionsData.add(opt.get());
+			});
+			
+			commands.add(value.createApplicationCommand(optionsData));
 		});
 
 		if(commands.size() > 0) {

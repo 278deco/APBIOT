@@ -34,8 +34,11 @@ public abstract class SlashCommandInstance extends AbstractCommandInstance {
 		final Map<String, String> localizationDescriptions = LanguageManager.get()
 				.getCommandLocalizationMapping(getInternalName(), "description");
 		
+		final String defaultDesc = localizationDescriptions.getOrDefault("en-US", "commands.discord.no.description");
+		
 		final Builder request = ApplicationCommandRequest.builder()
 				.name(getInternalName())
+				.description(defaultDesc) // Default description in English
 				.nameLocalizationsOrNull(localizationNames)
 				.descriptionLocalizationsOrNull(localizationDescriptions);
 		
@@ -51,7 +54,18 @@ public abstract class SlashCommandInstance extends AbstractCommandInstance {
 	 * @param args The command's arguments
 	 * @see discord4j.core.object.command.ApplicationCommandOptionData
 	 * @return a List of ApplicationCommandOption
+	 * @deprecated since 6.0.0
 	 */
 	public abstract List<ApplicationCommandOptionData> getCommandArguments(ArrayList<ApplicationCommandOptionData> args);
+	
+	/**
+	 * Define the arguments of the command <br/>
+	 * This method is called before the command is registered to the gateway
+	 * 
+	 * @param args The command options to add
+	 * @return A list of {@link CommandOptions}
+	 * @see ApplicationCommandOptionData
+	 */
+	public abstract List<CommandOptions> getCommandOptions(List<CommandOptions> args);
 	
 }

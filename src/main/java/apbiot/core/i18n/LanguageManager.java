@@ -136,14 +136,64 @@ public class LanguageManager {
 		return Optional.empty();
 	}
 	
-	
+	/**
+	 * Get the localization of a key in all languages loaded and available for a command <br/>
+	 * The locale use discord official language codes
+	 * 
+	 * @param commandName The command's name
+	 * @param localizationKey The localization key (ex: name, description, ...)
+	 * @return A map with the discord language code as key and the localized name
+	 */
 	public Map<String, String> getCommandLocalizationMapping(String commandName, String localizationKey) {
 		final String key = "commands.discord."+commandName+"."+localizationKey;
 
 		final Map<String, String> entries = new HashMap<>();
 		
 		for (Language language : localizations) {
-			if(language.hasKey(key)) entries.put(language.getCode(), language.getOrDefault(key));
+			if(language.hasKey(key)) entries.put(language.getDiscordCode(), language.getOrDefault(key));
+		}
+		
+		return entries;
+	}
+	
+	/**
+	 * Get the localization of a key in all languages loaded and available for command's options <br/>
+	 * The locale use discord official language codes
+	 * 
+	 * @param commandName The command's name
+	 * @param optionName The option's name
+	 * @param localizationKey The localization key (ex: name, description, ...)
+	 * @return A map with the discord language code as key and the localized name
+	 */
+	public Map<String, String> getOptionLocalizationMapping(String commandName, String optionName, String localizationKey) {
+		final String key = "options.discord."+commandName +"."+ optionName +"."+ localizationKey;
+
+		final Map<String, String> entries = new HashMap<>();
+		
+		for (Language language : localizations) {
+			if(language.hasKey(key)) entries.put(language.getDiscordCode(), language.getOrDefault(key));
+		}
+		
+		return entries;
+	}
+	
+	/**
+	 * Get the localization of a key in all languages loaded and available for option's choices <br/>
+	 * The locale use discord official language codes
+	 * 
+	 * @param commandName The command's name
+	 * @param optionName The option's name
+	 * @param choiceName The choice's name
+	 * @param localizationKey The localization key (ex: name, description, ...)
+	 * @return A map with the discord language code as key and the localized name
+	 */
+	public Map<String, String> getChoiceLocalizationMapping(String commandName, String optionName, String choiceName, String localizationKey) {
+		final String key = "choices.discord."+commandName +"."+ optionName +"."+ choiceName +"."+ localizationKey;
+
+		final Map<String, String> entries = new HashMap<>();
+		
+		for (Language language : localizations) {
+			if(language.hasKey(key)) entries.put(language.getDiscordCode(), language.getOrDefault(key));
 		}
 		
 		return entries;
