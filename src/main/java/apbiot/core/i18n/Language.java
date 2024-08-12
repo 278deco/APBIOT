@@ -20,7 +20,7 @@ public class Language {
 	private static final Pattern ENTRY_PATTERN = Pattern.compile("^(\\w+\\.)(\\w+\\.)*(\\w+)$");
 	
 	private String name, region;
-	private String code;
+	private String code, discordCode;
 
 	private Map<String, String> entries;
 
@@ -53,9 +53,10 @@ public class Language {
 			this.region = this.entries.get("language.region");
 			this.name = this.entries.get("language.name");
 			this.code = this.entries.get("language.code");
+			this.discordCode = this.entries.get("language.discordcode");
 			
-			if(this.region == null || this.name == null || this.code == null)
-				throw new LocalizationKeyFormatException("Missing language keys information (region/name/code)");
+			if(this.region == null || this.name == null || this.code == null || this.discordCode == null)
+				throw new LocalizationKeyFormatException("Missing language keys information (region/name/code/discordcode)");
 
 			//Check the validy of the language code
 			if (!"und".equals(Locale.forLanguageTag(code).toLanguageTag()))
@@ -179,6 +180,24 @@ public class Language {
 		return code;
 	}
 	
+	/**
+	 * Get the language's discord code <br/>
+	 * This code is similar to the official code but is formatted for discord
+	 * <p>
+	 * Example :
+	 * <ul>
+	 * <li>en-US</li>
+	 * <li>fr</li>
+	 * <li>en-GB</li>
+	 * <li>it</li>
+	 * </ul>
+	 * @see <a href="https://discord.com/developers/docs/reference#locales">Discord Locales</a>
+	 * @return The discord code associated with this instance
+	 */
+	public final String getDiscordCode() {
+		return discordCode;
+	}
+	
 	@Override
 	public String toString() {
 		return "Language [name=" + name + ", region=" + region + ", code=" + code + "]";
@@ -188,7 +207,8 @@ public class Language {
 	public boolean equals(Object obj) {
 		if(obj == null || !(obj instanceof Language)) return false;
         final Language language = (Language) obj;
-        return language.code == this.code && language.name == this.name && language.region == this.region;
+        return language.code == this.code && language.name == this.name && 
+        		language.region == this.region && language.discordCode == this.discordCode;
 	}
 
 }
