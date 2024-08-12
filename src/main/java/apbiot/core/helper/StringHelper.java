@@ -238,21 +238,6 @@ public class StringHelper {
 	}
 	
 	/**
-	 * @deprecated since 4.0
-	 * @see apbiot.core.helper.StringHelper#getParsedDiscordID(String, boolean)
-	 */
-	public static long getParsedDiscordID(String discordID) {
-		discordID = getFormattedDiscordID(discordID);
-		long id = -1L;
-		try {
-			id = Long.valueOf(discordID);
-		}catch(NumberFormatException e) {
-			return id;
-		}
-		return id;
-	}
-	
-	/**
 	 * The function will return a parsed discord ID
 	 * @param discordID The discord id get from a message
 	 * @param formatID Set it to true if the function need to format the ID before parsing it
@@ -267,12 +252,6 @@ public class StringHelper {
 			return -1L;
 		}
 	}
-	
-	/**
-	 * @deprecated since 4.0
-	 * @see apbiot.core.helper.ArgumentHelper#formatCommandArguments(boolean, String)
-	 */
-	public static void formatCommandArguments() { }
 	
 	/**
 	 * Create a random string ID based on the following pattern<br/>
@@ -376,6 +355,13 @@ public class StringHelper {
 		return listToString(letterAdjustement, " ");
 	}
 	
+	/**
+	 * Used to convert a UUID to a base64 string without padding <br/>
+	 * The UUID is converted to a byte array and then encoded to base64
+	 * 
+	 * @param uuid The UUID to be converted
+	 * @return The base64 string
+	 */
 	public static String shortenUUIDToBase64(UUID uuid) {
 		final ByteBuffer buf = ByteBuffer.wrap(new byte[16]);
 		buf.putLong(uuid.getMostSignificantBits());
@@ -384,6 +370,14 @@ public class StringHelper {
 		return Base64.getEncoder().encodeToString(buf.array()).replace("=", "");
 	}
 	
+	/**
+	 * Used to convert a base64 string to a UUID <br/>
+	 * The string is decoded from base64 and then converted to a byte buffer to get the UUID <br/>
+	 * If the string is not padded, it will be padded to avoid illegal base64 character exception
+	 * 
+	 * @param encoded The base64 string to be converted
+	 * @return The UUID converted from the string
+	 */
 	public static UUID base64ToUUID(String encoded) {
 		if(!encoded.endsWith("=")) {
 			encoded = encoded + "=="; //	To avoid illegal base64 character exception, add padding to the string			
@@ -393,6 +387,13 @@ public class StringHelper {
 		return new UUID(buf.getLong(), buf.getLong());
 	}
 	
+	/**
+	 * Convert a string to a UUID <br/>
+	 * If the string is not a valid UUID, an empty optional is returned rather than throwing an exception
+	 * 
+	 * @param uuidStr The string to be converted
+	 * @return An {@link Optional} containing the UUID if the string is a valid UUID
+	 */
 	public static Optional<UUID> optionalUUIDFromString(String uuidStr) {
 		if(uuidStr == null || uuidStr.isEmpty() || uuidStr.isBlank()) return Optional.empty();
 		try {
@@ -412,4 +413,45 @@ public class StringHelper {
 	public static String replaceLast(String text, String regex, String replacement) {
         return text.replaceFirst("(?s)(.*)" + regex, "$1" + replacement);
     }
+	
+	/**
+	 * Count the number of occurrence of a substring inside another string <br/>
+	 * The method is case sensitive and will return 0 if the base or the substring is null or empty
+	 * 
+	 * @param base The string to be checked
+	 * @param sub The substring to be counted
+	 * @return The number of occurrence of the substring in the base string
+	 */
+	public static int countOccurence(String base, String sub) {
+		if(base == null || base.isBlank()) return 0;
+		if(sub == null || sub.isBlank()) return 0;
+		
+		int count = 0;
+        int idx = 0;
+        while((idx = base.indexOf(sub, idx)) != -1) {
+            count++;
+            idx+=sub.length();
+        }
+        
+        return count;
+	}
+	
+	/**
+	 * Count the number of occurrence of a character inside a string <br/>
+	 * The method is case sensitive and will return 0 if the base is null or empty
+	 * 
+	 * @param base The string to be checked
+	 * @param c The character to be counted
+	 * @return The number of occurrence of the character in the base string
+	 */
+	public static int countOccurence(String base, char c) {
+		if(base == null || base.isBlank()) return 0;
+        
+        int count = 0;
+        for(int i = 0; i < base.length(); i++) {
+            if(base.charAt(i) == c) count++;
+        }
+        
+        return count;
+	}
 }
