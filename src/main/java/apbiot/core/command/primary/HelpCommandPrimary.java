@@ -5,7 +5,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import apbiot.core.builder.ColorBuilder;
 import apbiot.core.builder.DateBuilder;
@@ -38,8 +37,8 @@ import discord4j.core.spec.MessageCreateSpec;
 public class HelpCommandPrimary extends NativeCommandInstance {
 	
 	//Compilated Command Map and Slash Command Map
-	private Map<Set<String>, NativeCommandInstance> NATIVE_COMMANDS;
-	private Map<Set<String>, SlashCommandInstance> SLASH_COMMANDS;
+	private Map<String, NativeCommandInstance> NATIVE_COMMANDS;
+	private Map<String, SlashCommandInstance> SLASH_COMMANDS;
 	
 	private EmbedCreateSpec helpEmbed;
 	private ActionRow buttonsRow;
@@ -47,8 +46,8 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 	private final Snowflake ownerID;
 	private final String botUsername, botAvatarUrl;
 	
-	public HelpCommandPrimary(Snowflake ownerID, User botAccount, Map<Set<String>, NativeCommandInstance> nativeCommands,
-			Map<Set<String>, SlashCommandInstance> slashCommands) {
+	public HelpCommandPrimary(Snowflake ownerID, User botAccount, Map<String, NativeCommandInstance> nativeCommands,
+			Map<String, SlashCommandInstance> slashCommands) {
 		super("help", CommandCategory.UTILITY);
 		
 		this.ownerID = ownerID;
@@ -101,7 +100,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 		for(var entry : NATIVE_COMMANDS.entrySet()) {
 			if(entry.getValue().isInHelpListed() && entry.getValue().isSameCommandCategory(choosenCat)) {
 				if(PermissionHelper.doesUserHavePermissions(member, this.getPermissions(), this.ownerID)) {
-					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getInternalName()+" ➭", entry.getValue().getDescription("fr_FR"), false));
+					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getDisplayName("fr_FR")+" ➭", entry.getValue().getDescription("fr_FR"), false));
 				}
 			}
 		}
@@ -109,7 +108,7 @@ public class HelpCommandPrimary extends NativeCommandInstance {
 		for(var entry : SLASH_COMMANDS.entrySet()) {
 			if(entry.getValue().isInHelpListed() && entry.getValue().isSameCommandCategory(choosenCat)) {
 				if(PermissionHelper.doesUserHavePermissions(member, this.getPermissions(), this.ownerID)) {
-					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getInternalName()+" ➭", "	*Se référer au menu commandes slash* ", false));
+					fields.add(EmbedCreateFields.Field.of("• "+entry.getValue().getDisplayName("fr_FR")+" ➭", "	*Se référer au menu commandes slash* ", false));
 				}
 			}
 		}

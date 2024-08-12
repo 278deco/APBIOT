@@ -34,14 +34,11 @@ public abstract class ApplicationCommandInstance extends AbstractCommandInstance
 		
 		final Map<String, String> localizationNames = LanguageManager.get()
 				.getCommandLocalizationMapping(getInternalName(), "name");
-		
-		final Map<String, String> localizationDescriptions = LanguageManager.get()
-				.getCommandLocalizationMapping(getInternalName(), "description");
-		
+
 		return ApplicationCommandRequest.builder().type(applicationCommandType.getValue())
 				.name(getInternalName())
+				.description("") // Default description in English
 				.nameLocalizationsOrNull(localizationNames)
-				.descriptionLocalizationsOrNull(localizationDescriptions)
 				.build();	
 	}
 

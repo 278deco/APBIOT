@@ -206,6 +206,18 @@ public abstract class AbstractCommandInstance {
 	}
 	
 	/**
+	 * Get the command's name in the given language <br/>
+	 * If the language is not found, the default name is returned
+	 * 
+	 * @param languageCode The language code to get the name
+	 * @return the command's name
+	 */
+	public final String getDisplayName(String languageCode) {
+		final String key = "commands.discord."+getInternalName()+".name";
+		return LanguageManager.get().getLanguage(languageCode).map(lang -> lang.getOrDefault(key)).orElse(key);
+	}
+	
+	/**
 	 * Get the command's internal name <br/>
 	 * It is mainly used to get the command's values in the localization like name, description, ...
 	 * @return The command's internal name
