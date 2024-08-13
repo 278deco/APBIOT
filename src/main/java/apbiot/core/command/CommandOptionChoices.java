@@ -31,6 +31,10 @@ public class CommandOptionChoices {
 		return data;
 	}
 	
+	public static final Builder builder() {
+		return new CommandOptionChoices.Builder();
+	}
+	
 	public static final class Builder {
 		
 		private String name;

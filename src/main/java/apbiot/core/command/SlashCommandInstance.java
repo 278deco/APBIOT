@@ -56,7 +56,9 @@ public abstract class SlashCommandInstance extends AbstractCommandInstance {
 	 * @return a List of ApplicationCommandOption
 	 * @deprecated since 6.0.0
 	 */
-	public abstract List<ApplicationCommandOptionData> getCommandArguments(ArrayList<ApplicationCommandOptionData> args);
+	public List<ApplicationCommandOptionData> getCommandArguments(ArrayList<ApplicationCommandOptionData> args) {
+		return null;
+	}
 	
 	/**
 	 * Define the arguments of the command <br/>

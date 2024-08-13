@@ -1,13 +1,13 @@
 package apbiot.core.command.primary;
 
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import apbiot.core.builder.ColorBuilder;
 import apbiot.core.builder.DateBuilder;
+import apbiot.core.command.CommandOptions;
 import apbiot.core.command.SlashCommandInstance;
 import apbiot.core.command.informations.GatewayApplicationCommandPacket;
 import apbiot.core.command.informations.GatewayComponentCommandPacket;
@@ -25,7 +25,6 @@ import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.core.spec.InteractionPresentModalSpec;
 import discord4j.core.spec.InteractionReplyEditSpec;
-import discord4j.discordjson.json.ApplicationCommandOptionData;
 
 public class BugCommandPrimary extends SlashCommandInstance {
 	
@@ -46,7 +45,7 @@ public class BugCommandPrimary extends SlashCommandInstance {
 	}
 	
 	@Override
-	public List<ApplicationCommandOptionData> getCommandArguments(ArrayList<ApplicationCommandOptionData> args) {
+	public List<CommandOptions> getCommandOptions(List<CommandOptions> args) {
 		return args;
 	}
 	
