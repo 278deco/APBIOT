@@ -361,6 +361,7 @@ public class StringHelper {
 	 * 
 	 * @param uuid The UUID to be converted
 	 * @return The base64 string
+	 * @see #fastUUIDToBase64(UUID)
 	 */
 	public static String shortenUUIDToBase64(UUID uuid) {
 		final ByteBuffer buf = ByteBuffer.wrap(new byte[16]);
@@ -377,6 +378,7 @@ public class StringHelper {
 	 * 
 	 * @param encoded The base64 string to be converted
 	 * @return The UUID converted from the string
+	 * @see #fastBase64ToUUID(String)
 	 */
 	public static UUID base64ToUUID(String encoded) {
 		if(!encoded.endsWith("=")) {
@@ -401,6 +403,57 @@ public class StringHelper {
 		} catch (IllegalArgumentException e) {
 			return Optional.empty();
 		}
+	}
+	
+	/**
+	 * Convert an {@link UUID} to its base64 string representation without padding <br/>
+	 * This method works like {@link #shortenUUIDToBase64(UUID)} but is faster by not using a {@link ByteBuffer} <br/>
+	 * The UUID is converted to a byte array and then encoded to base64 removing the padding at the end of the string
+	 * 
+	 * @param uuid The UUID to be shortened
+	 * @return The shortened base64 string
+	 */
+	public static String fastUUIDToBase64(UUID uuid) {
+		final byte[] buffer = new byte[16];
+	
+		final long most = uuid.getMostSignificantBits();
+		buffer[0] = (byte)(most >>> 56); buffer[1] = (byte)(most >>> 48);
+		buffer[2] = (byte)(most >>> 40); buffer[3] = (byte)(most >>> 32);
+		buffer[4] = (byte)(most >>> 24); buffer[5] = (byte)(most >>> 16);
+		buffer[6] = (byte)(most >>> 8); buffer[7] = (byte)(most >>> 0);
+		
+		final long least = uuid.getLeastSignificantBits();
+		buffer[8] = (byte)(least >>> 56); buffer[9] = (byte)(least >>> 48);
+		buffer[10] = (byte)(least >>> 40); buffer[11] = (byte)(least >>> 32);
+		buffer[12] = (byte)(least >>> 24); buffer[13] = (byte)(least >>> 16);
+		buffer[14] = (byte)(least >>> 8); buffer[15] = (byte)(least >>> 0);
+
+		final byte[] encoded = Base64.getEncoder().encode(buffer);
+		return new String(encoded, 0, encoded.length-2); //Remove the padding at the end of the string
+	}
+	
+	/**
+	 * Convert a base64 string to a {@link UUID} <br/>
+	 * This method works like {@link #base64ToUUID(String)} but is faster by not using a {@link ByteBuffer} <br/>
+	 * The string is decoded from base64 and then converted to a {@link UUID} by reading the byte array
+	 * 
+	 * @param encoded The base64 string to be converted
+	 * @return The {@link UUID} converted from the string
+	 */
+	public static UUID fastBase64ToUUID(String encoded) {
+		final byte[] buffer = Base64.getDecoder().decode(encoded); //The decode can do its work without padding
+				
+		final long most = ((long)buffer[0] << 56) + ((long)(buffer[1] & 255) << 48)
+				+ ((long)(buffer[2] & 255) << 40) + ((long)(buffer[3] & 255) << 32)
+				+ ((long)(buffer[4] & 255) << 24) + ((long)(buffer[5] & 255) << 16)
+				+ ((long)(buffer[6] & 255) << 8) + (long)(buffer[7] & 255);
+				
+		final long least = ((long)buffer[8] << 56) + ((long)(buffer[9] & 255) << 48)
+				+ ((long)(buffer[10] & 255) << 40) + ((long)(buffer[11] & 255) << 32)
+				+ ((long)(buffer[12] & 255) << 24) + ((long)(buffer[13] & 255) << 16)
+				+ ((long)(buffer[14] & 255) << 8) + (long)(buffer[15] & 255);
+		
+		return new UUID(most, least);
 	}
 	
 	/**
