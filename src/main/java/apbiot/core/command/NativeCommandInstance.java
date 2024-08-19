@@ -28,7 +28,7 @@ public abstract class NativeCommandInstance extends AbstractCommandInstance {
 	}
 	
 	@Override
-	public void execute(GatewayApplicationCommandPacket gatewayInformation) { }
+	public final void execute(GatewayApplicationCommandPacket gatewayInformation) { }
 	
 	@Override
 	public void buildCommand() { built = true; }

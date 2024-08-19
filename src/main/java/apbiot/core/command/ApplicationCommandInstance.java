@@ -43,8 +43,8 @@ public abstract class ApplicationCommandInstance extends AbstractCommandInstance
 	}
 
 	@Override
-	public void execute(GatewayNativeCommandPacket infos) { }
+	public final void execute(GatewayNativeCommandPacket infos) { }
 	
 	@Override
-	public void executeComponent(GatewayComponentCommandPacket infos) { }
+	public final void executeComponent(GatewayComponentCommandPacket infos) { }
 }
