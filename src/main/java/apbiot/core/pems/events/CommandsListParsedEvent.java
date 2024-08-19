@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import apbiot.core.command.ApplicationCommandInstance;
+import apbiot.core.command.ComponentCommandInstance;
 import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.SlashCommandInstance;
 import apbiot.core.command.SystemCommand;
@@ -47,6 +48,15 @@ public class CommandsListParsedEvent extends ProgramEvent {
 	public Optional<Map<String, ApplicationCommandInstance>> getDiscordCoreApplicationCommands() {
 		try {
 			return Optional.ofNullable((Map<String, ApplicationCommandInstance>)getEventArgument(3));
+		}catch(ClassCastException | NullPointerException e) {
+			return Optional.empty();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Optional<Map<String, ComponentCommandInstance>> getDiscordCoreComponentCommands() {
+		try {
+			return Optional.ofNullable((Map<String, ComponentCommandInstance>)getEventArgument(4));
 		}catch(ClassCastException | NullPointerException e) {
 			return Optional.empty();
 		}

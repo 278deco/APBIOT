@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import apbiot.core.command.AbstractCommandInstance;
 import apbiot.core.command.ApplicationCommandInstance;
+import apbiot.core.command.ComponentCommandInstance;
 import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.SlashCommandInstance;
 import apbiot.core.command.UserCommandCooldown;
@@ -76,6 +77,8 @@ public class ClientBuilder {
 	private Map<String, SlashCommandInstance> SLASH_COMMANDS;
 	//Compilated User and Message Commands
 	private Map<String, ApplicationCommandInstance> APPLICATION_COMMANDS;
+	//Compilated Component Commands
+	private Map<String, ComponentCommandInstance> COMPONENT_COMMANDS;
 	
 	private List<UserCommandCooldown> commandCooldown;
 	private Commandator commandator;
@@ -91,6 +94,7 @@ public class ClientBuilder {
 			this.NATIVE_COMMANDS = new HashMap<>();
 			this.SLASH_COMMANDS = new HashMap<>();
 			this.APPLICATION_COMMANDS = new HashMap<>();
+			this.COMPONENT_COMMANDS = new HashMap<>();
 		}finally {
 			this.lock.unlock();
 		}
@@ -119,6 +123,10 @@ public class ClientBuilder {
 	
 	public void updateApplicationCommandMapping(Optional<Map<String, ApplicationCommandInstance>> mapping) {
 		if(mapping.isPresent()) this.APPLICATION_COMMANDS = mapping.get();
+	}
+
+	public void updateComponentCommandMapping(Optional<Map<String, ComponentCommandInstance>> mapping) {
+		if (mapping.isPresent()) this.COMPONENT_COMMANDS = mapping.get();
 	}
 	
 	public void rebuildCommandMapping(CommandRebuildScope scope) {
@@ -150,6 +158,16 @@ public class ClientBuilder {
 				try {
 					cmd.buildCommand();
 				}catch(Exception e) {
+					errors.add(cmd.getInternalName());
+				}
+			});
+		}
+		
+		if (scope == CommandRebuildScope.ONLY_COMPONENT || scope == CommandRebuildScope.ALL) {
+			this.COMPONENT_COMMANDS.values().forEach(cmd -> {
+				try {
+					cmd.buildCommand();
+				} catch (Exception e) {
 					errors.add(cmd.getInternalName());
 				}
 			});
@@ -286,7 +304,7 @@ public class ClientBuilder {
 					handleNewCommandWithoutPermission(cmd, generateNewApplicationCommandPacket(event, type), type);
 					
 				}else {
-					event.reply(Emojis.NO_ENTRY+" Vous ne pouvez pas éxécuter cette commande ici !").withEphemeral(true).block();
+					event.reply(Emojis.NO_ENTRY+" Vous ne pouvez pas exécuter cette commande ici !").withEphemeral(true).block();
 				}
 			}else {
 				handleNewCommand(cmd, generateNewApplicationCommandPacket(event, type), type);
@@ -301,11 +319,15 @@ public class ClientBuilder {
 	 * @return the command instance if it exist
 	 */
 	private AbstractCommandInstance searchCommandId(String providedCmdId) {
-		for(NativeCommandInstance command : NATIVE_COMMANDS.values()) {
-			if(providedCmdId.startsWith(command.getShortenID())) return command;
+		for(ComponentCommandInstance command : COMPONENT_COMMANDS.values()) {
+            if(providedCmdId.startsWith(command.getShortenID())) return command;
 		}
 		
 		for(SlashCommandInstance command : SLASH_COMMANDS.values()) {
+			if(providedCmdId.startsWith(command.getShortenID())) return command;
+		}
+		
+		for(NativeCommandInstance command : NATIVE_COMMANDS.values()) {
 			if(providedCmdId.startsWith(command.getShortenID())) return command;
 		}
 		
@@ -314,8 +336,8 @@ public class ClientBuilder {
 	
 	/**
 	 * Search if a command exist in the map
-	 * @param providedCmdName - the name of the command
-	 * @param onlySlashCommand - if the method has been called by the slash command event
+	 * @param providedCmdName The name of the command
+	 * @param onlySlashCommand If the method has been called by the slash command event
 	 * @return the command instance if it exist
 	 */
 	private AbstractCommandInstance searchCommandResult(String providedCmdName, ApplicationCommandType type) {
@@ -351,8 +373,8 @@ public class ClientBuilder {
 	
 	/**
 	 * Generate a new CommandGatewayComponentInteraction for a specified command
-	 * @param event - the MessageCreateEvent from discord
-	 * @param userCommand - a tuple containing informations about the layout of the user's command
+	 * @param event The MessageCreateEvent from discord
+	 * @param userCommand A tuple containing informations about the layout of the user's command
 	 * @see apbiot.core.command.informations.informations.CommandGatewayComponentInteraction
 	 * @return new CommandGatewayComponentInteraction
 	 */
@@ -366,7 +388,7 @@ public class ClientBuilder {
 	
 	/**
 	 * Generate a new CommandGatewaySlashInformations for a specified command
-	 * @param event - the ApplicationCommandInteractionEvent from discord
+	 * @param event The ApplicationCommandInteractionEvent from discord
 	 * @see apbiot.core.command.informations.informations.CommandGatewaySlashInformations
 	 * @return new CommandGatewaySlashInformations
 	 */
@@ -380,8 +402,8 @@ public class ClientBuilder {
 	
 	/**
 	 * Generate a new CommandGatewayInformations for a specified command
-	 * @param event - the MessageCreateEvent from discord
-	 * @param userCommand - a tuple containing informations about the layout of the user's command
+	 * @param event The MessageCreateEvent from discord
+	 * @param userCommand A tuple containing informations about the layout of the user's command
 	 * @see apbiot.core.command.GatewayNativeCommandPacket
 	 * @return new CommandGatewayInformations
 	 */
@@ -398,8 +420,8 @@ public class ClientBuilder {
 	/**
 	 * Handle every command computed by the bot and create a new thread for it to work
 	 * work only for the command with permissions (guild command)
-	 * @param cmd - the command itself
-	 * @param info - the CommandGatewayInformations generated for the command
+	 * @param cmd The command itself
+	 * @param info The CommandGatewayInformations generated for the command
 	 */
 	private void handleNewCommand(AbstractCommandInstance cmd, IGatewayInformations info, ApplicationCommandType cmdType) throws NullPointerException {
 		if(PermissionHelper.doesUserHavePermissions(info.getGuild().getMemberById(info.getExecutor().getId()).onErrorComplete().block(), cmd.getPermissions(), ownerID)) {

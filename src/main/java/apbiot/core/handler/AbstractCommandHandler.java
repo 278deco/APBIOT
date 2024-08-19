@@ -7,6 +7,7 @@ import java.util.Map;
 
 import apbiot.core.command.AbstractCommandInstance;
 import apbiot.core.command.ApplicationCommandInstance;
+import apbiot.core.command.ComponentCommandInstance;
 import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.SlashCommandInstance;
 import apbiot.core.pems.BaseProgramEventEnum;
@@ -27,6 +28,7 @@ public abstract class AbstractCommandHandler extends Handler {
 	protected final Map<String, NativeCommandInstance> NATIVE_COMMANDS = new HashMap<>();
 	protected final Map<String, SlashCommandInstance> SLASH_COMMANDS = new HashMap<>();
 	protected final Map<String, ApplicationCommandInstance> APPLICATION_COMMANDS = new HashMap<>();
+	protected final Map<String, ComponentCommandInstance> COMPONENT_COMMANDS = new HashMap<>();
 	
 	private final Snowflake destination;
 	
@@ -37,7 +39,6 @@ public abstract class AbstractCommandHandler extends Handler {
 	public AbstractCommandHandler() {
 		this(null);
 	}
-	
 
 	/**
 	 * Used to register any type of commands that will be available for discord's users.<br/>
@@ -51,6 +52,7 @@ public abstract class AbstractCommandHandler extends Handler {
 		if(cmd instanceof NativeCommandInstance) NATIVE_COMMANDS.put(cmd.getInternalName(), (NativeCommandInstance)cmd);
 		if(cmd instanceof SlashCommandInstance) SLASH_COMMANDS.put(cmd.getInternalName(), (SlashCommandInstance)cmd);
 		if(cmd instanceof ApplicationCommandInstance) APPLICATION_COMMANDS.put(cmd.getInternalName(), (ApplicationCommandInstance)cmd);
+		if(cmd instanceof ComponentCommandInstance) COMPONENT_COMMANDS.put(cmd.getInternalName(), (ComponentCommandInstance)cmd);
 	}
 	
 	@Override
@@ -68,7 +70,11 @@ public abstract class AbstractCommandHandler extends Handler {
 			entry.getValue().buildCommand();
 		}
 		
-		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_LIST_PARSED, new Object[] {null, NATIVE_COMMANDS, SLASH_COMMANDS, APPLICATION_COMMANDS});
+		for (var entry : COMPONENT_COMMANDS.entrySet()) {
+			entry.getValue().buildCommand();
+		}
+		
+		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_LIST_PARSED, new Object[] {null, NATIVE_COMMANDS, SLASH_COMMANDS, APPLICATION_COMMANDS, COMPONENT_COMMANDS});
 	}
 	
 	/**
