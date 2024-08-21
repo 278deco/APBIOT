@@ -35,6 +35,10 @@ subprojects {
 }
 
 allprojects {
+	group = group_id
+	version = project_version
+	description = project_description
+
 	sourceCompatibility = JavaVersion.VERSION_18
 	targetCompatibility = JavaVersion.VERSION_18
 		
@@ -90,6 +94,8 @@ allprojects {
 }
 
 shadowJar {
+	from sourceSets.main.java
+
 	manifest {
         attributes 'Multi-Release': 'true'
     }
