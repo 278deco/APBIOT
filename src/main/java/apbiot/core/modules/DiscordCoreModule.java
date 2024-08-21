@@ -104,6 +104,7 @@ public class DiscordCoreModule extends CoreModule {
 				clientBuilder.updateNativeCommandMapping(parsed.getDiscordCoreNativeCommands());
 				clientBuilder.updateSlashCommandMapping(parsed.getDiscordCoreSlashCommands());
 				clientBuilder.updateApplicationCommandMapping(parsed.getDiscordCoreApplicationCommands());
+				clientBuilder.updateComponentCommandMapping(parsed.getDiscordCoreComponentCommands());
 				clientBuilder.buildCommandator();
 				
 			}else if(e instanceof ConfigurationLoadedEvent) {
