@@ -35,6 +35,8 @@ public class StringHelper {
 	private static final Pattern DISCORD_USERNAME_PATTERN = 
 			Pattern.compile("^(?=.{2,32}$)(?=(?:(?!discord|@|#|:|```).)*$)(?=(?:(?!\\.{2,}).)*$)(?!(?:everyone|here)$)[a-z0-9_.]+$");
 	
+	private static final int MINIMUM_SNOWFLAKE_SIZE = 17;
+	
 	/**
 	 * Used to convert a list (in case of the .split(" ")) into a string
 	 * 
@@ -238,9 +240,10 @@ public class StringHelper {
 		if(!matcher.matches()) return Optional.empty();
 		
 		try {
-			final Snowflake id = Snowflake.of(matcher.group("id"));
+			final String idStr = matcher.group("id");
+			if(idStr.length() < MINIMUM_SNOWFLAKE_SIZE) return Optional.empty();
 			
-			return Optional.of(id);
+			return Optional.of(Snowflake.of(idStr));
 		} catch (IllegalArgumentException e) {
 			return Optional.empty();
 		}		
@@ -260,9 +263,10 @@ public class StringHelper {
 		if(mention == null || mention.isBlank()) return Optional.empty();
 		
 		try {
-			final Snowflake id = Snowflake.of(mention.replaceAll("[^\\d]", ""));
+			final String idStr = mention.replaceAll("[^\\d]", "");
+			if(idStr.length() < MINIMUM_SNOWFLAKE_SIZE) return Optional.empty();
 
-			return Optional.of(id);
+			return Optional.of(Snowflake.of(idStr));
 		} catch (IllegalArgumentException e) {
 			return Optional.empty();
 		}
@@ -773,5 +777,49 @@ public class StringHelper {
         }
         
         return count;
+	}
+	
+	/**
+	 * Shorten a string to a given maximum length and add a suffix at the end.
+	 * <p>
+	 * The method will return the string as is if its length is less than the maximum length or
+	 * truncate it to the maximum length <strong>plus</strong> the suffix's length.
+	 * <p>
+	 * Examples:
+	 * <blockquote><pre>
+	 * StringHelper.shortenString("Hello World", 5) returns "Hello…"
+	 * StringHelper.shortenString("Hello World", 20) returns "Hello World"
+	 * StringHelper.shortenString("Foo bar", 5) returns "Foo b…"
+	 * </pre></blockquote>
+	 * 
+	 * @param string The string to be shortened
+	 * @param maxLength The maximum length of the string
+	 * @return The string as is or shortened
+	 */
+	public static String shortenString(String string, int maxLength) {
+		return shortenString(string, maxLength, "…");
+	}
+	
+	/**
+	 * Shorten a string to a given maximum length and add a given suffix at the end.
+	 * <p>
+	 * The method will return the string as is if its length is less than the maximum length or
+	 * truncate it to the maximum length <strong>plus</strong> the suffix's length.
+	 * <p>
+	 * Examples:
+	 * <blockquote><pre>
+	 * StringHelper.shortenString("Hello World", 5, "!!!") returns "Hello!!!"
+	 * StringHelper.shortenString("Hello World", 20, "boo") returns "Hello World"
+	 * StringHelper.shortenString("Foo bar", 5, "ar!") returns "Foo bar!"
+	 * </pre></blockquote>
+	 * 
+	 * @param string The string to be shortened
+	 * @param maxLength The maximum length of the string
+	 * @param suffix The suffix to be added at the end of the string
+	 * @return The string as is or shortened
+	 */
+	public static String shortenString(String string, int maxLength, String suffix) {
+		if (string.length() <= maxLength) return string;
+		return string.substring(0, maxLength-1) + suffix;
 	}
 }
