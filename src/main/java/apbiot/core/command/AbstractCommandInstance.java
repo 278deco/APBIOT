@@ -12,6 +12,7 @@ import apbiot.core.command.informations.GatewayApplicationCommandPacket;
 import apbiot.core.command.informations.GatewayComponentCommandPacket;
 import apbiot.core.command.informations.GatewayNativeCommandPacket;
 import apbiot.core.helper.StringHelper;
+import apbiot.core.i18n.LanguageManager;
 import apbiot.core.objects.interfaces.ICommandCategory;
 import apbiot.core.permissions.CommandPermission;
 import apbiot.core.time.CommandCooldown;
@@ -20,7 +21,7 @@ public abstract class AbstractCommandInstance {
 	
 	protected static final Logger LOGGER = LogManager.getLogger(AbstractCommandInstance.class);
 	
-	private String commandDisplayName;
+	private String commandInternalName;
 	private HashSet<String> commandNames = new HashSet<>(); //Contains the aliases and the display name
 	
 	private String description;
@@ -38,9 +39,11 @@ public abstract class AbstractCommandInstance {
 	 * @param aliases A {@link Set} of aliases for the command.
 	 * @param description The command's description
 	 * @param category The category of the command
+	 * @deprecated since 6.0.0
+	 * @see #AbstractCommandInstance(String, String, ICommandCategory)
 	 */
 	public AbstractCommandInstance(String displayName, Set<String> aliases, String description, ICommandCategory category) {
-		this.commandDisplayName = displayName;
+		this.commandInternalName = displayName;
 		this.commandNames.add(displayName);
 		if(aliases != null) this.commandNames.addAll(aliases);
 		
@@ -59,13 +62,54 @@ public abstract class AbstractCommandInstance {
 	 * @param description The command's description
 	 * @param category The category of the command
 	 * @param staticID Define an UUID for the command. With this defined, the id used will remains the same for all instances
+	 * @deprecated since 6.0.0
+	 * @see #AbstractCommandInstance(String, String, ICommandCategory, String)
 	 */
 	public AbstractCommandInstance(String displayName, Set<String> aliases, String description, ICommandCategory category, String staticID) {
-		this.commandDisplayName = displayName;
+		this.commandInternalName = displayName;
 		this.commandNames.add(displayName);
 		if(aliases != null) this.commandNames.addAll(aliases);
 		
 		this.description = (description == null || description.isBlank() || description.isEmpty() ? "No description available" : description);
+		this.category = category;
+		this.commandId = UUID.fromString(staticID);
+		this.shortenCommandId = StringHelper.shortenUUIDToBase64(this.commandId);
+		
+		this.permissions = setPermissions();
+	}
+	
+	/**
+	 * Create a new CommandInstance
+	 * 
+	 * @param internalName The main name of the command.
+	 * 		  It is used to get the command's values in the localization like name, description
+	 * @param aliases A {@link Set} of aliases for the command.
+	 * @param category The category of the command
+	 * @since 6.0.0
+	 */
+	public AbstractCommandInstance(String internalName, ICommandCategory category) {
+		this.commandInternalName = internalName;
+
+		this.category = category;
+		this.commandId = UUID.randomUUID();
+		this.shortenCommandId = StringHelper.shortenUUIDToBase64(this.commandId);
+		
+		this.permissions = setPermissions();
+	}
+	
+	/**
+	 * Create a new CommandInstance
+	 * 
+	 * @param internalName The main name of the command. 
+	 * 		  It is used to get the command's values in the localization like name, description
+	 * @param aliases A {@link Set} of aliases for the command.
+	 * @param category The category of the command
+	 * @param staticID Define an UUID for the command. With this defined, the id used will remains the same for all instances
+	 * @since 6.0.0
+	 */
+	public AbstractCommandInstance(String internalName, ICommandCategory category, String staticID) {
+		this.commandInternalName = internalName;
+		
 		this.category = category;
 		this.commandId = UUID.fromString(staticID);
 		this.shortenCommandId = StringHelper.shortenUUIDToBase64(this.commandId);
@@ -122,35 +166,64 @@ public abstract class AbstractCommandInstance {
 	/**
 	 * Get the command's description
 	 * @return the command's description
+	 * @deprecated since 6.0.0
+	 * @see #getDescription(String)
 	 */
 	public String getDescription() {
 		return this.description;
 	}
 	
 	/**
+	 * Get the command's description in the given language <br/>
+	 * If the language is not found, the default description is returned
+	 * 
+	 * @param languageCode The language code to get the description
+	 * @return the command's description
+	 */
+	public final String getDescription(String languageCode) {
+		final String key = "commands.discord."+getInternalName()+".description";
+		return LanguageManager.get().getLanguage(languageCode).map(lang -> lang.getOrDefault(key)).orElse(key);
+	}
+	
+	/**
 	 * Get the display name of the command and its aliases. The set can only contains the display name if no aliases are found.
 	 * @return A set containing the command's display name and aliases
+	 * @deprecated since 6.0.0
+	 * @since 5.0.0
 	 */
 	public Set<String> getNames() {
 		return Collections.unmodifiableSet(this.commandNames);
-	}
-
-	/**
-	 * Get the main name of the command
-	 * @return the main name
-	 * @deprecated since 5.0
-	 * @see #getDisplayName()
-	 */
-	public String getMainName() {
-		return "null";
 	}
 	
 	/**
 	 * Get the command's display name
 	 * @return the main name
+	 * @deprecated since 6.0.0
+	 * @see #getInternalName()
 	 */
 	public String getDisplayName() {
-		return this.commandDisplayName;
+		return this.commandInternalName;
+	}
+	
+	/**
+	 * Get the command's name in the given language <br/>
+	 * If the language is not found, the default name is returned
+	 * 
+	 * @param languageCode The language code to get the name
+	 * @return the command's name
+	 */
+	public final String getDisplayName(String languageCode) {
+		final String key = "commands.discord."+getInternalName()+".name";
+		return LanguageManager.get().getLanguage(languageCode).map(lang -> lang.getOrDefault(key)).orElse(key);
+	}
+	
+	/**
+	 * Get the command's internal name <br/>
+	 * It is mainly used to get the command's values in the localization like name, description, ...
+	 * @return The command's internal name
+	 */
+	public String getInternalName() {
+		return this.commandInternalName;
 	}
 	
 	/**

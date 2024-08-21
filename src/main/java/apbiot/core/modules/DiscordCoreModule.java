@@ -7,10 +7,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import apbiot.core.builder.ClientBuilder;
+import apbiot.core.exceptions.CoreModuleLaunchingException;
+import apbiot.core.exceptions.CoreModuleLoadingException;
+import apbiot.core.exceptions.CoreModuleShutdownException;
 import apbiot.core.exceptions.UnbuiltBotException;
-import apbiot.core.modules.exceptions.CoreModuleLaunchingException;
-import apbiot.core.modules.exceptions.CoreModuleLoadingException;
-import apbiot.core.modules.exceptions.CoreModuleShutdownException;
 import apbiot.core.pems.ProgramEvent;
 import apbiot.core.pems.ProgramEvent.EventPriority;
 import apbiot.core.pems.actions.CommandRebuildAction;
@@ -104,6 +104,7 @@ public class DiscordCoreModule extends CoreModule {
 				clientBuilder.updateNativeCommandMapping(parsed.getDiscordCoreNativeCommands());
 				clientBuilder.updateSlashCommandMapping(parsed.getDiscordCoreSlashCommands());
 				clientBuilder.updateApplicationCommandMapping(parsed.getDiscordCoreApplicationCommands());
+				clientBuilder.updateComponentCommandMapping(parsed.getDiscordCoreComponentCommands());
 				clientBuilder.buildCommandator();
 				
 			}else if(e instanceof ConfigurationLoadedEvent) {

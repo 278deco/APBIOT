@@ -3,9 +3,9 @@ package apbiot.core.modules;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import apbiot.core.modules.exceptions.CoreModuleLaunchingException;
-import apbiot.core.modules.exceptions.CoreModuleLoadingException;
-import apbiot.core.modules.exceptions.CoreModuleShutdownException;
+import apbiot.core.exceptions.CoreModuleLaunchingException;
+import apbiot.core.exceptions.CoreModuleLoadingException;
+import apbiot.core.exceptions.CoreModuleShutdownException;
 import apbiot.core.pems.EventListener;
 
 public abstract class CoreModule implements EventListener, Comparable<CoreModule> {

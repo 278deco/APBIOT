@@ -15,7 +15,7 @@ public class HelpDescription {
 	
 	/**
 	 * Create a new instance of HelpDescription
-	 * @param cmd - the command instance
+	 * @param cmd The command instance
 	 */
 	public HelpDescription(NativeCommandInstance cmd) {
 		this.helpDesc = format(cmd);
@@ -23,25 +23,25 @@ public class HelpDescription {
 	
 	/**
 	 * Format the response returned to the user
-	 * @param cmd - the command instance
+	 * @param cmd The command instance
 	 * @return the string result
 	 */
 	private String format(NativeCommandInstance cmd) {
 		StringBuilder sb = new StringBuilder();
 		
-		 sb.append("ℹ **Commande "+cmd.getDisplayName()+" :**");
+		 sb.append("ℹ **Commande "+cmd.getInternalName()+" :**");
 		 sb.append("\n   __Argument(s) requis__ :");
 		 Tuple<List<String>,List<String>> tp = formatArgument(cmd.getRequiredArguments());
 		 sb.append("```\tObligatoire(s) ("+tp.getValueA().size()+"):\n"+StringHelper.listToString(tp.getValueA(), "\n")+"\n");
 		 sb.append("\tOptionnels(s) ("+tp.getValueB().size()+"):\n"+StringHelper.listToString(tp.getValueB(), "\n")+"```");
-		 sb.append("\n   __Description__ :```\t"+cmd.getDescription()+"```");
+		 sb.append("\n   __Description__ :```\t"+cmd.getDescription("fr_FR")+"```");
 		 
 		 return sb.toString();
 	}
 	
 	/**
 	 * Format the command's arguments to be human readable
-	 * @param args - the command's arguments
+	 * @param args The command's arguments
 	 * @return the formatted argument
 	 */
 	private Tuple<List<String>,List<String>> formatArgument(List<Argument> args) {

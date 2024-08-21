@@ -12,10 +12,11 @@ import javax.management.InstanceNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import apbiot.core.exceptions.CoreModuleLaunchingException;
+import apbiot.core.exceptions.CoreModuleLoadingException;
+import apbiot.core.exceptions.CoreModuleShutdownException;
+import apbiot.core.i18n.LanguageManager;
 import apbiot.core.io.json.JSONClientConfiguration;
-import apbiot.core.modules.exceptions.CoreModuleLaunchingException;
-import apbiot.core.modules.exceptions.CoreModuleLoadingException;
-import apbiot.core.modules.exceptions.CoreModuleShutdownException;
 import apbiot.core.pems.BaseProgramEventEnum;
 import apbiot.core.pems.ProgramEvent;
 import apbiot.core.pems.ProgramEvent.EventPriority;
@@ -100,6 +101,15 @@ public class FileCoreModule extends CoreModule {
 			}else {
 				LOGGER.warn("No configuration file was found. Some client's properties might not be initialized correctly.");
 			}
+			
+			//Load the LanguageManager (Localization)
+			final Path languagePath = Path.of("config/lang");
+			if(Files.exists(languagePath)) {
+				LanguageManager.get().loadLanguagesFolder(languagePath);
+			}else {
+				LOGGER.warn("No language folder was found. Localized string might be appear broken.");
+			}
+			
 		}finally {
 			this.coreRunning.set(false);
 		}

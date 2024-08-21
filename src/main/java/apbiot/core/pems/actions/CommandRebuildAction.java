@@ -24,6 +24,7 @@ public class CommandRebuildAction extends ProgramEvent {
 		BOTH_NATIVE_SLASH,
 		ONLY_APPLICATION,
 		BOTH_SLASH_APPLICATION,
+		ONLY_COMPONENT,
 		ALL;
 	}
 }

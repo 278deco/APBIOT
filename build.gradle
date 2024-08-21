@@ -1,76 +1,104 @@
-buildscript {
-	
-    repositories {
-        gradlePluginPortal()
-    }
-    dependencies {
-        classpath 'com.github.johnrengelman:shadow:8.1.1'
-    }
+plugins {
+	id 'com.gradleup.shadow' version '8.3.0'
+	id 'java'
+	id 'java-library'	
+	//id 'maven-publish' WIP
 }
 
-apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'java'
-apply plugin: 'java-library'
-apply plugin: 'eclipse'
+ext {
+	project_name = 'APBIOT'
+	project_version = "$version".toString()
+	project_description = "Java library using Discord4J for Discord Bot Developpements"
+	group_id = "fr.278deco"
+	artifact_id = 'apbiot'
+	
+	// Dependencies version
+	marshmalliow_version = '0.3.0-rc1'
+	quartz_version = '2.3.2' // https://mvnrepository.com/artifact/org.quartz-scheduler/quartz
+	log4j_version = '2.23.1' // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
+	discord4j_version = '3.2.6' // https://mvnrepository.com/artifact/com.discord4j/discord4j-core
+	discord4j_encoding_version = '1.7.10' // https://mvnrepository.com/artifact/com.discord4j/discord-json-encoding
+	
+	google_api_version = '2.6.0' // https://mvnrepository.com/artifact/com.google.api-client/google-api-client
+	youtube_api_version = 'v3-rev20240514-2.0.0' // https://mvnrepository.com/artifact/com.google.apis/google-api-services-youtube
+	spotify_api_version = '8.4.1' // https://mvnrepository.com/artifact/se.michaelthelin.spotify/spotify-web-api-java
+	
+	lavaplayer_version = '2.2.1' // https://mvnrepository.com/artifact/dev.arbjerg/lavaplayer
+	lavalink_youtube_version = '1.5.2' // https://maven.lavalink.dev/#/releases/dev/lavalink/youtube/v2/1.5.2
+	
+	immutables_version = "2.10.1" // https://mvnrepository.com/artifact/org.immutables/value
+	jackson_version = '2.17.2' // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+}
 
 subprojects {
 	apply plugin: 'java'
 }
 
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
-compileJava.options.encoding = 'UTF-8'
+allprojects {
+	group = group_id
+	version = project_version
+	description = project_description
 
-sourceCompatibility = JavaVersion.VERSION_18
+	sourceCompatibility = JavaVersion.VERSION_18
+	targetCompatibility = JavaVersion.VERSION_18
+		
+	repositories {
+		mavenCentral()
+		mavenLocal()
+		maven { url "https://jitpack.io" }
+		maven { url "https://maven.lavalink.dev/releases" }
+	}
+	
+	dependencies {
+		api group: 'fr.278deco', name: 'marshmalliow', version: "$marshmalliow_version"
+		api group: 'org.quartz-scheduler', name: 'quartz', version: "$quartz_version"
+		api group: 'com.discord4j', name: 'discord4j-core', version: "$discord4j_version"
+		
+		implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "$jackson_version"
+		
+		implementation group: 'com.google.api-client', name: 'google-api-client', version: "$google_api_version"
+		implementation group: 'com.google.apis', name: 'google-api-services-youtube', version: "$youtube_api_version"
+		implementation group: 'se.michaelthelin.spotify', name: 'spotify-web-api-java', version: "$spotify_api_version"
+	
+		implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: "$log4j_version"
+		implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: "$log4j_version"	
+		implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: "$log4j_version"
+	
+		implementation group: 'dev.arbjerg', name: 'lavaplayer', version: "$lavaplayer_version"
+		implementation group: 'dev.lavalink.youtube', name: 'v2', version: "$lavalink_youtube_version"
+			
+		compileOnly group: 'org.immutables', name: 'value', version: "$immutables_version"
+		compileOnly group: 'org.immutables', name: 'builder', version: "$immutables_version"
+		annotationProcessor group: 'org.immutables', name: 'value', version: "$immutables_version"
+		
+		compileOnly group: 'com.discord4j', name: 'discord-json-encoding', version: "$discord4j_encoding_version"
+	}
+	
+	tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+        options.incremental = true
+    }
+    
+    tasks.withType(Javadoc) {
+    	options.encoding = 'UTF-8'
+    	if(JavaVersion.current().isJava9Compatible()) {
+        	options.addBooleanOption('html5', true)
+    	}
+    }
+    
+	java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+   	
+}
 
 shadowJar {
-	from sourceSets.main.allSource
+	from sourceSets.main.java
+
 	manifest {
         attributes 'Multi-Release': 'true'
     }
     
     archiveClassifier.set('')
-}
-
-repositories {
-      mavenCentral()
-      mavenLocal()
-      maven { url "https://jitpack.io" }
-}
-
-// In this section you declare the dependencies for your production and test code
-dependencies {
-	
-	api group: 'fr.278deco', name: 'marshmalliow', version: '0.2.1'
-	
-	// https://mvnrepository.com/artifact/org.quartz-scheduler/quartz
-	api group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.2'
-	
-	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.4.2'
-	
-	// https://mvnrepository.com/artifact/com.google.api-client/google-api-client
-	implementation group: 'com.google.api-client', name: 'google-api-client', version: '2.2.0'
-	
-	// https://mvnrepository.com/artifact/com.google.apis/google-api-services-youtube
-	implementation group: 'com.google.apis', name: 'google-api-services-youtube', version: 'v3-rev20240123-2.0.0'
-	
-	// https://mvnrepository.com/artifact/se.michaelthelin.spotify/spotify-web-api-java
-	implementation group: 'se.michaelthelin.spotify', name: 'spotify-web-api-java', version: '8.3.3'
-
-	// https://mvnrepository.com/artifact/com.discord4j/discord4j-core
-	api group: 'com.discord4j', name: 'discord4j-core', version: '3.2.5'
-
-	// https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
-	// https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api
-	implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.20.0'
-	implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.20.0'
-
-  	// https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j2-impl
-	implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: '2.20.0'
-
-  	// https://mvnrepository.com/artifact/dev.arbjerg/lavaplayer
-	implementation group: 'dev.arbjerg', name: 'lavaplayer', version: '2.1.0'
-
 }

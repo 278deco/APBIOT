@@ -1,7 +1,10 @@
 package apbiot.core.helper;
 
+import java.util.UUID;
+
 import apbiot.core.command.AbstractCommandInstance;
 import apbiot.core.objects.Tuple;
+import discord4j.core.object.component.ActionComponent;
 
 public class CommandHelper {
 	
@@ -16,6 +19,21 @@ public class CommandHelper {
 	 */
 	public static String generateComponentID(AbstractCommandInstance commandInstance, String componentName) {
 		return StringHelper.shortenUUIDToBase64(commandInstance.getID())+COMMAND_ID_SEPARATOR+componentName;
+	}
+	
+	/**
+	 * Generate a {@link String} id for a {@link ActionComponent}.
+	 * <p>
+	 * The id is generated using this following model:<br>
+	 * <code> Command's id + COMMAND_ID_SEPARATOR + Component's name</code>
+	 * 
+	 * @param commandID The {@link AbstractCommandInstance}'s uuid
+	 * @param componentName The component's name
+	 * @return A correct component's id
+	 * @since 6.0.0
+	 */
+	public static String generateComponentID(UUID commandID, String componentName) {
+		return StringHelper.shortenUUIDToBase64(commandID) + COMMAND_ID_SEPARATOR + componentName;
 	}
 	
 	/**

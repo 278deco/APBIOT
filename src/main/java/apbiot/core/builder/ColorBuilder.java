@@ -22,9 +22,9 @@ public class ColorBuilder {
 	
 	/**
 	 * Used to define a new color
-	 * @param r - the red value between 0 and 255
-	 * @param g - the green value between 0 and 255
-	 * @param b - the blue value between 0 and 255
+	 * @param r The red value between 0 and 255
+	 * @param g The green value between 0 and 255
+	 * @param b The blue value between 0 and 255
 	 * @return and instance of ColorBuilder
 	 */
 	public static ColorBuilder of(float r, float g, float b) {
@@ -33,7 +33,7 @@ public class ColorBuilder {
 	
 	/**
 	 * Used to define a new color
-	 * @param hexValue - the hexadecimal value of the color
+	 * @param hexValue The hexadecimal value of the color
 	 * @return and instance of ColorBuilder
 	 */
 	public static ColorBuilder of(int hexValue) {

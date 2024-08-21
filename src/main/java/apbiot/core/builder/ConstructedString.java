@@ -5,6 +5,10 @@ import java.util.List;
 /**
  * String helper class, match string with arguments and the arguments themself
  * @author 278deco
+ * @deprecated since 6.0.0
+ * @since 1.0.0
+ * @version 1.2.0
+ * @see String#format(String, Object...)
  */
 public class ConstructedString {
 
@@ -63,6 +67,8 @@ public class ConstructedString {
 	/**
 	 * Contains the list of symbols which define the type of the argument
 	 * @author 278deco
+	 * @deprecated since 6.0.0
+	 * @since 1.0.0
 	 */
 	public class DataType {
 		public static final String INTEGER = "%i";
@@ -76,6 +82,8 @@ public class ConstructedString {
 	/**
 	 * Used to give the arguments to the main method
 	 * @author 278deco
+	 * @deprecated since 6.0.0
+	 * @since 1.0.0
 	 */
 	public static class DataInput {
 		private String type, arg;

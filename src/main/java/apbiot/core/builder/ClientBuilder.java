@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.logging.log4j.LogManager;
@@ -14,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import apbiot.core.command.AbstractCommandInstance;
 import apbiot.core.command.ApplicationCommandInstance;
+import apbiot.core.command.ComponentCommandInstance;
 import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.SlashCommandInstance;
 import apbiot.core.command.UserCommandCooldown;
@@ -54,7 +54,7 @@ import discord4j.gateway.intent.IntentSet;
 import discord4j.rest.http.client.ClientException;
 
 /**
- * Class that handle the bot instance.
+ * Class that handle the bot instance. <br/>
  * Be careful to build the instance before register an EventHandler
  * @version 5.0
  * @author 278deco
@@ -73,10 +73,12 @@ public class ClientBuilder {
 	private Snowflake ownerID;
 
 	//Compilated Command Map and Slash Command Map
-	private Map<Set<String>, NativeCommandInstance> NATIVE_COMMANDS;
-	private Map<Set<String>, SlashCommandInstance> SLASH_COMMANDS;
+	private Map<String, NativeCommandInstance> NATIVE_COMMANDS;
+	private Map<String, SlashCommandInstance> SLASH_COMMANDS;
 	//Compilated User and Message Commands
 	private Map<String, ApplicationCommandInstance> APPLICATION_COMMANDS;
+	//Compilated Component Commands
+	private Map<String, ComponentCommandInstance> COMPONENT_COMMANDS;
 	
 	private List<UserCommandCooldown> commandCooldown;
 	private Commandator commandator;
@@ -92,6 +94,7 @@ public class ClientBuilder {
 			this.NATIVE_COMMANDS = new HashMap<>();
 			this.SLASH_COMMANDS = new HashMap<>();
 			this.APPLICATION_COMMANDS = new HashMap<>();
+			this.COMPONENT_COMMANDS = new HashMap<>();
 		}finally {
 			this.lock.unlock();
 		}
@@ -110,16 +113,20 @@ public class ClientBuilder {
 //		this.APPLICATION_COMMANDS = cmdHandler.APPLICATION_COMMANDS;
 	}
 	
-	public void updateNativeCommandMapping(Optional<Map<Set<String>, NativeCommandInstance>> mapping) {
+	public void updateNativeCommandMapping(Optional<Map<String, NativeCommandInstance>> mapping) {
 		if(mapping.isPresent()) this.NATIVE_COMMANDS = mapping.get();
 	}
 	
-	public void updateSlashCommandMapping(Optional<Map<Set<String>, SlashCommandInstance>> mapping) {
+	public void updateSlashCommandMapping(Optional<Map<String, SlashCommandInstance>> mapping) {
 		if(mapping.isPresent()) this.SLASH_COMMANDS = mapping.get();
 	}
 	
 	public void updateApplicationCommandMapping(Optional<Map<String, ApplicationCommandInstance>> mapping) {
 		if(mapping.isPresent()) this.APPLICATION_COMMANDS = mapping.get();
+	}
+
+	public void updateComponentCommandMapping(Optional<Map<String, ComponentCommandInstance>> mapping) {
+		if (mapping.isPresent()) this.COMPONENT_COMMANDS = mapping.get();
 	}
 	
 	public void rebuildCommandMapping(CommandRebuildScope scope) {
@@ -130,7 +137,7 @@ public class ClientBuilder {
 				try {
 					cmd.buildCommand();
 				}catch(Exception e) {
-					errors.add(cmd.getDisplayName());
+					errors.add(cmd.getInternalName());
 				}
 			});
 		}
@@ -141,7 +148,7 @@ public class ClientBuilder {
 				try {
 					cmd.buildCommand();
 				}catch(Exception e) {
-					errors.add(cmd.getDisplayName());
+					errors.add(cmd.getInternalName());
 				}
 			});
 		}
@@ -151,7 +158,17 @@ public class ClientBuilder {
 				try {
 					cmd.buildCommand();
 				}catch(Exception e) {
-					errors.add(cmd.getDisplayName());
+					errors.add(cmd.getInternalName());
+				}
+			});
+		}
+		
+		if (scope == CommandRebuildScope.ONLY_COMPONENT || scope == CommandRebuildScope.ALL) {
+			this.COMPONENT_COMMANDS.values().forEach(cmd -> {
+				try {
+					cmd.buildCommand();
+				} catch (Exception e) {
+					errors.add(cmd.getInternalName());
 				}
 			});
 		}
@@ -275,7 +292,7 @@ public class ClientBuilder {
 		
 		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_RECEIVED, new Object[] {
 				StringHelper.getRawCharacterString(event.getInteraction().getUser().getUsername()), 
-				cmd.getDisplayName(),
+				cmd.getInternalName(),
 				channel.getType(), 
 				type});
 		
@@ -287,7 +304,7 @@ public class ClientBuilder {
 					handleNewCommandWithoutPermission(cmd, generateNewApplicationCommandPacket(event, type), type);
 					
 				}else {
-					event.reply(Emojis.NO_ENTRY+" Vous ne pouvez pas éxécuter cette commande ici !").withEphemeral(true).block();
+					event.reply(Emojis.NO_ENTRY+" Vous ne pouvez pas exécuter cette commande ici !").withEphemeral(true).block();
 				}
 			}else {
 				handleNewCommand(cmd, generateNewApplicationCommandPacket(event, type), type);
@@ -302,11 +319,15 @@ public class ClientBuilder {
 	 * @return the command instance if it exist
 	 */
 	private AbstractCommandInstance searchCommandId(String providedCmdId) {
-		for(NativeCommandInstance command : NATIVE_COMMANDS.values()) {
-			if(providedCmdId.startsWith(command.getShortenID())) return command;
+		for(ComponentCommandInstance command : COMPONENT_COMMANDS.values()) {
+            if(providedCmdId.startsWith(command.getShortenID())) return command;
 		}
 		
 		for(SlashCommandInstance command : SLASH_COMMANDS.values()) {
+			if(providedCmdId.startsWith(command.getShortenID())) return command;
+		}
+		
+		for(NativeCommandInstance command : NATIVE_COMMANDS.values()) {
 			if(providedCmdId.startsWith(command.getShortenID())) return command;
 		}
 		
@@ -315,8 +336,8 @@ public class ClientBuilder {
 	
 	/**
 	 * Search if a command exist in the map
-	 * @param providedCmdName - the name of the command
-	 * @param onlySlashCommand - if the method has been called by the slash command event
+	 * @param providedCmdName The name of the command
+	 * @param onlySlashCommand If the method has been called by the slash command event
 	 * @return the command instance if it exist
 	 */
 	private AbstractCommandInstance searchCommandResult(String providedCmdName, ApplicationCommandType type) {
@@ -325,14 +346,14 @@ public class ClientBuilder {
 		switch(type) {
 			case NATIVE -> {
 				for(var entry : NATIVE_COMMANDS.entrySet()) {
-					if(entry.getKey().contains(providedCmdName.toLowerCase())) {
+					if(entry.getKey().equalsIgnoreCase(providedCmdName)) {
 						return entry.getValue();
 					}
 				}
 			}
 			case CHAT_INPUT -> {
 				for(var entry : SLASH_COMMANDS.entrySet()) {
-					if(entry.getValue().getDisplayName().equalsIgnoreCase(providedCmdName)) {
+					if(entry.getKey().equalsIgnoreCase(providedCmdName)) {
 						return entry.getValue();
 					}
 				}
@@ -352,8 +373,8 @@ public class ClientBuilder {
 	
 	/**
 	 * Generate a new CommandGatewayComponentInteraction for a specified command
-	 * @param event - the MessageCreateEvent from discord
-	 * @param userCommand - a tuple containing informations about the layout of the user's command
+	 * @param event The MessageCreateEvent from discord
+	 * @param userCommand A tuple containing informations about the layout of the user's command
 	 * @see apbiot.core.command.informations.informations.CommandGatewayComponentInteraction
 	 * @return new CommandGatewayComponentInteraction
 	 */
@@ -367,7 +388,7 @@ public class ClientBuilder {
 	
 	/**
 	 * Generate a new CommandGatewaySlashInformations for a specified command
-	 * @param event - the ApplicationCommandInteractionEvent from discord
+	 * @param event The ApplicationCommandInteractionEvent from discord
 	 * @see apbiot.core.command.informations.informations.CommandGatewaySlashInformations
 	 * @return new CommandGatewaySlashInformations
 	 */
@@ -381,8 +402,8 @@ public class ClientBuilder {
 	
 	/**
 	 * Generate a new CommandGatewayInformations for a specified command
-	 * @param event - the MessageCreateEvent from discord
-	 * @param userCommand - a tuple containing informations about the layout of the user's command
+	 * @param event The MessageCreateEvent from discord
+	 * @param userCommand A tuple containing informations about the layout of the user's command
 	 * @see apbiot.core.command.GatewayNativeCommandPacket
 	 * @return new CommandGatewayInformations
 	 */
@@ -399,8 +420,8 @@ public class ClientBuilder {
 	/**
 	 * Handle every command computed by the bot and create a new thread for it to work
 	 * work only for the command with permissions (guild command)
-	 * @param cmd - the command itself
-	 * @param info - the CommandGatewayInformations generated for the command
+	 * @param cmd The command itself
+	 * @param info The CommandGatewayInformations generated for the command
 	 */
 	private void handleNewCommand(AbstractCommandInstance cmd, IGatewayInformations info, ApplicationCommandType cmdType) throws NullPointerException {
 		if(PermissionHelper.doesUserHavePermissions(info.getGuild().getMemberById(info.getExecutor().getId()).onErrorComplete().block(), cmd.getPermissions(), ownerID)) {
@@ -616,7 +637,7 @@ public class ClientBuilder {
 			this.lock.lock();
 			
 			if(this.gateway == null) throw new UnbuiltBotException("You cannot destroy a nonexistent bot.");
-			this.gateway.logout().block();
+			this.gateway.logout().subscribe();
 		}finally {
 			this.lock.unlock();
 		}
