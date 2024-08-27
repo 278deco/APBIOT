@@ -10,6 +10,7 @@ import apbiot.core.command.ApplicationCommandInstance;
 import apbiot.core.command.ComponentCommandInstance;
 import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.SlashCommandInstance;
+import apbiot.core.i18n.LanguageManager;
 import apbiot.core.pems.BaseProgramEventEnum;
 import apbiot.core.pems.ProgramEventManager;
 import discord4j.common.util.Snowflake;
@@ -49,7 +50,14 @@ public abstract class AbstractCommandHandler extends Handler {
 	protected abstract void registerCommands(GatewayDiscordClient client);
 	
 	protected final void addNewCommand(AbstractCommandInstance cmd) {
-		if(cmd instanceof NativeCommandInstance) NATIVE_COMMANDS.put(cmd.getInternalName(), (NativeCommandInstance)cmd);
+		//Because native doesn't use discord's localization functions
+		//We need to register them manually with the language manager
+		if(cmd instanceof NativeCommandInstance) { 
+			final String key = "commands.discord."+cmd.getInternalName()+".name";
+			final String usedName = LanguageManager.get().getLanguage("fr_FR")
+					.map(lang -> lang.getOrDefault(key, cmd.getInternalName())).orElse(cmd.getInternalName());
+			NATIVE_COMMANDS.put(usedName, (NativeCommandInstance)cmd);
+		}
 		if(cmd instanceof SlashCommandInstance) SLASH_COMMANDS.put(cmd.getInternalName(), (SlashCommandInstance)cmd);
 		if(cmd instanceof ApplicationCommandInstance) APPLICATION_COMMANDS.put(cmd.getInternalName(), (ApplicationCommandInstance)cmd);
 		if(cmd instanceof ComponentCommandInstance) COMPONENT_COMMANDS.put(cmd.getInternalName(), (ComponentCommandInstance)cmd);
