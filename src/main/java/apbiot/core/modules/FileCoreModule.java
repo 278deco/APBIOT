@@ -3,7 +3,6 @@ package apbiot.core.modules;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -28,6 +27,7 @@ import discord4j.gateway.intent.IntentSet;
 import marshmalliow.core.builder.DirectoryManager;
 import marshmalliow.core.builder.IOCacheManager;
 import marshmalliow.core.builder.IOFactory;
+import marshmalliow.core.builder.JSONFactory;
 import marshmalliow.core.objects.Directory;
 
 public class FileCoreModule extends CoreModule {
@@ -59,9 +59,11 @@ public class FileCoreModule extends CoreModule {
 		this.directoryManager = new DirectoryManager();
 		IOCacheManager.get();
 		IOFactory.get();
+		JSONFactory.get();
 
 		try {
 			IOFactory.bindDirectoryManager(this.directoryManager);
+			JSONFactory.withDirectoryManager(this.directoryManager);
 		} catch (InstanceNotFoundException e) {
 			throw new CoreModuleLoadingException("", e);
 		}finally {
@@ -81,7 +83,8 @@ public class FileCoreModule extends CoreModule {
 
 				JSONClientConfiguration configurationFile = null;
 				try {
-					configurationFile = IOFactory.get().createNewJSONFileChild(JSONClientConfiguration.class, "main:configuration", configFileName, Optional.empty());
+					
+					configurationFile = JSONFactory.get().createJSONFileFromBase(JSONClientConfiguration.class, "main:configuration", configFileName, null);
 					configurationFile.readFile();
 				} catch (IOException e) {
 					throw new CoreModuleLaunchingException("Couldn't correctly read config.json file",e);
