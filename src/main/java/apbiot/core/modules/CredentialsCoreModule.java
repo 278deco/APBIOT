@@ -29,6 +29,7 @@ import apbiot.core.pems.BaseProgramEventEnum;
 import apbiot.core.pems.ProgramEvent;
 import apbiot.core.pems.ProgramEvent.EventPriority;
 import apbiot.core.pems.ProgramEventManager;
+import marshmalliow.core.builder.DotenvManager;
 import marshmalliow.core.helpers.SecurityHelper;
 import marshmalliow.core.io.JSONLexer;
 import marshmalliow.core.io.JSONParser;
@@ -98,7 +99,7 @@ public class CredentialsCoreModule extends CoreModule {
 		JSONObject content = null;
 		try {
 			if(areCredentialsEncrypted) {		
-				String keyInput = System.getenv("CREDENTIALS_FILE_KEY"); //You can provided the key as an environment variable
+				String keyInput = DotenvManager.get().getEnv("CREDENTIALS_FILE_KEY"); //You can provided the key as an environment variable
 				
 				if(keyInput == null || keyInput.isEmpty()) { //If the key is not provided as an environment variable, ask for it
 					Scanner inputScanner = null;
@@ -172,6 +173,10 @@ public class CredentialsCoreModule extends CoreModule {
 					BaseProgramEventEnum.CLIENT_INSTANCE_TOKEN_ACQUIERED, 
 					new Object[] {this.credentialsContent.get("client_token")}, 
 					Set.of(DiscordCoreModule.class));
+				
+				ProgramEventManager.get().dispatchEvent(
+						BaseProgramEventEnum.CACHE_CREDENTIALS_ACQUIERED,
+						new Object[] {this.credentialsContent.get("cache_key")});
 			}
 			
 			if(this.dbCredentialsContent != null) {
@@ -195,9 +200,18 @@ public class CredentialsCoreModule extends CoreModule {
 	public void postLaunch() throws CoreModuleLaunchingException {
 		this.coreRunning.set(true);
 		try {
-			if(this.credentialsContent != null) this.credentialsContent.clear();
-			if(this.dbCredentialsContent != null) this.dbCredentialsContent.clear();
-			if(this.externalApiCredentialsContent != null) this.externalApiCredentialsContent.clear();
+			if(this.credentialsContent != null) {
+				this.credentialsContent.clear();
+				this.credentialsContent = null;
+			}
+			if(this.dbCredentialsContent != null) {
+				this.dbCredentialsContent.clear();
+				this.dbCredentialsContent = null;
+			}
+			if(this.externalApiCredentialsContent != null) {
+				this.externalApiCredentialsContent.clear();
+				this.externalApiCredentialsContent = null;
+			}
 		}finally {
 			this.coreRunning.set(false);
 		}

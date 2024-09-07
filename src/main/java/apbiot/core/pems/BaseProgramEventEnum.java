@@ -1,5 +1,6 @@
 package apbiot.core.pems;
 
+import apbiot.core.pems.events.CacheCredentialsAcquieredEvent;
 import apbiot.core.pems.events.CommandErrorEvent;
 import apbiot.core.pems.events.CommandListBuildEvent;
 import apbiot.core.pems.events.CommandReceivedEvent;
@@ -31,6 +32,7 @@ public enum BaseProgramEventEnum implements ProgramEventEnumerator {
 	
 	EXTERNAL_API_CREDENTIALS_ACQUIERED(ExternalAPICredentialsAcquieredEvent.class),
 	DATABASE_CREDENTIALS_ACQUIERED(DatabaseCredentialsAcquiredEvent.class),
+	CACHE_CREDENTIALS_ACQUIERED(CacheCredentialsAcquieredEvent.class),
 	CLIENT_INSTANCE_TOKEN_ACQUIERED(InstanceTokenAcquieredEvent.class),
 	
 	CLIENT_INSTANCE_CONNECTED(InstanceConnectedEvent.class),
