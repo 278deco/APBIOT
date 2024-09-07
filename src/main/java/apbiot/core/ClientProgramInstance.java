@@ -24,6 +24,7 @@ import apbiot.core.modules.CoreModule;
 import apbiot.core.modules.CoreModuleType;
 import apbiot.core.pems.BaseProgramEventEnum;
 import apbiot.core.pems.ProgramEventManager;
+import marshmalliow.core.builder.DotenvManager;
 
 public class ClientProgramInstance {
 	
@@ -37,6 +38,9 @@ public class ClientProgramInstance {
 		
 	private ClientProgramInstance(ClientProgramInstance.Builder builder) {
 		System.out.println("Booting up system...");
+		
+		DotenvManager.get().addSystemEnvironment(); //We prepare the DotenvManager and add system environment variables
+		
 		ProgramEventManager.get(); //Init PEMS
 		
 		for(CoreModule m : builder.activeModules) {
