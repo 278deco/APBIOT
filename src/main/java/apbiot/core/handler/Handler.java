@@ -31,5 +31,9 @@ public abstract class Handler implements EventListener {
 				LOGGER.error("Handler [Class:{}, Type:{}] encoutered error during registering phase!", getClass().getName(), getType().name());
 			}
 		}
+		
+		onEventPropagate(event, priority);
 	}
+	
+	public void onEventPropagate(ProgramEvent event, EventPriority priority) { }
 }
