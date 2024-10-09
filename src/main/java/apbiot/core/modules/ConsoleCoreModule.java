@@ -126,6 +126,6 @@ public class ConsoleCoreModule extends CoreModule {
 	
 	@Override
 	public CoreModuleType getType() {
-		return CoreModuleType.CONSOLE_LOGGING;
+		return BaseCoreModuleType.CONSOLE_LOGGING;
 	}
 }

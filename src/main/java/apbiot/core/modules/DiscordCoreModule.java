@@ -128,7 +128,7 @@ public class DiscordCoreModule extends CoreModule {
 
 	@Override
 	public CoreModuleType getType() {
-		return CoreModuleType.DISCORD_GATEWAY;
+		return BaseCoreModuleType.DISCORD_GATEWAY;
 	}
 
 }

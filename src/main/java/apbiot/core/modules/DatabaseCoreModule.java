@@ -90,7 +90,7 @@ public class DatabaseCoreModule extends CoreModule {
 
 	@Override
 	public CoreModuleType getType() {
-		return CoreModuleType.DB_FACTORY;
+		return BaseCoreModuleType.DB_FACTORY;
 	}
 
 }

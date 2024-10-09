@@ -229,7 +229,7 @@ public class CredentialsCoreModule extends CoreModule {
 
 	@Override
 	public CoreModuleType getType() {
-		return CoreModuleType.CREDENTIALS_HOLDER;
+		return BaseCoreModuleType.CREDENTIALS_HOLDER;
 	}
 
 }

@@ -145,7 +145,7 @@ public class FileCoreModule extends CoreModule {
 
 	@Override
 	public CoreModuleType getType() {
-		return CoreModuleType.IO_FACTORY;
+		return BaseCoreModuleType.IO_FACTORY;
 	}
 
 }

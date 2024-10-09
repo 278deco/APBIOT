@@ -20,6 +20,7 @@ import apbiot.core.exceptions.CoreModuleShutdownException;
 import apbiot.core.exceptions.MandatoryCoreMissingException;
 import apbiot.core.handler.Handler;
 import apbiot.core.handler.HandlerPreProcessingException;
+import apbiot.core.modules.BaseCoreModuleType;
 import apbiot.core.modules.CoreModule;
 import apbiot.core.modules.CoreModuleType;
 import apbiot.core.pems.BaseProgramEventEnum;
@@ -62,14 +63,14 @@ public class ClientProgramInstance {
 		LOGGER = LogManager.getLogger(ClientProgramInstance.class);
 		
 		//Check if mandatory cores are present
-		if(!isModuleActive(CoreModuleType.CREDENTIALS_HOLDER)) {
-			throw new MandatoryCoreMissingException("Missing mandatory CoreModule "+CoreModuleType.CREDENTIALS_HOLDER.getName());
+		if(!isModuleActive(BaseCoreModuleType.CREDENTIALS_HOLDER)) {
+			throw new MandatoryCoreMissingException("Missing mandatory CoreModule "+BaseCoreModuleType.CREDENTIALS_HOLDER.getName());
 		}
-		if(!isModuleActive(CoreModuleType.CONSOLE_LOGGING)) {
-			throw new MandatoryCoreMissingException("Missing mandatory CoreModule "+CoreModuleType.CONSOLE_LOGGING.getName());
+		if(!isModuleActive(BaseCoreModuleType.CONSOLE_LOGGING)) {
+			throw new MandatoryCoreMissingException("Missing mandatory CoreModule "+BaseCoreModuleType.CONSOLE_LOGGING.getName());
 		}
-		if(!isModuleActive(CoreModuleType.DISCORD_GATEWAY)) {
-			throw new MandatoryCoreMissingException("Missing mandatory CoreModule "+CoreModuleType.DISCORD_GATEWAY.getName());
+		if(!isModuleActive(BaseCoreModuleType.DISCORD_GATEWAY)) {
+			throw new MandatoryCoreMissingException("Missing mandatory CoreModule "+BaseCoreModuleType.DISCORD_GATEWAY.getName());
 		}
 		
 		//Pre-process handlers
