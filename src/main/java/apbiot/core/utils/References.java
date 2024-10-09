@@ -1,5 +1,7 @@
 package apbiot.core.utils;
 
+import marshmalliow.core.builder.DotenvManager;
+
 public class References {
 
 	public static final String LIBRARY_VERSION = "5.0";
@@ -9,6 +11,6 @@ public class References {
 	 * Check if the environment is production or development. 
 	 * If the ENVIRONMENT environment variable is not set to "DEV" or doesn't exist, then it is production.
 	 */
-	public static final boolean PROD_ENVIRONMENT = !"DEV".equals(System.getenv("ENVIRONMENT"));
+	public static final boolean PROD_ENVIRONMENT = !"DEV".equals(DotenvManager.get().getEnv("ENVIRONMENT"));
 
 }
