@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -51,7 +52,9 @@ public class LanguageManager {
 		try {
 			LOCK.writeLock().lock();
 			
-			Files.list(folderPath).forEach(path -> {
+			final Stream<Path> paths = Files.list(folderPath);
+			
+			paths.forEach(path -> {
 				if(Files.isDirectory(path)) return;
 				
 				final String fileName = path.getFileName().toString();
@@ -66,6 +69,7 @@ public class LanguageManager {
 					LOGGER.warn("Skipping language file {} with cause {}", fileName, e);
 				}
 			});
+			paths.close();
 			
 		} catch (IOException e) {
 			LOGGER.warn("Error while loading language files directory {}", e);
