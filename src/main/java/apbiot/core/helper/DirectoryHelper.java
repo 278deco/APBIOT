@@ -190,21 +190,16 @@ public class DirectoryHelper {
 		final Set<Path> result = new HashSet<>();
 		if(!Files.exists(dir) && !Files.isDirectory(dir)) return result;
 		
-		Stream<Path> paths = null;
 		
-		try {
-			paths = Files.list(dir);
+		try(final Stream<Path> paths = Files.list(dir)) {
 			
 			final Iterator<Path> iterator = paths.iterator();
 			int index = 0;
 			while(iterator.hasNext() && (index < threshold || threshold <= 0 )) {
 				result.add(iterator.next());
-			}
-			
+			}			
 		}catch(IOException e) {
 			return result;
-		}finally {
-			if(paths != null) paths.close(); 
 		}
 		
 		return result;
