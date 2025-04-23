@@ -822,4 +822,23 @@ public class StringHelper {
 		if (string.length() <= maxLength) return string;
 		return string.substring(0, maxLength-1) + suffix;
 	}
+	
+	public static int countWords(String message) {
+		final int endOfLine = message.length() - 1;
+		int count = 0;
+		boolean isWord = false;
+
+		for (int i = 0; i < message.length(); i++) {
+			// if the char is a letter, word = true.
+			if (Character.isLetter(message.charAt(i)) && i != endOfLine) {
+				isWord = true;
+			} else if (!Character.isLetter(message.charAt(i)) && isWord) {
+				count++;
+				isWord = false;
+			} else if (Character.isLetter(message.charAt(i)) && i == endOfLine) {
+				count++;
+			}
+		}
+		return count;
+	}
 }
