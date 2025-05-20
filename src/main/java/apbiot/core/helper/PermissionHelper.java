@@ -47,6 +47,22 @@ public class PermissionHelper {
 	public static Optional<Role> getHighestRoleForUser(User user, Guild guild) {
 		final Optional<Member> m = guild.getMemberById(user.getId()).blockOptional();
 		if(m.isPresent()) {
+			return Optional.ofNullable(m.get().getRoles().blockFirst());
+		}else {
+			return Optional.empty();
+		}
+	}
+	
+	/**
+	 * Get the lowest role for an user
+	 * @param user The specified user
+	 * @param guild The guild where the user is present
+	 * @return the lowest role for the user
+	 * @since 6.2.1
+	 */
+	public static Optional<Role> getLowestRoleForUser(User user, Guild guild) {
+		final Optional<Member> m = guild.getMemberById(user.getId()).blockOptional();
+		if(m.isPresent()) {
 			return Optional.ofNullable(m.get().getRoles().blockLast());
 		}else {
 			return Optional.empty();

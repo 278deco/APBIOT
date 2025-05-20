@@ -822,4 +822,32 @@ public class StringHelper {
 		if (string.length() <= maxLength) return string;
 		return string.substring(0, maxLength-1) + suffix;
 	}
+	
+	/**
+	 * Count the number of words in a string <br/>
+	 * The method will return 0 if the string is null or empty
+	 * 
+	 * 
+	 * @param message The string to be counted
+	 * @return The number of words in the string
+	 */
+	public static int countWords(String message) {
+		if (message == null || message.isEmpty()) return 0;
+		final int endOfLine = message.length() - 1;
+		int count = 0;
+		boolean isWord = false;
+
+		for (int i = 0; i < message.length(); i++) {
+			// if the char is a letter, word = true.
+			if (Character.isLetter(message.charAt(i)) && i != endOfLine) {
+				isWord = true;
+			} else if (!Character.isLetter(message.charAt(i)) && isWord) {
+				count++;
+				isWord = false;
+			} else if (Character.isLetter(message.charAt(i)) && i == endOfLine) {
+				count++;
+			}
+		}
+		return count;
+	}
 }
