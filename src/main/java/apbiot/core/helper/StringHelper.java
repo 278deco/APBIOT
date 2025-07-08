@@ -546,13 +546,79 @@ public class StringHelper {
 	 * @return If the two string are equals 
 	 */
 	public static boolean equalIgnoreCaseAccent(String str1, String str2) {
-		final String normalizedStr1 = Normalizer.isNormalized(str1, Normalizer.Form.NFKD) ?
-			str1 : Normalizer.normalize(str1, Normalizer.Form.NFKD).replaceAll("\\p{M}", "");
+        String normalizedStr1 = normalizeString(str1);
+        String normalizedStr2 = normalizeString(str2);
+        return normalizedStr1.equalsIgnoreCase(normalizedStr2);
+    }
+	
+	/**
+	 * This function is used to normalize a string by removing accents and other diacritical marks.
+	 * It also replaces some specific characters with their normalized equivalents. (e.g. replacing curly quotes with straight quotes)
+	 * This is useful for ensuring that strings are in a consistent format, especially when comparing or storing them.
+	 * 
+	 * @param in The input string to be normalized
+	 * @return The normalized string, or an empty string if the input is null or blank
+	 */
+    private static String normalizeString(String input) {
+        if (input == null) return null;
 
-		final String normalizedStr2 = Normalizer.isNormalized(str2, Normalizer.Form.NFKD) ?
-			str2: Normalizer.normalize(str2, Normalizer.Form.NFKD).replaceAll("\\p{M}", "");
-		
-		return normalizedStr1.equalsIgnoreCase(normalizedStr2);
+        // Normalize accents (NFKD)
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFKD);
+
+        // Remove combining marks manually (faster than regex)
+        normalized = removeCombiningMarks(normalized);
+
+        // Replace variant apostrophes etc. in a single pass
+        normalized = replaceSpecialChars(normalized);
+
+        return normalized;
+    }
+
+    /**
+     * INTERNAL METHOD<br/>
+	 * Remove combining marks from a string.
+	 * This method iterates through each character in the string and appends it to a new StringBuilder
+	 * only if it is not a combining mark (Unicode category Mn).
+	 * 
+	 * @param str The input string from which combining marks will be removed
+	 * @return A new string with all combining marks removed
+	 */
+    private static String removeCombiningMarks(String str) {
+    	final StringBuilder sb = new StringBuilder(str.length());
+    	for (int i = 0; i < str.length(); i++) {
+    		final char c = str.charAt(i);
+    		if (Character.getType(c) != Character.NON_SPACING_MARK) { // Skip combining marks (Unicode category Mn)
+    			sb.append(c);
+    		}
+    	}
+    	return sb.toString();
+    }
+
+    /**
+     * INTERNAL METHOD<br/>
+     * Replace special characters in a string with their normalized equivalents.
+     * This method replaces specific characters like curly quotes, dashes, and apostrophes
+     * with their straight counterparts.
+     * * This is useful for ensuring that strings are in a consistent format, especially when comparing or storing them.
+     * 
+     * @param str The input string containing special characters
+     * @return A new string with special characters replaced by their normalized equivalents
+     */
+	private static String replaceSpecialChars(String str) {
+		final StringBuilder sb = new StringBuilder(str.length());
+		for (int i = 0; i < str.length(); i++) {
+			final char c = str.charAt(i);
+			switch (c) {
+			// apostrophes variants
+			case '‘', '’', '‚', '‛', '❛', '❜' -> { sb.append('\''); }
+			// double quotes variants
+			case '“', '”', '„', '‟', '❝', '❞' -> { sb.append('\"'); }
+			// dashes variants
+			case '–', '—', '−' -> { sb.append('-'); }
+			default -> { sb.append(c); }
+			}
+		}
+		return sb.toString();
 	}
 
 	
