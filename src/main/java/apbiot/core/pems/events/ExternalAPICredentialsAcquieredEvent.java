@@ -14,7 +14,7 @@ public class ExternalAPICredentialsAcquieredEvent extends ProgramEvent {
 		if(data != null) {
 			final String keyName = serviceName+"_api";
 			
-			return data.containsKey(keyName) ? (JSONObject)data.get(keyName) : new JSONObject();
+			return data.containsKey(keyName) ? data.getJSONObject(keyName) : new JSONObject();
 		}
 		
 		return new JSONObject();

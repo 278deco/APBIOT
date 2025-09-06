@@ -12,6 +12,7 @@ import apbiot.core.pems.events.CoreModuleShutdownEvent;
 import apbiot.core.pems.events.CoreModulesReadyEvent;
 import apbiot.core.pems.events.DatabaseCredentialsAcquiredEvent;
 import apbiot.core.pems.events.DirectoriesLoadedEvent;
+import apbiot.core.pems.events.DirectoryManagerReadyEvent;
 import apbiot.core.pems.events.ExternalAPICredentialsAcquieredEvent;
 import apbiot.core.pems.events.FileRegistrationEvent;
 import apbiot.core.pems.events.InstanceConnectedEvent;
@@ -27,7 +28,9 @@ public enum BaseProgramEventEnum implements ProgramEventEnumerator {
 	CORE_MODULES_READY_EVENT(CoreModulesReadyEvent.class),
 	
 	CONFIGURATION_LOADED_EVENT(ConfigurationLoadedEvent.class),
+	@SuppressWarnings("removal")
 	DIRECTORIES_LOADED_EVENT(DirectoriesLoadedEvent.class),
+	DIRECTORY_MANAGER_READY_EVENT(DirectoryManagerReadyEvent.class),
 	FILES_REGISTRATION_EVENT(FileRegistrationEvent.class),
 	
 	EXTERNAL_API_CREDENTIALS_ACQUIERED(ExternalAPICredentialsAcquieredEvent.class),
