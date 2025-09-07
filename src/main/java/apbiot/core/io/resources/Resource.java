@@ -1,6 +1,6 @@
 package apbiot.core.io.resources;
 
-import marshmalliow.core.objects.Directory;
+import marshmalliow.core.directory.Directory;
 
 public class Resource {
 	
