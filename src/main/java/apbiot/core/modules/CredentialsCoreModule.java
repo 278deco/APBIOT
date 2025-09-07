@@ -137,12 +137,12 @@ public class CredentialsCoreModule extends CoreModule {
 			if(content != null) {
 				this.dbCredentialsContent = content.get("database", JSONObject.class);
 				
-				this.externalApiCredentialsContent = new JSONObject(content.entrySet()
+				this.externalApiCredentialsContent = new JSONObject(content.snapshot().entrySet()
 						.stream()
 						.filter(entry -> entry.getKey().contains("_api"))
 						.collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue)));
 				
-				this.credentialsContent = new JSONObject(content.entrySet()
+				this.credentialsContent = new JSONObject(content.snapshot().entrySet()
 						.stream()
 						.filter(entry -> !entry.getKey().contains("_api") && !entry.getKey().contains("database"))
 						.collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -171,18 +171,18 @@ public class CredentialsCoreModule extends CoreModule {
 			if(this.credentialsContent != null) {
 				ProgramEventManager.get().dispatchDedicatedEvent(
 					BaseProgramEventEnum.CLIENT_INSTANCE_TOKEN_ACQUIERED, 
-					new Object[] {this.credentialsContent.get("client_token")}, 
+					new Object[] {this.credentialsContent.getString("client_token")}, 
 					Set.of(DiscordCoreModule.class));
 				
 				ProgramEventManager.get().dispatchEvent(
 						BaseProgramEventEnum.CACHE_CREDENTIALS_ACQUIERED,
-						new Object[] {this.credentialsContent.get("cache_key")});
+						new Object[] {this.credentialsContent.getString("cache_key")});
 			}
 			
 			if(this.dbCredentialsContent != null) {
 				ProgramEventManager.get().dispatchDedicatedEvent(
 						BaseProgramEventEnum.DATABASE_CREDENTIALS_ACQUIERED, 
-						new Object[] {this.dbCredentialsContent.get("host"),this.dbCredentialsContent.get("port"),this.dbCredentialsContent.get("username"),this.dbCredentialsContent.get("password"),this.dbCredentialsContent.get("database_name")}, 
+						new Object[] {this.dbCredentialsContent.getString("host"),this.dbCredentialsContent.getInt("port"),this.dbCredentialsContent.getString("username"),this.dbCredentialsContent.getString("password"),this.dbCredentialsContent.getString("database_name")}, 
 						Set.of(DatabaseCoreModule.class));
 			}
 			

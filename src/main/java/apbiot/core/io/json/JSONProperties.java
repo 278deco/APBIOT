@@ -7,33 +7,33 @@ import java.util.function.BiPredicate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import marshmalliow.core.json.JSONFile;
-import marshmalliow.core.objects.Directory;
+import marshmalliow.core.json.AbstractJSONFile;
+import marshmalliow.core.json.AbstractJSONFileBuilder;
+import marshmalliow.core.json.objects.JSONArray;
 
 /**
- * Fork of JSONFile class used specifically to store properties
+ * Fork of {@link AbstractJSONFile} class used specifically to store properties
  * @author 278deco
  * @version 1.0.0
  */
-public abstract class JSONProperties extends JSONFile {
+public abstract class JSONProperties extends AbstractJSONFile {
 	
 	protected static final Logger LOGGER = LogManager.getLogger(JSONProperties.class);
 	
-	public JSONProperties(Directory dir, String name) {
-		super(dir, name);
-		
+	protected JSONProperties(AbstractJSONFileBuilder<?> builder) {
+		super(builder);
+
 		try {
 			
 			readFile();
 			
 		} catch (IOException e) {
-			LOGGER.error("Unexpected error while loading JSON file [dir: {}, name: {}] with error {} and message {}", this.directory.getName(), this.fileName, e.getClass().getName(), e.getMessage());
+			LOGGER.error("Unexpected error while loading JSON file {} with error {} and message {}", this.toString(), e.getClass().getName(), e.getMessage());
 		}finally {
 			controlRegistredProperties();
 		}
-		
 	}
-	
+
 	/**
      * Using this function to check if the value contained in the file are those expected
      */
@@ -105,9 +105,8 @@ public abstract class JSONProperties extends JSONFile {
 	 * @return the value of the property as a list
 	 * @throws ClassCastException
 	 */
-	@SuppressWarnings("unchecked")
-	protected <E> List<E> getListProperty(String propKey, Class<E> castClass) throws ClassCastException {
-		return ((List<E>)this.getContentAsObject().get(propKey));
+	protected JSONArray getListProperty(String propKey) throws ClassCastException {
+		return this.getContentAsObject().getJSONArray(propKey);
 	}
 	
 	/**

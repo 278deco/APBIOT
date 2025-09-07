@@ -14,21 +14,18 @@ import discord4j.core.object.presence.ClientActivity;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.core.object.presence.Status;
 import discord4j.gateway.intent.IntentSet;
-import marshmalliow.core.json.JSONFile;
+import marshmalliow.annotations.JSONFile;
+import marshmalliow.core.json.AbstractJSONFile;
+import marshmalliow.core.json.AbstractJSONFileBuilder;
 import marshmalliow.core.json.objects.JSONObject;
-import marshmalliow.core.objects.Directory;
-import marshmalliow.core.security.FileCredentials;
 
-public class JSONClientConfiguration extends JSONFile {
+@JSONFile
+public class JSONClientConfiguration extends AbstractJSONFile {
 
 	protected static final Logger LOGGER = LogManager.getLogger(JSONClientConfiguration.class);
 	
-	public JSONClientConfiguration(Directory dir, String name) {
-		super(dir, name);
-	}
-	
-	public JSONClientConfiguration(Directory dir, String name, FileCredentials credentials) {
-		super(dir, name, credentials);
+	protected JSONClientConfiguration(AbstractJSONFileBuilder<?> builder) {
+		super(builder);
 	}
 	
 	public String getPrefix() {
