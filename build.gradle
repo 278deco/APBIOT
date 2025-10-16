@@ -96,6 +96,14 @@ allprojects {
    	
 }
 
+sourceSets {
+    main {
+        java {
+            srcDirs += "$buildDir/generated/sources/annotationProcessor/java/main"
+        }
+    }
+}
+
 shadowJar {
 	from sourceSets.main.java
 

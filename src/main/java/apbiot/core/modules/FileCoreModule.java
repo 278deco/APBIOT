@@ -22,7 +22,9 @@ import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.intent.IntentSet;
 import marshmalliow.core.builder.IOCacheManager;
 import marshmalliow.core.builder.JSONFactory;
+import marshmalliow.core.directory.Directory;
 import marshmalliow.core.directory.GlobalDirectoryRegistry;
+import marshmalliow.core.directory.LocalDirectory;
 import marshmalliow.core.file.ReadMode;
 import marshmalliow.core.file.SaveMode;
 import marshmalliow.core.json.objects.JSONObject;
@@ -96,10 +98,14 @@ public class FileCoreModule extends CoreModule {
 			}
 			
 			//Load the LanguageManager (Localization)
-			final Path languagePath = Path.of("config/lang");
-			if(Files.exists(languagePath)) {
-				LanguageManager.get().loadLanguagesFolder(languagePath);
-			}else {
+			final Directory dir = new LocalDirectory("config:lang", Path.of("config", "lang"));
+			try {
+				if(dir.exists("")) {
+					LanguageManager.get().loadLanguagesFolder(dir);
+				}else {
+					LOGGER.warn("No language folder was found. Localized string might be appear broken.");
+				}
+			} catch (IOException e) {
 				LOGGER.warn("No language folder was found. Localized string might be appear broken.");
 			}
 			
