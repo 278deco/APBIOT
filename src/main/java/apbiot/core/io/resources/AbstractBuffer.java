@@ -9,17 +9,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import apbiot.core.pems.EventListener;
-import apbiot.core.pems.ProgramEvent;
-import apbiot.core.pems.ProgramEvent.EventPriority;
+import marshmalliow.core.directory.LocalDirectory;
 
-public abstract class AbstractBuffer implements EventListener {
+public abstract class AbstractBuffer {
 	
 	private final List<Resource> resourceBuffer = new ArrayList<>(getBufferSize());
 	
-	public AbstractBuffer() {
-		
-	}
+	public AbstractBuffer() { }
 	
 	public abstract void registerResources();
 
@@ -66,9 +62,9 @@ public abstract class AbstractBuffer implements EventListener {
 	public boolean deleteResource(String id) throws IOException {
 		final Optional<Resource> opt = resourceBuffer.stream().filter(rsc -> rsc.getID().equals(id)).findFirst(); 
 		
-		if(opt.isPresent()) {
+		if(opt.isPresent() && opt.get().getDirectory() instanceof LocalDirectory) {
 			resourceBuffer.remove(opt.get());
-			return Files.deleteIfExists(opt.get().getDirectory().getPath().resolve(opt.get().getFileName()));
+			return Files.deleteIfExists(Path.of(opt.get().getDirectory().resolve(opt.get().getFileName())));
 		}
 		return false;
 	}
@@ -81,8 +77,10 @@ public abstract class AbstractBuffer implements EventListener {
 	 */
 	public boolean deleteResource(int index) throws IOException {
 		if(index >= resourceBuffer.size()) throw new IllegalArgumentException("Cannot have an index greater than the buffer size!");
-		Resource rsc = resourceBuffer.remove(index);
-		return Files.deleteIfExists(rsc.getDirectory().getPath().resolve(rsc.getFileName()));
+		final Resource rsc = resourceBuffer.remove(index);
+		
+		final boolean result = !(rsc.getDirectory() instanceof LocalDirectory) || Files.deleteIfExists(Path.of(rsc.getDirectory().resolve(rsc.getFileName())));
+		return result;
 	}
 	
 	/**
@@ -148,7 +146,4 @@ public abstract class AbstractBuffer implements EventListener {
 		return 32;
 	}
 	
-	@Override
-	public void onEventReceived(ProgramEvent e, EventPriority priority) {	
-	}
 }
