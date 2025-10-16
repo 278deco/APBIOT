@@ -1,4 +1,4 @@
-package apbiot.core.exceptions;
+package apbiot.core.i18n;
 
 public class LocalizationReadingException extends Exception {
 

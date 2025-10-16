@@ -1,4 +1,4 @@
-package apbiot.core.exceptions;
+package apbiot.core.modules;
 
 public class MandatoryCoreMissingException extends Exception {
 

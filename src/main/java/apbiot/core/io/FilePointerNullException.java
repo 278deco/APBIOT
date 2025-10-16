@@ -1,4 +1,4 @@
-package apbiot.core.exceptions;
+package apbiot.core.io;
 
 import java.io.IOException;
 

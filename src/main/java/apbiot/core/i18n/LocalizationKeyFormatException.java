@@ -1,4 +1,4 @@
-package apbiot.core.exceptions;
+package apbiot.core.i18n;
 
 public class LocalizationKeyFormatException extends Exception {
 

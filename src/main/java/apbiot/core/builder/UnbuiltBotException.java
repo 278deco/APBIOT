@@ -1,4 +1,4 @@
-package apbiot.core.exceptions;
+package apbiot.core.builder;
 
 public class UnbuiltBotException extends Exception {
 

@@ -1,4 +1,4 @@
-package apbiot.core.exceptions;
+package apbiot.core.io.json;
 
 import apbiot.core.objects.AssertionType;
 
