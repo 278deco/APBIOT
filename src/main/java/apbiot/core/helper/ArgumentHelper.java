@@ -7,34 +7,8 @@ import java.util.List;
 import apbiot.core.objects.Argument;
 import apbiot.core.objects.enums.Ternary;
 import apbiot.core.utils.Emojis;
-import discord4j.common.util.Snowflake;
-import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.Role;
-import discord4j.rest.util.Permission;
-import reactor.core.publisher.Mono;
 
 public class ArgumentHelper {
-	
-	/**
-	 * @deprecated since 4.0
-	 * @see apbiot.core.helper.ArgumentHelper#getStringHelpSyntaxe(List, String, String)
-	 */
-	public static String getStringHelpSyntaxeArgument(int maxArg, String cmdName, String prefix, boolean isFirstObligatory, boolean isAllOptional) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(Emojis.WARNING+" ERREUR Syntaxe : "+prefix+""+cmdName+" ");
-		
-		for(int i = 1; i <= maxArg; i++) {
-			
-			if(i == 1 && isFirstObligatory) { sb.append("**<argument "+i+">** "); }
-			else {
-			
-				if(isAllOptional) { sb.append("*<argument "+i+">* "); }
-				else { sb.append("<argument "+i+"> "); }
-			}
-		}
-		
-		return sb.toString();
-	}
 	
 	/**
 	 * Format a string containing the command and its arguments for help purpose
@@ -77,38 +51,6 @@ public class ArgumentHelper {
 	}
 	
 	/**
-	 * Format a list and make all the item appear in italic using Markdown syntax
-	 * @param list The list to be formatted
-	 * @return the formatted list
-	 * @since 2.0
-	 * @deprecated since 5.0
-	 * @see #formatListContentItalic(List)
-	 */
-	public static String getFormattedStringList(List<String> list) {
-		final StringBuilder sb = new StringBuilder();
-		list.forEach(str -> sb.append("*"+str+"*").append(", "));
-
-		if(!list.isEmpty()) sb.setLength(sb.length() - 2);
-		return sb.toString();
-	}
-	
-	/**
-	 * Format a list of permission and make all the item appear in italic using Markdown syntax
-	 * @param list The list containing the permission
-	 * @return the formatted list
-	 * @since 2.0
-	 * @deprecated since 5.0
-	 * @see #formatListContentItalic(List)
-	 */
-	public static String getFormattedPermissionList(List<Permission> list) {
-		final StringBuilder sb = new StringBuilder();
-		list.forEach(perm -> sb.append("*"+perm.toString()+"*").append(", "));
-
-		if(!list.isEmpty()) sb.setLength(sb.length() - 2);
-		return sb.toString();
-	}
-	
-	/**
 	 * Used when getting a 'yes' or 'no' answer for an user.<br/>
 	 * Convert the response to a {@link Ternary}. The ternary will be {@code true} if the user answered yes, {@code false} if the user answered no.
 	 * If the response cannot be parsed properly, the ternary will be set to {@code undefined}.
@@ -136,23 +78,11 @@ public class ArgumentHelper {
 	}
 	
 	/**
-	 * @deprecated since 4.0
-	 * @see apbiot.core.helper.StringHelper#getRoleFromRawString(String, Guild)
-	 */
-	public static Mono<Role> getRoleFromRawArgument(String argument, Guild guild) {
-		if(StringHelper.isValidRoleDiscordID(argument)) {
-			return guild.getRoleById(Snowflake.of(StringHelper.getFormattedDiscordID(argument)));
-		}
-		
-		return null;
-	}
-	
-	/**
 	 * Format the arguments provided in an user command. Separate the command from the argument.
 	 * @param isPrefixSplitted tell the function if its needs to handle a prefix separated from the command
 	 * @param command the whole command containing the command name and the arguments
 	 * @return the list of arguments as {@link String}
-	 * @since 2.0
+	 * @since 2.0	
 	 */
 	public static List<String> formatCommandArguments(boolean isPrefixSplitted, String command) {
 		if(command == "") return Arrays.asList("");

@@ -120,18 +120,6 @@ public class StringHelper {
 	}
 	
 	/**
-	 * Return a random element from an array
-	 * @param array An array of String
-	 * @return an element from the array
-	 * @deprecated since 5.0
-	 * @see #getRandomElement(String[], Random)
-	 */
-	public static String getRandomElement(String[] array) {
-		Objects.requireNonNull(array);
-		return array.length > 0 ? array[new Random().nextInt(array.length)] : null;
-	}
-	
-	/**
 	 * Used to convert a message containing an unrecognizable mention to an message containing an usable mention 
 	 * @param message The message which contain the mention
 	 * @param guild The guild of the member
