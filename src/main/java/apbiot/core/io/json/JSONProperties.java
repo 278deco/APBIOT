@@ -7,6 +7,7 @@ import java.util.function.BiPredicate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import marshmalliow.core.file.ReadMode;
 import marshmalliow.core.json.AbstractJSONFile;
 import marshmalliow.core.json.AbstractJSONFileBuilder;
 import marshmalliow.core.json.objects.JSONArray;
@@ -25,7 +26,7 @@ public abstract class JSONProperties extends AbstractJSONFile {
 
 		try {
 			
-			readFile();
+			readFile(ReadMode.NORMAL);
 			
 		} catch (IOException e) {
 			LOGGER.error("Unexpected error while loading JSON file {} with error {} and message {}", this.toString(), e.getClass().getName(), e.getMessage());

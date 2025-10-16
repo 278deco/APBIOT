@@ -51,7 +51,7 @@ public class JSONClientConfiguration extends AbstractJSONFile {
 			
 			return Tuple.of(TimeUnit.valueOf(backupObj.get("unit", String.class)), backupObj.get("value", Integer.class));
 		}catch(Exception e) {
-			LOGGER.warn("Couldn't parse configuration's property 'backup_time'. Invalid property's name.");
+			LOGGER.warn("Couldn't parse configuration's property 'backup_time'. Invalid property's name.", e);
 			return Tuple.of(TimeUnit.HOURS, 1);
 		}
 	}
@@ -71,7 +71,7 @@ public class JSONClientConfiguration extends AbstractJSONFile {
 			final ClientActivity activity = ClientActivity.of(Type.valueOf(clientObjPresence.get("activity", String.class)), clientObjPresence.get("text", String.class), clientObjPresence.get("url", String.class));
 			return ClientPresence.of(Status.valueOf(clientObjPresence.get("status", String.class)), activity);
 		}catch(Exception e) {
-			LOGGER.warn("Couldn't parse configuration's property 'discord_status'. Invalid property's name.");
+			LOGGER.warn("Couldn't parse configuration's property 'discord_status'. Invalid property's name.", e);
 			return ClientPresence.of(Status.IDLE, null);
 		}
 	}

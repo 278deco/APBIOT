@@ -2,7 +2,6 @@ package apbiot.core.io.json;
 
 import java.util.function.BooleanSupplier;
 
-import apbiot.core.exceptions.JSONAssertionException;
 import apbiot.core.objects.AssertionType;
 
 public class JSONAssertion {
