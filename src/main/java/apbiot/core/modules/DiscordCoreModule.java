@@ -7,17 +7,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import apbiot.core.builder.ClientBuilder;
-import apbiot.core.exceptions.CoreModuleLaunchingException;
-import apbiot.core.exceptions.CoreModuleLoadingException;
-import apbiot.core.exceptions.CoreModuleShutdownException;
-import apbiot.core.exceptions.UnbuiltBotException;
-import apbiot.core.pems.ProgramEvent;
-import apbiot.core.pems.ProgramEvent.EventPriority;
-import apbiot.core.pems.actions.CommandRebuildAction;
-import apbiot.core.pems.events.CommandsListParsedEvent;
+import apbiot.core.builder.UnbuiltBotException;
+import apbiot.core.pems.Subscribe;
+import apbiot.core.pems.SubscribeType;
+import apbiot.core.pems.commands.LogIntoDiscordAction;
+import apbiot.core.pems.commands.RebuildDiscordCommandsAction;
 import apbiot.core.pems.events.ConfigurationLoadedEvent;
 import apbiot.core.pems.events.CoreModulesReadyEvent;
-import apbiot.core.pems.events.InstanceTokenAcquieredEvent;
+import apbiot.core.pems.events.DiscordCommandParsedEvent;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.intent.IntentSet;
 import discord4j.rest.http.client.ClientException;
@@ -96,36 +93,37 @@ public class DiscordCoreModule extends CoreModule {
 		}
 	}
 	
-	@Override
-	public void onEventReceived(ProgramEvent e, EventPriority priority) {
-		if(priority == EventPriority.HIGH) {
-			if(e instanceof CommandsListParsedEvent) {
-				final CommandsListParsedEvent parsed = (CommandsListParsedEvent)e;
-				clientBuilder.updateNativeCommandMapping(parsed.getDiscordCoreNativeCommands());
-				clientBuilder.updateSlashCommandMapping(parsed.getDiscordCoreSlashCommands());
-				clientBuilder.updateApplicationCommandMapping(parsed.getDiscordCoreApplicationCommands());
-				clientBuilder.updateComponentCommandMapping(parsed.getDiscordCoreComponentCommands());
-				clientBuilder.buildCommandator();
-				
-			}else if(e instanceof ConfigurationLoadedEvent) {
-				final ConfigurationLoadedEvent parsed = (ConfigurationLoadedEvent)e;
-				this.prefix = parsed.getInstancePrefix();
-				this.intents = parsed.getInstanceIntentSet();
-				this.defaultPresence = parsed.getInstanceClientPresence(); 
-
-			}else if(e instanceof InstanceTokenAcquieredEvent) {
-				this.tokenSecret = ((InstanceTokenAcquieredEvent)e).getClientToken();
-			//EVENT_ACTIONS
-			}else if(e instanceof CommandRebuildAction) {
-				clientBuilder.rebuildCommandMapping(((CommandRebuildAction)e).getScope());
-			}
-		}
-		
-		if(priority == EventPriority.INTERMEDIATE && e instanceof CoreModulesReadyEvent) {
-			clientBuilder.setReady(true);
-		}
+	@Subscribe(type = SubscribeType.EVENT)
+	public void onCommandParsed(DiscordCommandParsedEvent event) {
+		clientBuilder.updateNativeCommandMapping(event.optionalDiscordNativeCommands());
+		clientBuilder.updateSlashCommandMapping(event.optionalDiscordSlashCommands());
+		clientBuilder.updateApplicationCommandMapping(event.optionalDiscordApplicationCommands());
+		clientBuilder.updateComponentCommandMapping(event.optionalDiscordComponentCommands());
+		clientBuilder.buildCommandator();
 	}
-
+	
+	@Subscribe(type = SubscribeType.EVENT)
+	public void onConfigurationLoaded(ConfigurationLoadedEvent event) {
+		this.prefix = Optional.ofNullable(event.instancePrefix());
+		this.intents = Optional.ofNullable(event.intentSet());
+		this.defaultPresence = Optional.ofNullable(event.clientPresence());
+	}
+	
+	@Subscribe(type = SubscribeType.EVENT)
+	public void onCoreModulesReady(CoreModulesReadyEvent event) {
+		clientBuilder.setReady(true);
+	}
+	
+	@Subscribe(type = SubscribeType.ACTION)
+	public void loginToDiscordAct(LogIntoDiscordAction action) {
+		this.tokenSecret = Optional.ofNullable(action.clientToken());
+	}
+	
+	@Subscribe(type = SubscribeType.ACTION)
+	public void rebuildCommandMapping(RebuildDiscordCommandsAction action) {
+		clientBuilder.rebuildCommandMapping(action.scope());
+	}
+	
 	@Override
 	public CoreModuleType getType() {
 		return BaseCoreModuleType.DISCORD_GATEWAY;

@@ -13,14 +13,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import apbiot.core.command.SystemCommand;
-import apbiot.core.exceptions.CoreModuleLaunchingException;
-import apbiot.core.exceptions.CoreModuleLoadingException;
-import apbiot.core.exceptions.CoreModuleShutdownException;
 import apbiot.core.helper.ArgumentHelper;
-import apbiot.core.pems.LoggableProgramEvent;
-import apbiot.core.pems.ProgramEvent;
-import apbiot.core.pems.ProgramEvent.EventPriority;
-import apbiot.core.pems.events.CommandsListParsedEvent;
+import apbiot.core.pems.LoggableEvent;
+import apbiot.core.pems.Subscribe;
+import apbiot.core.pems.SubscribeType;
+import apbiot.core.pems.events.ConsoleCommandParsedEvent;
 
 public class ConsoleCoreModule extends CoreModule {
 
@@ -113,15 +110,15 @@ public class ConsoleCoreModule extends CoreModule {
 		}
 	}
 	
-	@Override
-	public void onEventReceived(ProgramEvent e, EventPriority priority) {
-		if(e instanceof CommandsListParsedEvent) {
-			final Optional<Map<Set<String>, SystemCommand>> map = ((CommandsListParsedEvent)e).getConsoleCoreCommands();
-			if(map.isPresent()) this.commandMap = map.get();
-			
-		}else if(e instanceof LoggableProgramEvent) {
-			LOGGER.log(((LoggableProgramEvent)e).getLogPriority().getLevel(), ((LoggableProgramEvent)e).getLoggerMessage());
-		}
+	@Subscribe(type = SubscribeType.EVENT)
+	public void onEventReceived(LoggableEvent event) {
+		LOGGER.log(event.getLogPriority().getLevel(), event.getLoggerMessage());
+	}
+	
+	@Subscribe(type = SubscribeType.EVENT)
+	public void onCommandListReceived(ConsoleCommandParsedEvent e) {
+		final Optional<Map<Set<String>, SystemCommand>> map = e.optionalConsoleCommands();
+		if(map.isPresent()) this.commandMap = map.get();
 	}
 	
 	@Override

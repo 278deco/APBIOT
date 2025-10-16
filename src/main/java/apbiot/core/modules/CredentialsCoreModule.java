@@ -11,7 +11,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -20,15 +19,13 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import apbiot.core.exceptions.CoreModuleLaunchingException;
-import apbiot.core.exceptions.CoreModuleLoadingException;
-import apbiot.core.exceptions.CoreModuleShutdownException;
-import apbiot.core.exceptions.NonExistingFileInstanceException;
 import apbiot.core.io.NoCloseInputStream;
-import apbiot.core.pems.BaseProgramEventEnum;
-import apbiot.core.pems.ProgramEvent;
-import apbiot.core.pems.ProgramEvent.EventPriority;
-import apbiot.core.pems.ProgramEventManager;
+import apbiot.core.io.NonExistingFileInstanceException;
+import apbiot.core.pems.GlobalActionBus;
+import apbiot.core.pems.commands.LoadExternalServicesAction;
+import apbiot.core.pems.commands.LogIntoDatabaseAction;
+import apbiot.core.pems.commands.LogIntoDiscordAction;
+import apbiot.core.pems.commands.RegisterCacheFilesAction;
 import marshmalliow.core.builder.DotenvManager;
 import marshmalliow.core.helpers.SecurityHelper;
 import marshmalliow.core.io.JSONLexer;
@@ -169,27 +166,22 @@ public class CredentialsCoreModule extends CoreModule {
 		this.coreRunning.set(true);
 		try {
 			if(this.credentialsContent != null) {
-				ProgramEventManager.get().dispatchDedicatedEvent(
-					BaseProgramEventEnum.CLIENT_INSTANCE_TOKEN_ACQUIERED, 
-					new Object[] {this.credentialsContent.getString("client_token")}, 
-					Set.of(DiscordCoreModule.class));
+				GlobalActionBus.get().dispatchAction(new LogIntoDiscordAction(this.credentialsContent.getString("client_token")));
 				
-				ProgramEventManager.get().dispatchEvent(
-						BaseProgramEventEnum.CACHE_CREDENTIALS_ACQUIERED,
-						new Object[] {this.credentialsContent.getString("cache_key")});
+				GlobalActionBus.get().dispatchAction(new RegisterCacheFilesAction(this.credentialsContent.getString("cache_key")));
 			}
 			
 			if(this.dbCredentialsContent != null) {
-				ProgramEventManager.get().dispatchDedicatedEvent(
-						BaseProgramEventEnum.DATABASE_CREDENTIALS_ACQUIERED, 
-						new Object[] {this.dbCredentialsContent.getString("host"),this.dbCredentialsContent.getInt("port"),this.dbCredentialsContent.getString("username"),this.dbCredentialsContent.getString("password"),this.dbCredentialsContent.getString("database_name")}, 
-						Set.of(DatabaseCoreModule.class));
+				GlobalActionBus.get().dispatchAction(new LogIntoDatabaseAction(
+						this.dbCredentialsContent.getString("host"),
+						this.dbCredentialsContent.getInt("port"),
+						this.dbCredentialsContent.getString("username"),
+						this.dbCredentialsContent.getString("password"),
+						this.dbCredentialsContent.getString("database_name")));
 			}
 			
 			if(this.externalApiCredentialsContent != null) {
-				ProgramEventManager.get().dispatchEvent(
-					BaseProgramEventEnum.EXTERNAL_API_CREDENTIALS_ACQUIERED, 
-					new Object[] {this.externalApiCredentialsContent});
+				GlobalActionBus.get().dispatchAction(new LoadExternalServicesAction(this.externalApiCredentialsContent));
 			}
 		}finally {
 			this.coreRunning.set(false);
@@ -220,11 +212,6 @@ public class CredentialsCoreModule extends CoreModule {
 	@Override
 	public void shutdown() throws CoreModuleShutdownException {
 		
-	}
-	
-	@Override
-	public void onEventReceived(ProgramEvent e, EventPriority priority) {
-
 	}
 
 	@Override

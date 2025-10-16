@@ -5,12 +5,9 @@ import java.util.UUID;
 
 import org.mariadb.r2dbc.util.HostAddress;
 
-import apbiot.core.exceptions.CoreModuleLaunchingException;
-import apbiot.core.exceptions.CoreModuleLoadingException;
-import apbiot.core.exceptions.CoreModuleShutdownException;
-import apbiot.core.pems.ProgramEvent;
-import apbiot.core.pems.ProgramEvent.EventPriority;
-import apbiot.core.pems.events.DatabaseCredentialsAcquiredEvent;
+import apbiot.core.pems.Subscribe;
+import apbiot.core.pems.SubscribeType;
+import apbiot.core.pems.commands.LogIntoDatabaseAction;
 import marshmalliow.core.database.DBFactory;
 import marshmalliow.core.database.security.DBCredentials;
 
@@ -77,15 +74,12 @@ public class DatabaseCoreModule extends CoreModule {
 		}
 	}
 	
-	@Override
-	public void onEventReceived(ProgramEvent e, EventPriority priority) {
-		if(priority == EventPriority.HIGH && e instanceof DatabaseCredentialsAcquiredEvent) {
-			final DatabaseCredentialsAcquiredEvent event = ((DatabaseCredentialsAcquiredEvent)e);
-			this.host = event.getHostAddress();
-			this.username = event.getUsername();
-			this.password = event.getPassword();
-			this.databaseName = event.getDatabaseName();
-		}
+	@Subscribe(type = SubscribeType.ACTION)
+	public void onCredentialsReceived(LogIntoDatabaseAction action) {
+		this.host = action.hostAddress();
+		this.username = action.username();
+		this.password = action.password();
+		this.databaseName = action.databaseName();
 	}
 
 	@Override
