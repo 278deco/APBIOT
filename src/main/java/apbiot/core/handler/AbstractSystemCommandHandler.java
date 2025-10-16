@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.Set;
 
 import apbiot.core.command.SystemCommand;
-import apbiot.core.pems.BaseProgramEventEnum;
-import apbiot.core.pems.ProgramEventManager;
+import apbiot.core.pems.GlobalEventBus;
+import apbiot.core.pems.events.ConsoleCommandParsedEvent;
 import discord4j.core.GatewayDiscordClient;
 
 /**
@@ -28,8 +28,8 @@ public abstract class AbstractSystemCommandHandler extends Handler {
 	@Override
 	protected final void register(GatewayDiscordClient client) throws HandlerRegisteringException {
 		registerCommands(client);
-				
-		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_LIST_PARSED, new Object[] {COMMANDS, null, null, null});
+		
+		GlobalEventBus.get().dispatchEvent(new ConsoleCommandParsedEvent(COMMANDS));		
 	}
 
 	@Override
