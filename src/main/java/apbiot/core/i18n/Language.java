@@ -8,12 +8,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import apbiot.core.exceptions.LocalizationKeyFormatException;
-import apbiot.core.exceptions.LocalizationReadingException;
+import marshmalliow.core.directory.LocalDirectory;
 import marshmalliow.core.exceptions.JSONParseException;
 import marshmalliow.core.io.JSONLexer;
 import marshmalliow.core.io.JSONParser;
-import marshmalliow.core.objects.Directory;
+import marshmalliow.core.json.objects.JSONObject;
 
 public class Language {
 	
@@ -22,10 +21,10 @@ public class Language {
 	private String name, region;
 	private String code, discordCode;
 
-	private Map<String, String> entries;
+	private JSONObject entries;
 
-	public Language(Directory dir, String code) throws LocalizationReadingException, LocalizationKeyFormatException {
-		readFile(dir.getPath().resolve(code + ".json"), code);
+	public Language(LocalDirectory dir, String code) throws LocalizationReadingException, LocalizationKeyFormatException {
+		readFile(dir.resolvePath(code + ".json"), code);
 	}
 
 	public Language(Path path, String code) throws LocalizationReadingException, LocalizationKeyFormatException {
@@ -36,7 +35,6 @@ public class Language {
 		readFile(path, path.getFileName().toString().replace(".json", ""));
 	}
 
-	@SuppressWarnings("unchecked")
 	private void readFile(Path fullPath, String code) throws LocalizationReadingException, LocalizationKeyFormatException {
 		BufferedReader reader = null;
 		try {
@@ -47,13 +45,13 @@ public class Language {
 			reader = Files.newBufferedReader(fullPath);
 							
 			final JSONParser parser = new JSONParser(new JSONLexer(reader));
-			this.entries = (Map<String,String>)parser.parse();
+			this.entries = (JSONObject) parser.parse();
 			
 			//Check the validity of the file
-			this.region = this.entries.get("language.region");
-			this.name = this.entries.get("language.name");
-			this.code = this.entries.get("language.code");
-			this.discordCode = this.entries.get("language.discordcode");
+			this.region = this.entries.getString("language.region");
+			this.name = this.entries.getString("language.name");
+			this.code = this.entries.getString("language.code");
+			this.discordCode = this.entries.getString("language.discordcode");
 			
 			if(this.region == null || this.name == null || this.code == null || this.discordCode == null)
 				throw new LocalizationKeyFormatException("Missing language keys information (region/name/code/discordcode)");
@@ -63,7 +61,7 @@ public class Language {
 				throw new LocalizationReadingException("Invalid language code "+code);
 			
 			//Check the validity of the entries
-			for(Map.Entry<String, String> entry : this.entries.entrySet()) {
+			for(Map.Entry<String, Object> entry : this.entries.snapshot().entrySet()) {
 				if(!ENTRY_PATTERN.matcher(entry.getKey()).matches()) {
 					throw new LocalizationKeyFormatException("Format error with key "+entry.getKey());
 				}
@@ -88,7 +86,7 @@ public class Language {
 	 * @return The localization depending on the key
 	 */
 	public final String getOrDefault(String key) {
-		return this.entries.getOrDefault(key, key);
+		return this.entries.getOrDefault(key, key, String.class);
 	}
 	
 	/**
@@ -101,7 +99,7 @@ public class Language {
 	 * @return The localization depending on the key
 	 */
 	public final String getOrDefault(String key, String defaultValue) {
-		return this.entries.getOrDefault(key, defaultValue);
+		return this.entries.getOrDefault(key, defaultValue, String.class);
 	}
 	
 	
@@ -117,7 +115,7 @@ public class Language {
 	 * @return The localization depending on the key
 	 */
 	public final String getOrElse(String key, String otherKey) {
-		return this.entries.getOrDefault(key, this.entries.getOrDefault(otherKey, key));
+		return this.entries.getOrDefault(key, this.entries.getOrDefault(otherKey, key, String.class), String.class);
 	}
 	
 	/**

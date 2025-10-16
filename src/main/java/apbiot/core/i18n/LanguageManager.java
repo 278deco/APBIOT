@@ -14,9 +14,8 @@ import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import apbiot.core.exceptions.LocalizationKeyFormatException;
-import apbiot.core.exceptions.LocalizationReadingException;
-import marshmalliow.core.objects.Directory;
+import marshmalliow.core.directory.Directory;
+import marshmalliow.core.directory.LocalDirectory;
 
 public class LanguageManager {
 
@@ -40,18 +39,15 @@ public class LanguageManager {
 		return instance;
 	}
 	
-	public void loadLanguagesFolder(Directory folderDir) {
-		loadLanguagesFolder(folderDir.getPath());
-	}
-
-	public void reloadLanguagesFolder(Directory folderDir) {
-		reloadLanguagesFolder(folderDir.getPath());
-	}
-	
-	public void loadLanguagesFolder(Path folderPath) {
+	public void loadLanguagesFolder(Directory folderDirectory) {
+		if(!(folderDirectory instanceof LocalDirectory)) {
+			LOGGER.warn("The provided directory is not a local directory, cannot load languages (Not implemented yet)");
+			return;
+		}		
 		try {
 			LOCK.writeLock().lock();
 			
+			final Path folderPath = ((LocalDirectory) folderDirectory).path();
 			final Stream<Path> paths = Files.list(folderPath);
 			
 			paths.forEach(path -> {
@@ -78,12 +74,12 @@ public class LanguageManager {
 		}
 	}
 	
-	public void reloadLanguagesFolder(Path folderPath) {
+	public void reloadLanguagesFolder(Directory folderDirectory) {
 		try {
 			LOCK.writeLock().lock();
 
 			localizations.clear();
-			loadLanguagesFolder(folderPath);
+			loadLanguagesFolder(folderDirectory);
 
 		} finally {
 			LOCK.writeLock().unlock();
