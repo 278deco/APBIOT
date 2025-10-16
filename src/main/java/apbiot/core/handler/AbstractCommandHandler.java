@@ -11,8 +11,8 @@ import apbiot.core.command.ComponentCommandInstance;
 import apbiot.core.command.NativeCommandInstance;
 import apbiot.core.command.SlashCommandInstance;
 import apbiot.core.i18n.LanguageManager;
-import apbiot.core.pems.BaseProgramEventEnum;
-import apbiot.core.pems.ProgramEventManager;
+import apbiot.core.pems.GlobalEventBus;
+import apbiot.core.pems.events.DiscordCommandParsedEvent;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
@@ -82,7 +82,7 @@ public abstract class AbstractCommandHandler extends Handler {
 			entry.getValue().buildCommand();
 		}
 		
-		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_LIST_PARSED, new Object[] {null, NATIVE_COMMANDS, SLASH_COMMANDS, APPLICATION_COMMANDS, COMPONENT_COMMANDS});
+		GlobalEventBus.get().dispatchEvent(new DiscordCommandParsedEvent(NATIVE_COMMANDS, SLASH_COMMANDS, APPLICATION_COMMANDS, COMPONENT_COMMANDS));		
 	}
 	
 	/**

@@ -14,17 +14,21 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import apbiot.core.exceptions.CoreModuleLaunchingException;
-import apbiot.core.exceptions.CoreModuleLoadingException;
-import apbiot.core.exceptions.CoreModuleShutdownException;
-import apbiot.core.exceptions.MandatoryCoreMissingException;
 import apbiot.core.handler.Handler;
 import apbiot.core.handler.HandlerPreProcessingException;
 import apbiot.core.modules.BaseCoreModuleType;
 import apbiot.core.modules.CoreModule;
+import apbiot.core.modules.CoreModuleLaunchingException;
+import apbiot.core.modules.CoreModuleLoadingException;
+import apbiot.core.modules.CoreModuleShutdownException;
 import apbiot.core.modules.CoreModuleType;
-import apbiot.core.pems.BaseProgramEventEnum;
-import apbiot.core.pems.ProgramEventManager;
+import apbiot.core.modules.MandatoryCoreMissingException;
+import apbiot.core.pems.GlobalActionBus;
+import apbiot.core.pems.GlobalEventBus;
+import apbiot.core.pems.events.CoreModuleInitializationEvent;
+import apbiot.core.pems.events.CoreModuleLaunchEvent;
+import apbiot.core.pems.events.CoreModuleShutdownEvent;
+import apbiot.core.pems.events.CoreModulesReadyEvent;
 import marshmalliow.core.builder.DotenvManager;
 
 public class ClientProgramInstance {
@@ -42,15 +46,20 @@ public class ClientProgramInstance {
 		
 		DotenvManager.get().addSystemEnvironment(); //We prepare the DotenvManager and add system environment variables
 		
-		ProgramEventManager.get(); //Init PEMS
+		GlobalEventBus.get(); // We prepare the Global Event Bus to be used by the entire application
+		GlobalActionBus.get(); // We prepare the Global Action Bus to be used by the entire application
 		
 		for(CoreModule m : builder.activeModules) {
 			activeModules.put(m.getType(), m);
-			ProgramEventManager.get().addNewListener(m);
+			GlobalEventBus.get().register(m);
+			GlobalActionBus.get().register(m);
 		}
 		
 		this.activeHandlers = builder.activeHandlers.stream().collect(Collectors.toMap(Handler::getClass, handler -> handler));
-		this.activeHandlers.forEach((cls, handler) -> ProgramEventManager.get().addNewListener(handler));
+		this.activeHandlers.forEach((cls, handler) -> {
+			GlobalEventBus.get().register(handler);
+			GlobalActionBus.get().register(handler);
+		});
 	}
 	
 	public void launch() throws MandatoryCoreMissingException, CoreModuleLoadingException, CoreModuleLaunchingException {
@@ -84,7 +93,7 @@ public class ClientProgramInstance {
 		}
 		
 		//Initialization phase
-		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.CORE_MODULE_INIT_EVENT);
+		GlobalEventBus.get().dispatchEvent(new CoreModuleInitializationEvent());
 		for(CoreModule cm : activeModules.values()) {
 			LOGGER.info("PHASE 1 - Itinializing Core Module {}...",cm.getType().getName());
 			try {
@@ -100,7 +109,7 @@ public class ClientProgramInstance {
 		}
 		
 		//Pre-Launching phase
-		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.CORE_MODULE_LAUNCH_EVENT);
+		GlobalEventBus.get().dispatchEvent(new CoreModuleLaunchEvent());
 		for(CoreModule cm : activeModules.values()) {
 			LOGGER.info("PHASE 2 - Pre-launching Core Module {}...",cm.getType().getName());
 			try {
@@ -136,7 +145,7 @@ public class ClientProgramInstance {
 			}
 		}
 		
-		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.CORE_MODULES_READY_EVENT);
+		GlobalEventBus.get().dispatchEvent(new CoreModulesReadyEvent());
 		LOGGER.info("All Core Modules have been launched. Get system status with 'core status'.");
 	}
 	
@@ -167,7 +176,7 @@ public class ClientProgramInstance {
 		@Override
 		public void run() {
 			
-			ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.CORE_MODULE_SHUTDOWN_EVENT);
+			GlobalEventBus.get().dispatchEvent(new CoreModuleShutdownEvent());
 			for(CoreModule cm : activeModules.values()) {
 				try {
 					LOGGER.info("Shutting down Core Module {}...",cm.getType().getName());

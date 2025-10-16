@@ -22,7 +22,6 @@ import apbiot.core.command.informations.GatewayComponentCommandPacket;
 import apbiot.core.command.informations.GatewayNativeCommandPacket;
 import apbiot.core.commandator.Commandator;
 import apbiot.core.commandator.CommandatorEntry;
-import apbiot.core.exceptions.UnbuiltBotException;
 import apbiot.core.handler.AbstractCommandHandler;
 import apbiot.core.helper.ArgumentHelper;
 import apbiot.core.helper.CommandHelper;
@@ -32,9 +31,12 @@ import apbiot.core.helper.StringHelper;
 import apbiot.core.objects.Tuple;
 import apbiot.core.objects.enums.ApplicationCommandType;
 import apbiot.core.objects.interfaces.IGatewayInformations;
-import apbiot.core.pems.BaseProgramEventEnum;
-import apbiot.core.pems.ProgramEventManager;
-import apbiot.core.pems.actions.CommandRebuildAction.CommandRebuildScope;
+import apbiot.core.pems.GlobalEventBus;
+import apbiot.core.pems.commands.RebuildDiscordCommandsAction.CommandRebuildScope;
+import apbiot.core.pems.events.DiscordCommandErrorEvent;
+import apbiot.core.pems.events.DiscordCommandReceivedEvent;
+import apbiot.core.pems.events.DiscordCommandsBuiltEvent;
+import apbiot.core.pems.events.InstanceConnectedEvent;
 import apbiot.core.utils.Emojis;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
@@ -114,18 +116,22 @@ public class ClientBuilder {
 	}
 	
 	public void updateNativeCommandMapping(Optional<Map<String, NativeCommandInstance>> mapping) {
+		LOGGER.debug("Updating native command mapping with "+(mapping.isPresent() ? mapping.get().size() : 0)+" commands");
 		if(mapping.isPresent()) this.NATIVE_COMMANDS = mapping.get();
 	}
 	
 	public void updateSlashCommandMapping(Optional<Map<String, SlashCommandInstance>> mapping) {
+		LOGGER.debug("Updating slash command mapping with "+(mapping.isPresent() ? mapping.get().size() : 0)+" commands");
 		if(mapping.isPresent()) this.SLASH_COMMANDS = mapping.get();
 	}
 	
 	public void updateApplicationCommandMapping(Optional<Map<String, ApplicationCommandInstance>> mapping) {
+		LOGGER.debug("Updating application command mapping with "+(mapping.isPresent() ? mapping.get().size() : 0)+" commands");
 		if(mapping.isPresent()) this.APPLICATION_COMMANDS = mapping.get();
 	}
 
 	public void updateComponentCommandMapping(Optional<Map<String, ComponentCommandInstance>> mapping) {
+		LOGGER.debug("Updating component command mapping with "+(mapping.isPresent() ? mapping.get().size() : 0)+" commands");
 		if (mapping.isPresent()) this.COMPONENT_COMMANDS = mapping.get();
 	}
 	
@@ -173,7 +179,7 @@ public class ClientBuilder {
 			});
 		}
 
-		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_LIST_BUILD, new Object[] {errors.toArray(), scope});
+		GlobalEventBus.get().dispatchEvent(new DiscordCommandsBuiltEvent(errors, scope));
 	}
 	
 	private void createComponentListener() {
@@ -215,12 +221,12 @@ public class ClientBuilder {
 				this.lock.lock();
 				
 				if(NATIVE_COMMANDS.isEmpty() || !isReady) {
-					event.getMessage().getChannel().block().createMessage(Emojis.TOOLS+" Le bot est encore en chargement... Veuillez réessayer ultérieurement.").block();
+					event.getMessage().getChannel().block().createMessage(Emojis.TOOLS+" L'application est encore en chargement... Veuillez réessayer ultérieurement.").block();
 					return;
 				}
 				
 				final MessageChannel channel = event.getMessage().getChannel().block();		
-				final Tuple<String, Boolean> userCommand = CommandHelper.getCommandFromUserInput(content.split(" "), this.botPrefix);
+				final Tuple<String, Boolean> userCommand = CommandHelper.getCommandFromUserInput(content, this.botPrefix);
 				final AbstractCommandInstance cmd = searchCommandResult(userCommand.getValueA(), ApplicationCommandType.NATIVE);
 	
 				if(userCommand.isTupleEmpty() || cmd == null) {
@@ -228,11 +234,11 @@ public class ClientBuilder {
 					return;
 				}
 	
-				ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_RECEIVED, new Object[] {
+				GlobalEventBus.get().dispatchEvent(new DiscordCommandReceivedEvent(
 						StringHelper.getRawCharacterString(event.getMessage().getAuthor().get().getUsername()), 
-						userCommand.getValueA(),
+						userCommand.getValueA(), 
 						channel.getType(), 
-						ApplicationCommandType.NATIVE});
+						ApplicationCommandType.NATIVE));
 				
 				if(CooldownHelper.canExecuteCommand(commandCooldown, event.getMessage().getAuthor().get(), channel)) {
 					this.commandCooldown = CooldownHelper.wipeNullInstance(commandCooldown);
@@ -290,12 +296,12 @@ public class ClientBuilder {
 			return;
 		}
 		
-		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMAND_RECEIVED, new Object[] {
+		GlobalEventBus.get().dispatchEvent(new DiscordCommandReceivedEvent(
 				StringHelper.getRawCharacterString(event.getInteraction().getUser().getUsername()), 
-				cmd.getInternalName(),
+				event.getCommandName(), 
 				channel.getType(), 
-				type});
-		
+				type));
+
 		if(CooldownHelper.canExecuteCommand(commandCooldown, event.getInteraction().getUser(), channel)) {
 			this.commandCooldown = CooldownHelper.wipeNullInstance(commandCooldown);
 			
@@ -514,11 +520,11 @@ public class ClientBuilder {
 			return;
 		}
 		
-		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.COMMMAND_ERROR, new Object[] {
+		GlobalEventBus.get().dispatchEvent(new DiscordCommandErrorEvent(
 				StringHelper.getRawCharacterString(user.getUsername()), 
 				commandName, 
-				helpMessage.orElse(null), 
-				channel.getType()});
+				helpMessage,
+				channel.getType()));
 				
 		if(helpMessage.isPresent()) {
 			final String cmdPrefix = helpMessage.get().getCommandType() == ApplicationCommandType.NATIVE ? botPrefix : "/";
@@ -610,8 +616,8 @@ public class ClientBuilder {
 			createApplicationCommandListener();
 			
 			createComponentListener();
-					
-			ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.CLIENT_INSTANCE_CONNECTED, new Object[] {gateway});	
+			
+			GlobalEventBus.get().dispatchEvent(new InstanceConnectedEvent(gateway));					
 		}finally {
 			this.lock.unlock();
 		}
