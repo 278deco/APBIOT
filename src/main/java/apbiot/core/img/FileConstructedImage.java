@@ -1,6 +1,7 @@
 package apbiot.core.img;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Path;
 
 import javax.imageio.ImageIO;
@@ -8,7 +9,8 @@ import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
 
 import apbiot.core.io.resources.Resource;
-import marshmalliow.core.objects.Directory;
+import marshmalliow.core.directory.Directory;
+import marshmalliow.core.directory.LocalDirectory;
 
 public class FileConstructedImage extends ConstructedImage {
 
@@ -60,7 +62,7 @@ public class FileConstructedImage extends ConstructedImage {
 	 */
 	public FileConstructedImage(Path path, byte[] imgData, String name, ImageStatus status) throws IOException {
 		super(imgData, name, status);
-		this.directory = new Directory(path);
+		this.directory = new LocalDirectory("dir_"+name, path);
 	}
 	
 	/**
@@ -111,7 +113,9 @@ public class FileConstructedImage extends ConstructedImage {
 	 * Save the image stored in this instance at the new path given
 	 * @param savePath the new path
 	 * @throws IOException
+	 * @deprecated use {@link #copyToDirectory(Directory)} instead
 	 */
+	@Deprecated(since = "6.2.3", forRemoval = true)
 	public void saveImage(Path savePath) throws IOException {
 		if(!isDisposed) throw new IllegalAccessError("Cannot access to the image's properties if it hasn't been disposed!");
 		ImageWriter writer = ImageIO.getImageWritersByFormatName("PNG").next();
@@ -132,24 +136,31 @@ public class FileConstructedImage extends ConstructedImage {
 	}
 	
 	/**
+	 * Save the image stored in this instance at the directory given
+	 * @param directory the directory where to copy the image
+	 * @throws IOException
+	 */
+	public void copyToDirectory(Directory directory) throws IOException {
+		if(!isDisposed) throw new IllegalAccessError("Cannot access to the image's properties if it hasn't been disposed!");
+		
+		try(final OutputStream os = directory.openOutputStream(this.nameID+".png")) {
+			ImageIO.write(this.image, "PNG", os);
+		}catch(IOException e) {
+			throw e;
+		}
+	}
+	
+	/**
 	 * Save the image stored in this instance at its original path
 	 * @throws IOException
 	 */
 	public void saveImage() throws IOException {
 		if(!isDisposed) throw new IllegalAccessError("Cannot access to the image's properties if it hasn't been disposed!");
-		ImageWriter writer = ImageIO.getImageWritersByFormatName("PNG").next();
-		FileImageOutputStream destination = null;
-		
-		try {
-			destination = new FileImageOutputStream(this.directory.getPath().resolve(this.nameID+".png").toFile());
-			writer.setOutput(destination);
-			writer.write(this.image);
-			
-		}finally {
-			if(destination != null) {
-				destination.flush();
-				destination.close();
-			}
+
+		try(final OutputStream os = this.directory.openOutputStream(this.nameID+".png")) {
+			ImageIO.write(this.image, "PNG", os);
+		}catch(IOException e) {
+			throw e;
 		}
 	}
 

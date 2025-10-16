@@ -6,7 +6,7 @@ import java.util.Objects;
 import apbiot.core.img.ConstructedImage;
 import apbiot.core.img.ConstructedImage.ImageStatus;
 import discord4j.rest.util.Image;
-import marshmalliow.core.objects.Directory;
+import marshmalliow.core.directory.Directory;
 
 public class ImageHelper {
 	
