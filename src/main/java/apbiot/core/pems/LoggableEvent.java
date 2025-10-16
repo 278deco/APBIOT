@@ -2,11 +2,7 @@ package apbiot.core.pems;
 
 import org.apache.logging.log4j.Level;
 
-public abstract class LoggableProgramEvent extends ProgramEvent {
-	
-	public LoggableProgramEvent(Object[] arguments) {
-		super(arguments);
-	}
+public interface LoggableEvent extends Event {
 	
 	public abstract String getLoggerMessage();
 	public abstract LogPriority getLogPriority();

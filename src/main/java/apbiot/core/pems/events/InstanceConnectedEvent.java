@@ -1,17 +1,9 @@
 package apbiot.core.pems.events;
 
-import apbiot.core.pems.LoggableProgramEvent;
+import apbiot.core.pems.LoggableEvent;
 import discord4j.core.GatewayDiscordClient;
 
-public class InstanceConnectedEvent extends LoggableProgramEvent {
-
-	public InstanceConnectedEvent(Object[] arguments) {
-		super(arguments);
-	}
-	
-	public GatewayDiscordClient getGateway() {
-		return getEventArgument(GatewayDiscordClient.class, 0);
-	}
+public record InstanceConnectedEvent(GatewayDiscordClient client) implements LoggableEvent {
 
 	@Override
 	public String getLoggerMessage() {
@@ -24,7 +16,7 @@ public class InstanceConnectedEvent extends LoggableProgramEvent {
 	}
 
 	@Override
-	public EventPriority getPriority() {
-		return EventPriority.HIGH;
+	public int getArgumentCount() {
+		return 1;
 	}	
 }

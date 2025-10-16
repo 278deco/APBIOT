@@ -12,4 +12,8 @@ public class EventDispatchException extends RuntimeException {
 		super(msg);
 	}
 	
+	public EventDispatchException(String msg, Throwable cause) {
+		super(msg, cause);
+	}
+	
 }

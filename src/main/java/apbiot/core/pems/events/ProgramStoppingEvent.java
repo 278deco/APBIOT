@@ -1,16 +1,12 @@
 package apbiot.core.pems.events;
 
-import apbiot.core.pems.LoggableProgramEvent;
+import apbiot.core.pems.LoggableEvent;
 
-public class ProgramStoppingEvent extends LoggableProgramEvent {
-	
-	public ProgramStoppingEvent(Object[] arguments) {
-		super(arguments);
-	}
+public record ProgramStoppingEvent() implements LoggableEvent {
 
 	@Override
 	public String getLoggerMessage() {
-		return null;
+		return "Program is stopping..." ;
 	}	
 	
 	@Override
@@ -19,7 +15,7 @@ public class ProgramStoppingEvent extends LoggableProgramEvent {
 	}
 
 	@Override
-	public EventPriority getPriority() {
-		return EventPriority.HIGH;
+	public int getArgumentCount() {
+		return 0;
 	}
 }

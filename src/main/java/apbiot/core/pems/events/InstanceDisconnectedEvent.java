@@ -1,12 +1,8 @@
 package apbiot.core.pems.events;
 
-import apbiot.core.pems.LoggableProgramEvent;
+import apbiot.core.pems.LoggableEvent;
 
-public class InstanceDisconnectedEvent extends LoggableProgramEvent {
-
-	public InstanceDisconnectedEvent(Object[] arguments) {
-		super(arguments);
-	}
+public record InstanceDisconnectedEvent() implements LoggableEvent {
 
 	@Override
 	public String getLoggerMessage() {
@@ -19,7 +15,7 @@ public class InstanceDisconnectedEvent extends LoggableProgramEvent {
 	}
 
 	@Override
-	public EventPriority getPriority() {
-		return EventPriority.HIGH;
+	public int getArgumentCount() {
+		return 0;
 	}	
 }

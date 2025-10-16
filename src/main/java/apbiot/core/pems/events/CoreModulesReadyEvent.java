@@ -1,16 +1,12 @@
 package apbiot.core.pems.events;
 
-import apbiot.core.pems.ProgramEvent;
+import apbiot.core.pems.Event;
 
-public class CoreModulesReadyEvent extends ProgramEvent {
-
-	public CoreModulesReadyEvent(Object[] arguments) {
-		super(arguments);
-	}
+public record CoreModulesReadyEvent() implements Event {
 
 	@Override
-	public EventPriority getPriority() {
-		return EventPriority.INTERMEDIATE;
+	public int getArgumentCount() {
+		return 0;
 	}
 
 }
