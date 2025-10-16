@@ -3,38 +3,33 @@ package apbiot.core.modules;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Set;
 import java.util.UUID;
-
-import javax.management.InstanceNotFoundException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import apbiot.core.exceptions.CoreModuleLaunchingException;
-import apbiot.core.exceptions.CoreModuleLoadingException;
-import apbiot.core.exceptions.CoreModuleShutdownException;
 import apbiot.core.i18n.LanguageManager;
 import apbiot.core.io.json.JSONClientConfiguration;
-import apbiot.core.pems.BaseProgramEventEnum;
-import apbiot.core.pems.ProgramEvent;
-import apbiot.core.pems.ProgramEvent.EventPriority;
-import apbiot.core.pems.ProgramEventManager;
-import apbiot.core.pems.events.DirectoriesLoadedEvent;
+import apbiot.core.io.json.JSONClientConfigurationBuilder;
+import apbiot.core.pems.GlobalActionBus;
+import apbiot.core.pems.GlobalEventBus;
+import apbiot.core.pems.commands.RegisterAdditionalFilesAction;
+import apbiot.core.pems.commands.RegisterConfigurationFilesAction;
+import apbiot.core.pems.commands.RegisterDirectoriesAction;
+import apbiot.core.pems.events.ConfigurationLoadedEvent;
 import apbiot.core.utils.References;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.gateway.intent.IntentSet;
-import marshmalliow.core.builder.DirectoryManager;
 import marshmalliow.core.builder.IOCacheManager;
-import marshmalliow.core.builder.IOFactory;
 import marshmalliow.core.builder.JSONFactory;
-import marshmalliow.core.objects.Directory;
+import marshmalliow.core.directory.GlobalDirectoryRegistry;
+import marshmalliow.core.file.ReadMode;
+import marshmalliow.core.file.SaveMode;
+import marshmalliow.core.json.objects.JSONObject;
 
 public class FileCoreModule extends CoreModule {
 
 	private static final Logger LOGGER = LogManager.getLogger(FileCoreModule.class);
-
-	private DirectoryManager directoryManager;
 
 	public FileCoreModule() {
 		super(UUID.randomUUID());
@@ -56,19 +51,9 @@ public class FileCoreModule extends CoreModule {
 		this.coreHealthy.set(true);
 		this.coreRunning.set(true);
 
-		this.directoryManager = new DirectoryManager();
+		GlobalDirectoryRegistry.get(); // Initialize the global directory registry
 		IOCacheManager.get();
-		IOFactory.get();
 		JSONFactory.get();
-
-		try {
-			IOFactory.bindDirectoryManager(this.directoryManager);
-			JSONFactory.withDirectoryManager(this.directoryManager);
-		} catch (InstanceNotFoundException e) {
-			throw new CoreModuleLoadingException("", e);
-		}finally {
-			this.coreRunning.set(false);
-		}
 	}
 
 	@Override
@@ -79,13 +64,16 @@ public class FileCoreModule extends CoreModule {
 			final String configFileName = References.PROD_ENVIRONMENT ? "config" : "config_sdev";
 
 			if(Files.exists(configPath.resolve(configFileName+".json"))) {
-				this.directoryManager.registerNewDirectory(new Directory("main:configuration", configPath)); //Register the configuration directory
+				GlobalDirectoryRegistry.get().register("main:configuration", configPath.toUri()); //Register the configuration directory
 
 				JSONClientConfiguration configurationFile = null;
 				try {
-					
-					configurationFile = JSONFactory.get().createJSONFileFromBase(JSONClientConfiguration.class, "main:configuration", configFileName, null);
-					configurationFile.readFile();
+					configurationFile =  JSONClientConfigurationBuilder.builder(GlobalDirectoryRegistry.get())
+							.directoryId("main:configuration")
+							.name(configFileName)
+							.base(new JSONObject())
+							.build(); 
+					configurationFile.readFile(ReadMode.NORMAL);
 				} catch (IOException e) {
 					throw new CoreModuleLaunchingException("Couldn't correctly read config.json file",e);
 				}
@@ -99,8 +87,10 @@ public class FileCoreModule extends CoreModule {
 				if(configurationFile.getPrefix() == null || intentset == null || presence == null) {
 					throw new CoreModuleLaunchingException("Missing mandatory values in configuration file.");
 				}
-
-				ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.CONFIGURATION_LOADED_EVENT, new Object[] {configurationFile.getPrefix(), intentset, presence, configurationFile.getVersion()});
+				
+				GlobalActionBus.get().dispatchAction(new RegisterDirectoriesAction());
+				GlobalActionBus.get().dispatchAction(new RegisterConfigurationFilesAction());
+				GlobalEventBus.get().dispatchEvent(new ConfigurationLoadedEvent(configurationFile.getPrefix(), intentset, presence, configurationFile.getVersion()));
 			}else {
 				LOGGER.warn("No configuration file was found. Some client's properties might not be initialized correctly.");
 			}
@@ -120,26 +110,18 @@ public class FileCoreModule extends CoreModule {
 
 	@Override
 	public void launch() throws CoreModuleLaunchingException {
-		ProgramEventManager.get().dispatchEvent(BaseProgramEventEnum.FILES_REGISTRATION_EVENT);
+		GlobalActionBus.get().dispatchAction(new RegisterAdditionalFilesAction());
 	}
 
 	@Override
 	public void shutdown() throws CoreModuleShutdownException {
 		this.coreRunning.set(true);
 		try {
-			IOCacheManager.get().saveAll();
+			IOCacheManager.get().saveAll(SaveMode.NORMAL);
 		} catch (IOException e) {
 			throw new CoreModuleShutdownException("Couldn't shutdown saved files...", e);
 		}finally {
 			this.coreRunning.set(false);
-		}
-	}
-
-	@Override
-	public void onEventReceived(ProgramEvent e, EventPriority priority) {
-		if(e instanceof DirectoriesLoadedEvent) {
-			final Set<Directory> directories = ((DirectoriesLoadedEvent)e).getDirectories();
-			if(this.directoryManager != null && directories != null) this.directoryManager.registerNewDirectories(directories);
 		}
 	}
 
