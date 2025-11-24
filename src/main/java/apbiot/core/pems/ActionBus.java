@@ -7,10 +7,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import apbiot.core.pems.exceptions.ActionDispatchException;
 
 public class ActionBus {
 
+	private static final Logger LOGGER = LogManager.getLogger(ActionBus.class);
+	
 	private static final ReentrantReadWriteLock LOCK = new ReentrantReadWriteLock();
 	
 	private final Map<Class<?>, SubscriberMethod> subs = new HashMap<>();
@@ -68,7 +73,8 @@ public class ActionBus {
 			if(method != null) {
 				return method.handle(action);
 			}else {
-				throw new ActionDispatchException("No action handler registered for action "+action.getClass());
+				LOGGER.warn("No action handler registered for action {}", action.getClass());
+				return null;
 			}
 		} finally {
 			LOCK.readLock().unlock();
@@ -94,11 +100,11 @@ public class ActionBus {
 		}
 		
 		@SuppressWarnings("unchecked")
-		public <C extends Action<R>, R> R handle(C action) {
+		public <C extends Action<R>, R> R handle(C action) throws ActionDispatchException {
 			try {
 				return (R) method.invoke(listener, action);
 			}catch (Exception e) {
-				throw new RuntimeException("Error while invoking action handler method "+method+" on listener "+listener, e);
+				throw new ActionDispatchException("Error while invoking action handler method "+method+" on listener "+listener, e);
 			}
 		}
 	}
