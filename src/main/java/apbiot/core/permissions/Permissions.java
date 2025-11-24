@@ -6,8 +6,8 @@ import discord4j.rest.util.Permission;
 
 public class Permissions {
 	
-	private Optional<String> roleName;
-	private Optional<Permission> perm;
+	private Optional<String> roleName = Optional.empty();
+	private Optional<Permission> perm = Optional.empty();
 	
 	public Permissions(String roleName) {
 		this.roleName = Optional.of(roleName);
